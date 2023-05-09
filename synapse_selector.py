@@ -3,16 +3,18 @@ import sys
 
 import numpy as np
 import pandas as pd
+import plotly
 import plotly.express as px
-from PyQt5 import QtWebEngineWidgets
-from PyQt5.QtCore import Qt, QRegExp
-from PyQt5.QtWidgets import (QApplication, QLabel, QSpinBox, QFileDialog,
+from PyQt6 import QtWebEngineWidgets
+from PyQt6.QtCore import Qt#, QRegExp
+from PyQt6.QtWidgets import (QApplication, QLabel, QSpinBox, QFileDialog,
                              QHBoxLayout, QMessageBox, QCheckBox, QLineEdit,
                              QPushButton, QVBoxLayout, QWidget, QDoubleSpinBox)
-from PyQt5.QtGui import QFont, QRegExpValidator
+from PyQt6.QtGui import QFont#, QRegExpValidator
 from scipy.signal import find_peaks
 
 home = os.getenv("HOME")
+
 
 class ui_window(QWidget):
     def __init__(self):
@@ -40,20 +42,21 @@ class ui_window(QWidget):
         self.buttonlayout.addWidget(self.back_button)
         # threshold start and stop
         self.threshold_start_desc = QLabel('Baseline start:')
-        self.threshold_start_desc.setAlignment(Qt.AlignRight)
+        self.threshold_start_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.buttonlayout.addWidget(self.threshold_start_desc)
         self.threshold_start_input = QSpinBox()
         self.threshold_start_input.setValue(0)
         self.buttonlayout.addWidget(self.threshold_start_input)
         self.threshold_stop_desc = QLabel('Baseline stop:')
-        self.threshold_stop_desc.setAlignment(Qt.AlignRight)
+        self.threshold_stop_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.buttonlayout.addWidget(self.threshold_stop_desc)
         self.threshold_stop_input = QSpinBox()
         self.threshold_stop_input.setValue(70)
+        
         self.buttonlayout.addWidget(self.threshold_stop_input)
         # threshold multiplier
         self.threshold_desc = QLabel('Threshold multiplier:')
-        self.threshold_desc.setAlignment(Qt.AlignRight)
+        self.threshold_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.buttonlayout.addWidget(self.threshold_desc)
         self.threshold_input = QDoubleSpinBox()
         self.threshold_input.setSingleStep(0.1)
@@ -71,7 +74,7 @@ class ui_window(QWidget):
         # --------------------- second layer for spike selection --------------------- #
         self.response_layout = QHBoxLayout()
         self.activate_response_selection = QCheckBox('Select Responses')
-        self.activate_response_selection.setCheckState(False)
+        self.activate_response_selection.setChecked(False)
         self.activate_response_selection.stateChanged.connect(self.toggle_response_selection)
         self.response_layout.addWidget(self.activate_response_selection)
         # stim frames
@@ -80,11 +83,11 @@ class ui_window(QWidget):
         self.stimframes_input = QLineEdit('50,60')
         # Define the regular expression pattern
         pattern = "^(\d+,)*(\d+)?$"
-        regexp = QRegExp(pattern)
+        #regexp = QRegExp(pattern)
         # Create a validator using the regular expression
-        validator = QRegExpValidator(regexp)
+        #validator = QRegExpValidator(regexp)
         # Set the validator for your QLineEdit
-        self.stimframes_input.setValidator(validator)
+        #self.stimframes_input.setValidator(validator)
         self.stimframes_input.setMaximumWidth(200)
         self.stimframes_input.setEnabled(False)
         self.stimframes_input.editingFinished.connect(self.toggle_response_selection)
@@ -103,9 +106,9 @@ class ui_window(QWidget):
         self.response_selection_layout.addWidget(self.response_input_label)
         self.response_input = QLineEdit()
         self.response_input.setMaximumWidth(200)
-        regex2 = QRegExp("[0-9]*")
-        validator2 = QRegExpValidator(regex2)
-        self.response_input.setValidator(validator2)
+        #regex2 = QRegExp("[0-9]*")
+        #validator2 = QRegExpValidator(regex2)
+        #self.response_input.setValidator(validator2)
         self.response_input.returnPressed.connect(self.add_response)
         self.response_selection_layout.addWidget(self.response_input)
         self.response_input.setEnabled(False)
@@ -130,12 +133,7 @@ class ui_window(QWidget):
 
 
     def get_output_folder(self):
-        self.output_folder = QFileDialog.getExistingDirectory(
-                                                    self,
-                                                    "Open a folder",
-                                                    home,
-                                                    QFileDialog.ShowDirsOnly
-                                                    )
+        self.output_folder = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
         self.keep_folder = os.path.join(self.output_folder,'keep_folder')
         self.trash_folder = os.path.join(self.output_folder,'trash_folder')
         if not os.path.exists(self.keep_folder):
@@ -186,14 +184,23 @@ class ui_window(QWidget):
         self.peaks = []
         self.manual_peaks = []
         self.peak_selection_buttons = []
+        self.threshold_start_input.setMaximum(self.synapse_response_df.shape[0])
+        self.threshold_stop_input.setMaximum(self.synapse_response_df.shape[0])
     
     def plot(self):
         self.y = self.synapse_response_df[self.columns[self.idx]].to_list()
         x = np.arange(len(self.y))
-        std_ = np.std(self.y[self.threshold_start_input.value():self.threshold_stop_input.value()])
-        mean_ = np.mean(self.y[self.threshold_start_input.value():self.threshold_stop_input.value()])
-        self.threshold = mean_ + self.threshold_input.value() * std_
-        self.fig = px.line(x=x,y=self.y)
+        if self.threshold_stop_input.value() > 0:
+            std_ = np.std(self.y[self.threshold_start_input.value():self.threshold_stop_input.value()])
+            mean_ = np.mean(self.y[self.threshold_start_input.value():self.threshold_stop_input.value()])
+            self.threshold = mean_ + self.threshold_input.value() * std_
+        else:
+            std_ = np.std(self.y)
+            mean_ = np.median(self.y)
+            self.threshold = mean_ + self.threshold_input.value() * std_
+        # 
+
+        self.fig = px.line(x=x, y=self.y)
         self.fig.add_hline(y=self.threshold,line_color='red',line_dash='dash')
         if self.activate_response_selection.isChecked():
             self.peak_detection()
@@ -203,8 +210,11 @@ class ui_window(QWidget):
             for peak in self.peaks:
                 self.fig.add_annotation(x=peak,y=self.y[peak],text=f'frame: {peak}, height: {self.y[peak]}', showarrow=True)
             self.peak_selection()
+        self.fig.update_layout(xaxis=dict(rangeslider=dict(visible=True),
+                             type="linear"))
         self.trace_plot.setHtml(
             self.fig.to_html(include_plotlyjs="cdn")
+            
         )
         self.current_state_indicator.setText(f'{self.idx+1}/{len(self.columns)}')
     
@@ -282,7 +292,10 @@ class ui_window(QWidget):
             self.patience_input.setEnabled(True)
             self.response_input.setEnabled(True)
             self.patience = self.patience_input.value()
-            self.stimframes = [int(frame) for frame in self.stimframes_input.text().split(',')]
+            if len(self.stimframes_input.text()) > 0:
+                self.stimframes = [int(frame) for frame in self.stimframes_input.text().split(',')]
+            else:
+                self.stimframes = []
         else:
             for button in self.peak_selection_buttons:
                 self.response_selection_layout.removeWidget(button)
@@ -304,9 +317,13 @@ class ui_window(QWidget):
     
     def peak_detection(self):
         self.peaks = []
-        for frame in self.stimframes:
-            tmp_peaks,_ = find_peaks(self.y[frame:frame+self.patience],height=self.threshold)
-            self.peaks += [peak+frame for peak in tmp_peaks]
+        if len(self.stimframes) > 0:
+            for frame in self.stimframes:
+                tmp_peaks,_ = find_peaks(self.y[frame:frame+self.patience],height=self.threshold)
+                self.peaks += [peak+frame for peak in tmp_peaks]
+        else:
+            tmp_peaks,_ = find_peaks(self.y,height=self.threshold)
+            self.peaks += list(tmp_peaks)
         self.peaks += self.manual_peaks
 
     def peak_selection(self):
@@ -327,7 +344,7 @@ def main():
     main = ui_window()
     main.show()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":
