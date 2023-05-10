@@ -9,7 +9,8 @@ from PyQt6 import QtWebEngineWidgets
 from PyQt6.QtCore import Qt#, QRegExp
 from PyQt6.QtWidgets import (QApplication, QLabel, QSpinBox, QFileDialog,
                              QHBoxLayout, QMessageBox, QCheckBox, QLineEdit,
-                             QPushButton, QVBoxLayout, QWidget, QDoubleSpinBox)
+                             QPushButton, QVBoxLayout, QWidget, QDoubleSpinBox,
+                             QVBoxLayout)
 from PyQt6.QtGui import QFont#, QRegExpValidator
 from scipy.signal import find_peaks
 
@@ -61,7 +62,14 @@ class ui_window(QWidget):
         self.threshold_input = QDoubleSpinBox()
         self.threshold_input.setSingleStep(0.1)
         self.threshold_input.setValue(4)
+        self.threshold_input.valueChanged.connect(self.plot)
         self.buttonlayout.addWidget(self.threshold_input)
+        # stimulation used
+        self.stim_used_box = QCheckBox('Stimulation used')
+        self.stim_used_box.setChecked(True)
+        self.stim_used = True
+        self.stim_used_box.stateChanged.connect(self.toggle_stim_used)
+        self.buttonlayout.addWidget(self.stim_used_box)
         # trash
         self.trash_button = QPushButton('trash')
         self.trash_button.clicked.connect(self.trash_trace)
@@ -98,6 +106,13 @@ class ui_window(QWidget):
         self.patience_input.setValue(10)
         self.patience_input.setEnabled(False)
         self.response_layout.addWidget(self.patience_input)
+        # nms toggle
+        self.non_max_supression_button = QCheckBox('Non-Maximum Supression')
+        self.non_max_supression_button.setChecked(False)
+        self.use_nms = False
+        self.non_max_supression_button.stateChanged.connect(self.nms_toggle)
+        self.response_layout.addWidget(self.non_max_supression_button)
+        
         self.response_layout.addStretch()
         self.mainwindowlayout.addLayout(self.response_layout)
         # selection box layout
@@ -114,6 +129,13 @@ class ui_window(QWidget):
         self.response_input.setEnabled(False)
         self.response_selection_layout.addStretch()
         self.mainwindowlayout.addLayout(self.response_selection_layout)
+        # --------------------------- dynamic button layout -------------------------- #
+        self.response_button_v_layout = QVBoxLayout()
+        self.response_button_layout_list = [QHBoxLayout()]
+        self.response_button_list = []
+        self.response_button_v_layout.addLayout(self.response_button_layout_list[0])
+        self.mainwindowlayout.addLayout(self.response_button_v_layout)
+        # ------------------------------ start programm ------------------------------ #
         self.setLayout(self.mainwindowlayout)
         # output directory
         self.get_output_folder()
@@ -129,8 +151,6 @@ class ui_window(QWidget):
         self.threshold_start_input.valueChanged.connect(self.plot)
         self.patience_input.valueChanged.connect(self.toggle_response_selection)
         self.selected_peaks = []
-
-
 
     def get_output_folder(self):
         self.output_folder = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
@@ -186,11 +206,12 @@ class ui_window(QWidget):
         self.peak_selection_buttons = []
         self.threshold_start_input.setMaximum(self.synapse_response_df.shape[0])
         self.threshold_stop_input.setMaximum(self.synapse_response_df.shape[0])
+        self.labels = []
     
     def plot(self):
         self.y = self.synapse_response_df[self.columns[self.idx]].to_list()
         x = np.arange(len(self.y))
-        if self.threshold_stop_input.value() > 0:
+        if self.stim_used and self.threshold_stop_input.value() > 0:
             std_ = np.std(self.y[self.threshold_start_input.value():self.threshold_stop_input.value()])
             mean_ = np.mean(self.y[self.threshold_start_input.value():self.threshold_stop_input.value()])
             self.threshold = mean_ + self.threshold_input.value() * std_
@@ -202,14 +223,20 @@ class ui_window(QWidget):
 
         self.fig = px.line(x=x, y=self.y)
         self.fig.add_hline(y=self.threshold,line_color='red',line_dash='dash')
+        
         if self.activate_response_selection.isChecked():
-            self.peak_detection()
-            for frame in self.stimframes:
-                self.fig.add_vrect(x0=frame, x1=frame+self.patience, 
-                    fillcolor="yellow", opacity=0.25, line_width=0)
-            for peak in self.peaks:
-                self.fig.add_annotation(x=peak,y=self.y[peak],text=f'frame: {peak}, height: {self.y[peak]}', showarrow=True)
+            if self.stim_used:
+                for frame in self.stimframes:
+                    self.fig.add_vrect(x0=frame, x1=frame+self.patience, 
+                        fillcolor="yellow", opacity=0.25, line_width=0)
             self.peak_selection()
+            for i,peak in enumerate(self.peaks):
+                if self.use_nms:
+                    if self.peak_selection_buttons[i].isChecked():
+                        self.labels.append(peak)
+                        self.fig.add_annotation(x=peak,y=self.y[peak],text=f'frame: {peak}, height: {self.y[peak]}', showarrow=True)
+                else:
+                    self.fig.add_annotation(x=peak,y=self.y[peak],text=f'frame: {peak}, height: {self.y[peak]}', showarrow=True)
         self.fig.update_layout(xaxis=dict(rangeslider=dict(visible=True),
                              type="linear"))
         self.trace_plot.setHtml(
@@ -244,11 +271,22 @@ class ui_window(QWidget):
             for button in self.peak_selection_buttons:
                 if not button.isChecked():
                     continue
+                peak_tp = int(button.text().split(" ")[1])
+                amplitude = self.y[peak_tp]
+                baseline = np.min(self.y[max(0,peak_tp-15):peak_tp])
+                relative_height = amplitude-baseline
+                relative_height50 = relative_height/2 + baseline
+                tmp = np.where(self.y[peak_tp:]<relative_height50)[0]
+                decay50 = np.nan
+                if len(tmp) > 0:
+                    decay50 = tmp[0]
                 self.selected_peaks.append([
                     self.filename,
                     self.columns[self.idx],
-                    button.text().split(" ")[1],
-                    self.y[int(button.text().split(" ")[1])]
+                    peak_tp,
+                    amplitude,
+                    relative_height,
+                    decay50
                 ])
         self.next()
 
@@ -258,6 +296,7 @@ class ui_window(QWidget):
         self.next()
 
     def next(self):
+        self.labels = []
         self.idx += 1
         if len(self.columns) == self.idx:
             for button in self.peak_selection_buttons:
@@ -283,19 +322,21 @@ class ui_window(QWidget):
         trash_df.to_csv(os.path.join(self.current_trash_folder,self.filename),index=False)
         if len(self.selected_peaks) > 0:
             output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
-            peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','Amplitude'])
-            peak_df.to_csv(os.path.join(self.current_keep_folder,output_name),index=False)
-
+        peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay50'])
+        peak_df.to_csv(os.path.join(self.current_keep_folder,output_name),index=False)
+            
     def toggle_response_selection(self):
         if self.activate_response_selection.isChecked():
-            self.stimframes_input.setEnabled(True)
-            self.patience_input.setEnabled(True)
+            if self.stim_used_box.isChecked():
+                self.stimframes_input.setEnabled(True)
+                self.patience_input.setEnabled(True)
             self.response_input.setEnabled(True)
             self.patience = self.patience_input.value()
             if len(self.stimframes_input.text()) > 0:
                 self.stimframes = [int(frame) for frame in self.stimframes_input.text().split(',')]
             else:
                 self.stimframes = []
+            self.peak_detection()
         else:
             for button in self.peak_selection_buttons:
                 self.response_selection_layout.removeWidget(button)
@@ -306,44 +347,101 @@ class ui_window(QWidget):
             self.stimframes_input.setEnabled(False)
             self.patience_input.setEnabled(False)
             self.response_input.setEnabled(False)
+            self.labels = []
         self.plot()
     
     def add_response(self):
         peak = int(self.response_input.text())
         if peak not in self.peaks and peak not in self.manual_peaks:
             self.manual_peaks.append(peak)
-        self.peak_detection()
+        self.peaks = self.automatic_peaks + self.manual_peaks
         self.plot()
     
     def peak_detection(self):
         self.peaks = []
-        if len(self.stimframes) > 0:
+        if self.stim_used and len(self.stimframes) > 0:
             for frame in self.stimframes:
                 tmp_peaks,_ = find_peaks(self.y[frame:frame+self.patience],height=self.threshold)
                 self.peaks += [peak+frame for peak in tmp_peaks]
         else:
             tmp_peaks,_ = find_peaks(self.y,height=self.threshold)
             self.peaks += list(tmp_peaks)
+        self.automatic_peaks = self.peaks.copy()
         self.peaks += self.manual_peaks
 
     def peak_selection(self):
+        self.peak_detection()
         for button in self.peak_selection_buttons:
             self.response_selection_layout.removeWidget(button)
             button.deleteLater()
             button = None
         self.peak_selection_buttons = []
-        for peak in self.peaks:
+        # have 10 buttons per layout
+        current_layout_count = 0
+        current_layout_row = 0
+        for i,peak in enumerate(self.peaks):
+            if current_layout_count > 14:
+                current_layout_count = 0
+                current_layout_row += 1
+                # if needed add new layout
+                if len(self.response_button_layout_list)-1 <= current_layout_row:
+                    self.response_button_layout_list.append(QHBoxLayout())
+                    self.response_button_v_layout.addLayout(self.response_button_layout_list[-1])
             self.peak_selection_buttons.append(QCheckBox(f'Peak {peak}'))
-            self.response_selection_layout.addWidget(self.peak_selection_buttons[-1])
-            self.peak_selection_buttons[-1].setChecked(True)
-
+            self.response_button_layout_list[current_layout_row].addWidget(self.peak_selection_buttons[-1])
+            if peak in self.manual_peaks:
+                self.peak_selection_buttons[-1].setChecked(True)
+            elif i>0 and self.y[self.peaks[i-1]] > self.y[self.peaks[i]] and self.peaks[i-1]-self.peaks[i] < 5 and self.use_nms:
+                self.peak_selection_buttons[-1].setChecked(False)
+            else:
+                self.peak_selection_buttons[-1].setChecked(True)
+            current_layout_count += 1
+        for button in self.peak_selection_buttons:
+            button.stateChanged.connect(self.label_changed)
+    
+    def toggle_stim_used(self):
+        if self.stim_used_box.isChecked() and self.activate_response_selection.isChecked():
+            self.stim_used = True
+            self.threshold_start_input.setEnabled(True)
+            self.threshold_stop_input.setEnabled(True)
+            self.stimframes_input.setEnabled(True)
+            self.patience_input.setEnabled(True)
+            self.peak_selection()
+        else:
+            self.stimframes_input.setEnabled(False)
+            self.threshold_start_input.setEnabled(False)
+            self.threshold_stop_input.setEnabled(False)
+            self.patience_input.setEnabled(False)
+            self.stim_used = False
         
+        self.plot()
+    
+    def label_changed(self) -> None:
+        change_made = False
+        for i,peak in enumerate(self.peaks):
+            if peak in self.labels: continue
+            if self.peak_selection_buttons[i].isChecked():
+                change_made = True
+                self.labels.append(peak)
+                self.fig.add_annotation(x=peak,y=self.y[peak],text=f'frame: {peak}, height: {self.y[peak]}', showarrow=True)
+        if change_made:
+            self.fig.update_layout(xaxis=dict(rangeslider=dict(visible=True),
+                                type="linear"))
+            self.trace_plot.setHtml(
+                self.fig.to_html(include_plotlyjs="cdn"))
+    
+    def nms_toggle(self) -> None:
+        if self.non_max_supression_button.isChecked():
+            self.use_nms = True
+        else:
+            self.use_nms = False
+        self.plot()
+    
 
 def main():
     app = QApplication(sys.argv)
     main = ui_window()
     main.show()
-
     sys.exit(app.exec())
 
 
