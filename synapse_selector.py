@@ -172,13 +172,13 @@ class ui_window(QWidget):
                 caption='Select Input File',
                 filter="Text-Table(*.txt *.csv)",)[0]
         if self.filepath == "":
-            response = QMessageBox.question(
-                    self,
-                    "No File selected",
-                    "Do you wish to terminate the programm?",
-                    QMessageBox.Yes | QMessageBox.No,
-                    QMessageBox.No,)
-            if response == QMessageBox.No:
+            # question(parent: QWidget, title: str, text: str, buttons: QMessageBox.StandardButton = QMessageBox.StandardButtons(QMessageBox.Yes|QMessageBox.No), defaultButton: QMessageBox.StandardButton = QMessageBox.NoButton)
+            response = QMessageBox.question(self, 'No file selected', "Do you wish to terminate the programm?")
+            #response.setStandardButtons()
+            print(1)
+            print(response)
+
+            if response == QMessageBox.StandardButton.No :
                 self.get_filepath()
             else:
                 sys.exit()
@@ -194,7 +194,7 @@ class ui_window(QWidget):
 
     def open_file(self):
         self.synapse_response_df = pd.read_csv(self.filepath,sep=',')
-        self.meta_columns = ["file name","total frames","macro version","xSD ROI","xSD Z","ROI radius","frames baseline","frames response","abs frame #","rel frame #"]
+        self.meta_columns = ["file name","total frames","macro version","xSD ROI","xSD Z","ROI radius","frames baseline","frames response","abs frame #","rel frame #","empty","average Z"]
         self.meta_columns = [col for col in self.meta_columns if col in self.synapse_response_df.columns]
         self.columns = [col for col in self.synapse_response_df.columns if col not in self.meta_columns]
         self.idx = 0
@@ -322,8 +322,8 @@ class ui_window(QWidget):
         trash_df.to_csv(os.path.join(self.current_trash_folder,self.filename),index=False)
         if len(self.selected_peaks) > 0:
             output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
-        peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay50'])
-        peak_df.to_csv(os.path.join(self.current_keep_folder,output_name),index=False)
+            peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay50'])
+            peak_df.to_csv(os.path.join(self.current_keep_folder,output_name),index=False)
             
     def toggle_response_selection(self):
         if self.activate_response_selection.isChecked():
@@ -352,11 +352,28 @@ class ui_window(QWidget):
     
     def add_response(self):
         peak = int(self.response_input.text())
-        if peak not in self.peaks and peak not in self.manual_peaks:
+        if peak not in self.peaks and peak not in self.manual_peaks and peak >= 0 and peak < len(self.y):
             self.manual_peaks.append(peak)
+        else:
+            return
         self.peaks = self.automatic_peaks + self.manual_peaks
-        self.plot()
-    
+        # add label
+        if self.current_layout_count > 14:
+            self.current_layout_count = 0
+            self.current_layout_row += 1
+            # if needed add new layout
+            if len(self.response_button_layout_list)-1 <= self.current_layout_row:
+                self.response_button_layout_list.append(QHBoxLayout())
+                self.response_button_v_layout.addLayout(self.response_button_layout_list[-1])
+        self.peak_selection_buttons.append(QCheckBox(f'Peak {peak}'))
+        self.peak_selection_buttons[-1].setChecked(True)
+        self.response_button_layout_list[self.current_layout_row].addWidget(self.peak_selection_buttons[-1])
+        self.current_layout_count += 1
+        # add response to plot
+        self.label_changed()
+        # empty QLineEdit
+        self.response_input.setText('')
+
     def peak_detection(self):
         self.peaks = []
         if self.stim_used and len(self.stimframes) > 0:
@@ -377,25 +394,25 @@ class ui_window(QWidget):
             button = None
         self.peak_selection_buttons = []
         # have 10 buttons per layout
-        current_layout_count = 0
-        current_layout_row = 0
+        self.current_layout_count = 0
+        self.current_layout_row = 0
         for i,peak in enumerate(self.peaks):
-            if current_layout_count > 14:
-                current_layout_count = 0
-                current_layout_row += 1
+            if self.current_layout_count > 14:
+                self.current_layout_count = 0
+                self.current_layout_row += 1
                 # if needed add new layout
-                if len(self.response_button_layout_list)-1 <= current_layout_row:
+                if len(self.response_button_layout_list)-1 <= self.current_layout_row:
                     self.response_button_layout_list.append(QHBoxLayout())
                     self.response_button_v_layout.addLayout(self.response_button_layout_list[-1])
             self.peak_selection_buttons.append(QCheckBox(f'Peak {peak}'))
-            self.response_button_layout_list[current_layout_row].addWidget(self.peak_selection_buttons[-1])
+            self.response_button_layout_list[self.current_layout_row].addWidget(self.peak_selection_buttons[-1])
             if peak in self.manual_peaks:
                 self.peak_selection_buttons[-1].setChecked(True)
             elif i>0 and self.y[self.peaks[i-1]] > self.y[self.peaks[i]] and self.peaks[i-1]-self.peaks[i] < 5 and self.use_nms:
                 self.peak_selection_buttons[-1].setChecked(False)
             else:
                 self.peak_selection_buttons[-1].setChecked(True)
-            current_layout_count += 1
+            self.current_layout_count += 1
         for button in self.peak_selection_buttons:
             button.stateChanged.connect(self.label_changed)
     
@@ -413,7 +430,6 @@ class ui_window(QWidget):
             self.threshold_stop_input.setEnabled(False)
             self.patience_input.setEnabled(False)
             self.stim_used = False
-        
         self.plot()
     
     def label_changed(self) -> None:
