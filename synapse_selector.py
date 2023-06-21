@@ -70,6 +70,10 @@ class ui_window(QWidget):
         self.stim_used = True
         self.stim_used_box.stateChanged.connect(self.toggle_stim_used)
         self.buttonlayout.addWidget(self.stim_used_box)
+        # xlsx export
+        self.xlsx_export_box = QCheckBox('Export as .xlsx')
+        self.xlsx_export_box.setChecked(False)
+        self.buttonlayout.addWidget(self.xlsx_export_box)
         # trash
         self.trash_button = QPushButton('trash')
         self.trash_button.clicked.connect(self.trash_trace)
@@ -166,11 +170,11 @@ class ui_window(QWidget):
             self.filepath = QFileDialog.getOpenFileName(
                 caption='Select Input File',
                 directory=self.directory,
-                filter="Text-Table(*.txt *.csv)",)[0]
+                filter="Table(*.txt *.csv *.xlsx *.xls)",)[0]
         else:
             self.filepath = QFileDialog.getOpenFileName(
                 caption='Select Input File',
-                filter="Text-Table(*.txt *.csv)",)[0]
+                filter="Table(*.txt *.csv *.xlsx *.xls)",)[0]
         if self.filepath == "":
             # question(parent: QWidget, title: str, text: str, buttons: QMessageBox.StandardButton = QMessageBox.StandardButtons(QMessageBox.Yes|QMessageBox.No), defaultButton: QMessageBox.StandardButton = QMessageBox.NoButton)
             response = QMessageBox.question(self, 'No file selected', "Do you wish to terminate the programm?")
@@ -193,7 +197,10 @@ class ui_window(QWidget):
         self.current_file_label.setText(self.filepath)
 
     def open_file(self):
-        self.synapse_response_df = pd.read_csv(self.filepath,sep=',')
+        if self.filepath.endswith('.txt') or self.filepath.endswith('.csv'):
+            self.synapse_response_df = pd.read_csv(self.filepath,sep=',')
+        else:
+            self.synapse_response_df = pd.read_excel(self.filepath)
         self.meta_columns = ["file name","total frames","macro version","xSD ROI","xSD Z","ROI radius","frames baseline","frames response","abs frame #","rel frame #","empty","average Z"]
         self.meta_columns = [col for col in self.meta_columns if col in self.synapse_response_df.columns]
         self.columns = [col for col in self.synapse_response_df.columns if col not in self.meta_columns]
@@ -317,9 +324,16 @@ class ui_window(QWidget):
     
     def save(self):
         keep_df = self.synapse_response_df[self.meta_columns+self.keep_data]
-        keep_df.to_csv(os.path.join(self.current_keep_folder,self.filename),index=False)
         trash_df = self.synapse_response_df[self.meta_columns+self.trash_data]
-        trash_df.to_csv(os.path.join(self.current_trash_folder,self.filename),index=False)
+        if self.xlsx_export_box.isChecked():
+            keep_df.to_excel(os.path.join(self.current_keep_folder,f'{self.filename}.xlsx'),index=False)
+            trash_df.to_excel(os.path.join(self.current_trash_folder,f'{self.filename}.xlsx'),index=False)
+        elif self.filename.endswith('.xlsx') or self.filename.endwith('.xls'):
+            keep_df.to_excel(os.path.join(self.current_keep_folder,f'{self.filename}.xlsx'),index=False)
+            trash_df.to_excel(os.path.join(self.current_trash_folder,f'{self.filename}.xlsx'),index=False)
+        else:
+        	keep_df.to_csv(os.path.join(self.current_keep_folder,self.filename),index=False)
+        	trash_df.to_csv(os.path.join(self.current_trash_folder,self.filename),index=False)
         if len(self.selected_peaks) > 0:
             output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
             peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay50'])
