@@ -3,7 +3,7 @@ import sys
 
 import numpy as np
 import pandas as pd
-import plotly
+from pandas.api.types import is_string_dtype
 import plotly.express as px
 from PyQt6 import QtWebEngineWidgets
 from PyQt6.QtCore import Qt#, QRegExp
@@ -176,12 +176,8 @@ class ui_window(QWidget):
                 caption='Select Input File',
                 filter="Table(*.txt *.csv *.xlsx *.xls)",)[0]
         if self.filepath == "":
-            # question(parent: QWidget, title: str, text: str, buttons: QMessageBox.StandardButton = QMessageBox.StandardButtons(QMessageBox.Yes|QMessageBox.No), defaultButton: QMessageBox.StandardButton = QMessageBox.NoButton)
             response = QMessageBox.question(self, 'No file selected', "Do you wish to terminate the programm?")
             #response.setStandardButtons()
-            print(1)
-            print(response)
-
             if response == QMessageBox.StandardButton.No :
                 self.get_filepath()
             else:
@@ -202,7 +198,7 @@ class ui_window(QWidget):
         else:
             self.synapse_response_df = pd.read_excel(self.filepath)
         self.meta_columns = ["file name","total frames","macro version","xSD ROI","xSD Z","ROI radius","frames baseline","frames response","abs frame #","rel frame #","empty","average Z"]
-        self.meta_columns = [col for col in self.meta_columns if col in self.synapse_response_df.columns]
+        self.meta_columns = [col for col in self.synapse_response_df.columns if col in self.meta_columns or is_string_dtype(self.synapse_response_df[col])]
         self.columns = [col for col in self.synapse_response_df.columns if col not in self.meta_columns]
         self.idx = 0
         self.keep_data = []
@@ -328,12 +324,12 @@ class ui_window(QWidget):
         if self.xlsx_export_box.isChecked():
             keep_df.to_excel(os.path.join(self.current_keep_folder,f'{self.filename}.xlsx'),index=False)
             trash_df.to_excel(os.path.join(self.current_trash_folder,f'{self.filename}.xlsx'),index=False)
-        elif self.filename.endswith('.xlsx') or self.filename.endwith('.xls'):
+        elif self.filename.endswith('.xlsx') or self.filename.endswith('.xls'):
             keep_df.to_excel(os.path.join(self.current_keep_folder,f'{self.filename}.xlsx'),index=False)
             trash_df.to_excel(os.path.join(self.current_trash_folder,f'{self.filename}.xlsx'),index=False)
         else:
-        	keep_df.to_csv(os.path.join(self.current_keep_folder,self.filename),index=False)
-        	trash_df.to_csv(os.path.join(self.current_trash_folder,self.filename),index=False)
+            keep_df.to_csv(os.path.join(self.current_keep_folder,self.filename),index=False)
+            trash_df.to_csv(os.path.join(self.current_trash_folder,self.filename),index=False)
         if len(self.selected_peaks) > 0:
             output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
             peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay50'])
