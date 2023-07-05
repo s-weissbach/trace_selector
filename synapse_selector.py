@@ -24,6 +24,9 @@ class ui_window(QWidget):
         
         # layout
         self.mainwindowlayout = QVBoxLayout()
+        # top row
+        self.top_row = QHBoxLayout()
+        # status indicator
         self.current_file_label = QLabel('')
         self.mainwindowlayout.addWidget(self.current_file_label)
         self.current_state_indicator = QLabel('')
@@ -31,7 +34,18 @@ class ui_window(QWidget):
         font.setPointSize(32)
         font.setBold(True)
         self.current_state_indicator.setFont(font)
-        self.mainwindowlayout.addWidget(self.current_state_indicator)
+        self.top_row.addWidget(self.current_state_indicator)
+        self.top_row.addStretch()
+        # skip rest
+        self.skip_rest_btn = QPushButton('Skip Rest')
+        self.skip_rest_btn.clicked.connect(self.skip_rest)
+        self.top_row.addWidget(self.skip_rest_btn)
+        # open new file
+        self.open_n_file_btn = QPushButton('Open new File')
+        self.open_n_file_btn.clicked.connect(self.open_n_file)
+        self.top_row.addWidget(self.open_n_file_btn)
+        self.mainwindowlayout.addLayout(self.top_row)
+        # plot
         self.trace_plot = QtWebEngineWidgets.QWebEngineView(self)
         self.trace_plot.setMinimumSize(1500, 500)
         self.mainwindowlayout.addWidget(self.trace_plot)
@@ -317,6 +331,23 @@ class ui_window(QWidget):
                 button = None
         self.peak_selection_buttons = []
         self.plot()
+    
+    def skip_rest(self):
+        response = QMessageBox.question(self, 'Skip Rest', "Do you wish skip the remaining traces?")
+        #response.setStandardButtons()
+        if response == QMessageBox.StandardButton.No :
+            return
+        self.trash_data += [self.columns[i] for i in range(self.idx,len(self.columns))]
+        self.idx = len(self.columns)-1
+        self.next()
+    
+    def open_n_file(self):
+        response = QMessageBox.question(self, 'Open next File', "Do you wish to open new file (Results will not be saved)?")
+        #response.setStandardButtons()
+        if response == QMessageBox.StandardButton.No :
+            return
+        self.get_filepath()
+        self.open_file()
     
     def save(self):
         keep_df = self.synapse_response_df[self.meta_columns+self.keep_data]
