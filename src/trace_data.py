@@ -2,6 +2,7 @@ import pandas as pd
 from pandas.api.types import is_string_dtype
 import numpy as np
 import os
+from src.ppr_calculation import paired_pulse_ratio
 
 class synapse_response_data_class:
     def __init__(self,
@@ -43,7 +44,10 @@ class synapse_response_data_class:
     def save(self,
              export_xlsx: bool,
              keep_path: str,
-             trash_path: str) -> None:
+             trash_path: str,
+             ppr: bool,
+             stimulation_timepoints: list[int],
+             patience: int) -> None:
         '''
         Save the sorted trace to the respective keep and trash file and if peak
         detection was used also save the result table for the keep responses.
@@ -60,9 +64,22 @@ class synapse_response_data_class:
             keep_df.to_csv(os.path.join(keep_path,self.filename),index=False)
             trash_df.to_csv(os.path.join(trash_path,self.filename),index=False)
         if len(self.selected_peaks) > 0:
-            output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
+            
             peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay50'])
-            peak_df.to_csv(os.path.join(keep_path,output_name),index=False)
+            if export_xlsx:
+                output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.xlsx"
+                peak_df.to_excel(os.path.join(keep_path,output_name),index=False)
+            else:
+                output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
+                peak_df.to_csv(os.path.join(keep_path,output_name),index=False)
+            if ppr:
+                ppr_df = paired_pulse_ratio(peak_df,stimulation_timepoints,patience)
+                if export_xlsx:
+                    output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.xlsx"
+                    ppr_df.to_excel(os.path.join(keep_path,output_name),index=False)
+                else:
+                    output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.csv"
+                    ppr_df.to_csv(os.path.join(keep_path,output_name),index=False)
 
     def next(self) -> None:
         '''

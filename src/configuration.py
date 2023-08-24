@@ -1,7 +1,7 @@
 import os
 import json
 import platform
-from PyQt6.QtWidgets import QFileDialog # pylint: ignore import
+from PyQt6.QtWidgets import QFileDialog
 
 class gui_settings:
     def __init__(self) -> None:
