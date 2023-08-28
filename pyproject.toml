@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling",
+          'pyqt6',
+          'pyqt6-webengine',
+          'numpy',
+          'pandas',
+          'scipy',
+          'plotly'
+      ]
+build-backend = "hatchling.build"
+[project]
+name = "synapse_selector"
+version = "0.0.3"
+authors = [
+  { name="Stephan Weissbach", email="s.weissbach@uni-mainz.de" },
+]
+description = "Small internal package for post-selection of Glutmate/Calcium signal responses."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/s-weissbach/synapse_selector"
+"Bug Tracker" = "https://github.com/s-weissbach/synapse_selector/issues"

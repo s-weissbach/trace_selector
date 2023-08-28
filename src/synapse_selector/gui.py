@@ -16,11 +16,11 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QEventLoop
 from PyQt6.QtGui import QFont
-from src.threshold import compute_threshold
-from src.plot import trace_plot
-from src.trace_data import synapse_response_data_class
-from src.peak_dertection import peak_detection_scipy
-from src.settings_gui import SettingsWindow
+from threshold import compute_threshold
+from plot import trace_plot
+from trace_data import synapse_response_data_class
+from peak_dertection import peak_detection_scipy
+from settings_gui import SettingsWindow
 
 
 class ui_window(QWidget):

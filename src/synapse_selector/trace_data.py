@@ -2,7 +2,7 @@ import pandas as pd
 from pandas.api.types import is_string_dtype
 import numpy as np
 import os
-from src.ppr_calculation import paired_pulse_ratio
+from ppr_calculation import paired_pulse_ratio
 
 class synapse_response_data_class:
     def __init__(self,

@@ -1,5 +1,5 @@
-from src.gui import ui_window
-from src.configuration import gui_settings
+from gui import ui_window
+from configuration import gui_settings
 from PyQt6.QtWidgets import QApplication
 import sys
 
