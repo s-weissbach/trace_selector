@@ -2,10 +2,8 @@ import os
 import sys
 
 from PyQt6 import QtWebEngineWidgets
-from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QLabel,
-    QSpinBox,
     QFileDialog,
     QHBoxLayout,
     QMessageBox,
@@ -14,14 +12,15 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QWidget,
-    QDoubleSpinBox,
     QVBoxLayout,
 )
+from PyQt6.QtCore import QEventLoop
 from PyQt6.QtGui import QFont
 from src.threshold import compute_threshold
 from src.plot import trace_plot
 from src.trace_data import synapse_response_data_class
 from src.peak_dertection import peak_detection_scipy
+from src.settings_gui import SettingsWindow
 
 
 class ui_window(QWidget):
@@ -61,10 +60,12 @@ class ui_window(QWidget):
         top_row.addStretch()
         # skip rest
         skip_rest_btn = QPushButton("Skip Rest")
+        skip_rest_btn.setToolTip('Remaining traces are trashed, selection is saved.')
         skip_rest_btn.clicked.connect(self.skip_rest)
         top_row.addWidget(skip_rest_btn)
         # open new file
         open_n_file_btn = QPushButton("Open new File")
+        open_n_file_btn.setToolTip('All selections are discarded and new file is opned')
         open_n_file_btn.clicked.connect(self.open_n_file)
         top_row.addWidget(open_n_file_btn)
         mainwindowlayout.addLayout(top_row)
@@ -72,8 +73,15 @@ class ui_window(QWidget):
         #                                     row2                                     #
         # ---------------------------------------------------------------------------- #
         self.trace_plot = QtWebEngineWidgets.QWebEngineView(self)
-        self.trace_plot.setMinimumSize(1500, 500)
+        self.trace_plot.setMinimumSize(1400, 500)
         mainwindowlayout.addWidget(self.trace_plot)
+        # settings
+        settingsrow = QHBoxLayout()
+        settings_button = QPushButton("settings")
+        settings_button.clicked.connect(self.change_settings)
+        settingsrow.addWidget(settings_button)
+        settingsrow.addStretch()
+        mainwindowlayout.addLayout(settingsrow)
         # ---------------------------------------------------------------------------- #
         #                                     row 3                                    #
         # ---------------------------------------------------------------------------- #
@@ -82,40 +90,7 @@ class ui_window(QWidget):
         back_button = QPushButton("back")
         back_button.clicked.connect(self.back)
         buttonlayout.addWidget(back_button)
-        # threshold start and stop
-        threshold_start_desc = QLabel("Baseline start:")
-        threshold_start_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
-        buttonlayout.addWidget(threshold_start_desc)
-        self.threshold_start_input = QSpinBox()
-        self.threshold_start_input.setValue(self.settings_.config["threshold_start"])
-        self.threshold_start_input.valueChanged.connect(self.settings_value_changed)
-        buttonlayout.addWidget(self.threshold_start_input)
-        threshold_stop_desc = QLabel("Baseline stop:")
-        threshold_stop_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
-        buttonlayout.addWidget(threshold_stop_desc)
-        self.threshold_stop_input = QSpinBox()
-        self.threshold_stop_input.setValue(self.settings_.config["threshold_stop"])
-        self.threshold_stop_input.valueChanged.connect(self.settings_value_changed)
-        buttonlayout.addWidget(self.threshold_stop_input)
-        # threshold multiplier
-        threshold_desc = QLabel("Threshold multiplier:")
-        threshold_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
-        buttonlayout.addWidget(threshold_desc)
-        self.threshold_input = QDoubleSpinBox()
-        self.threshold_input.setSingleStep(self.settings_.config["threshold_step"])
-        self.threshold_input.setValue(self.settings_.config["threshold_mult"])
-        self.threshold_input.valueChanged.connect(self.settings_value_changed)
-        buttonlayout.addWidget(self.threshold_input)
-        # stimulation used
-        self.stim_used_box = QCheckBox("Stimulation used")
-        self.stim_used_box.setChecked(self.settings_.config["stim_used"])
-        self.stim_used_box.stateChanged.connect(self.settings_value_changed)
-        buttonlayout.addWidget(self.stim_used_box)
-        # xlsx export
-        self.xlsx_export_box = QCheckBox("Export as .xlsx")
-        self.xlsx_export_box.setChecked(self.settings_.config["export_xlsx"])
-        self.xlsx_export_box.clicked.connect(self.settings_value_changed)
-        buttonlayout.addWidget(self.xlsx_export_box)
+        buttonlayout.addStretch()
         # trash
         trash_button = QPushButton("trash")
         trash_button.clicked.connect(self.trash_trace)
@@ -128,48 +103,7 @@ class ui_window(QWidget):
         # ---------------------------------------------------------------------------- #
         #                                     row 4                                    #
         # ---------------------------------------------------------------------------- #
-        # --------------------- second layer for spike selection --------------------- #
-        response_layout = QHBoxLayout()
-        self.activate_response_selection = QCheckBox("Select Responses")
-        self.activate_response_selection.setChecked(
-            self.settings_.config["select_responses"]
-        )
-        self.activate_response_selection.stateChanged.connect(
-            self.settings_value_changed
-        )
-        response_layout.addWidget(self.activate_response_selection)
-        # stim frames
-        self.stimframes_label = QLabel("Stimulation Frames")
-        self.stimframes_label.setEnabled(self.settings_.config["stim_used"])
-        response_layout.addWidget(self.stimframes_label)
-        self.stimframes_input = QLineEdit(self.settings_.config["stim_frames"])
-        self.stimframes_input.setMaximumWidth(200)
-        self.stimframes_input.setEnabled(self.settings_.config["stim_used"])
-        self.stimframes_input.editingFinished.connect(self.settings_value_changed)
-        response_layout.addWidget(self.stimframes_input)
-        patience_label = QLabel("Patience")
-        response_layout.addWidget(patience_label)
-        self.patience_input = QSpinBox()
-        self.patience_input.setValue(self.settings_.config["stim_frames_patience"])
-        self.patience_input.setEnabled(False)
-        self.patience_input.editingFinished.connect(self.settings_value_changed)
-        response_layout.addWidget(self.patience_input)
-        # nms toggle
-        self.non_max_supression_button = QCheckBox("Non-Maximum Supression")
-        self.non_max_supression_button.setChecked(self.settings_.config["nms"])
-        self.non_max_supression_button.setEnabled(
-            self.settings_.config["select_responses"]
-        )
-        self.use_nms = self.settings_.config["nms"]
-        self.non_max_supression_button.stateChanged.connect(self.settings_value_changed)
-        response_layout.addWidget(self.non_max_supression_button)
-        # compute PPR
-        self.compute_ppr = QCheckBox("Compute PPR")
-        self.compute_ppr.setChecked(self.settings_.config["compute_ppr"])
-        self.compute_ppr.stateChanged.connect(self.settings_value_changed)
-        response_layout.addWidget(self.compute_ppr)
-        response_layout.addStretch()
-        mainwindowlayout.addLayout(response_layout)
+        # --------------------- second layer for spike selection --------------------- #        
         # selection box layout
         self.response_selection_layout = QHBoxLayout()
         self.response_input_label = QLabel("Add Response: ")
@@ -195,15 +129,9 @@ class ui_window(QWidget):
         self.open_file()
         # plot
         self.plot()
-        # link buttons to plot function
-        self.threshold_input.valueChanged.connect(self.plot)
-        self.threshold_stop_input.valueChanged.connect(self.plot)
-        self.threshold_start_input.valueChanged.connect(self.plot)
-        self.patience_input.valueChanged.connect(self.settings_value_changed)
         self.selected_peaks = []
         self.stimframes = []
         self.current_layout_count = 0
-        self.labels
 
     def initalize_file(self) -> None:
         """
@@ -212,55 +140,13 @@ class ui_window(QWidget):
         self.get_filepath()
         self.open_file()
 
-    def settings_value_changed(self) -> None:
-        """
-        Whenever any setting is changed this function is called and notes that
-        change in the settings_.config dictionary, that is used internally to
-        provide the user set configurations.
-        """
-        # update all values that might have been changed
-        self.settings_.config["threshold_mult"] = self.threshold_input.value()
-        self.settings_.config["threshold_start"] = self.threshold_start_input.value()
-        self.settings_.config["threshold_stop"] = self.threshold_stop_input.value()
-        self.settings_.config["stim_frames_patience"] = self.patience_input.value()
-        self.settings_.config["stim_frames"] = self.stimframes_input.text()
-        if len(self.settings_.config["stim_frames"]) > 0:
-            self.stimframes = [
-                int(frame) for frame in self.settings_.config["stim_frames"].split(",")
-            ]
-        else:
-            self.stimframes = []
-        self.settings_.config["nms"] = self.non_max_supression_button.isChecked()
-        self.settings_.config["stim_used"] = self.stim_used_box.isChecked()
-        self.settings_.config[
-            "select_responses"
-        ] = self.activate_response_selection.isChecked()
-        self.settings_.config["compute_ppr"] = self.compute_ppr.isChecked()
-        self.settings_.config["export_xlsx"] = self.xlsx_export_box.isChecked()
-        # ------------------------------- toggle logic ------------------------------- #
-        if self.settings_.config["stim_used"]:
-            self.stimframes_input.setEnabled(True)
-            self.stimframes_label.setEnabled(True)
-            self.compute_ppr.setEnabled(True)
-            self.patience_input.setEnabled(True)
-        else:
-            self.stimframes_input.setEnabled(False)
-            self.stimframes_label.setEnabled(False)
-            self.patience_input.setEnabled(False)
-            self.compute_ppr.setEnabled(False)
-        if self.settings_.config["select_responses"]:
-            self.response_input_label.setEnabled(True)
-            self.response_input.setEnabled(True)
-            self.compute_ppr.setEnabled(True)
-            self.non_max_supression_button.setEnabled(True)
-        else:
-            self.response_input_label.setEnabled(False)
-            self.response_input.setEnabled(False)
-            self.compute_ppr.setEnabled(False)
-            self.non_max_supression_button.setEnabled(False)
-        # update plot
-        self.settings_.write_settings()
-        self.plot()
+    def change_settings(self) -> None:
+        self.w = SettingsWindow(self.settings_,self)
+        self.w.show()
+        loop = QEventLoop()
+        self.w.destroyed.connect(loop.quit)
+        loop.exec()
+        
 
     def get_filepath(self):
         if self.directory is not None:
@@ -295,7 +181,7 @@ class ui_window(QWidget):
             os.mkdir(self.current_trash_folder)
         self.filename = os.path.basename(self.filepath)
         self.directory = os.path.dirname(self.filepath)
-        self.current_file_label.setText(self.filepath)
+        self.current_file_label.setText(self.filepath)  
 
     def open_file(self):
         """
@@ -307,14 +193,11 @@ class ui_window(QWidget):
         self.synapse_response = synapse_response_data_class(
             self.filepath, self.filename, self.settings_.config["meta_columns"]
         )
-
         self.peak_selection_buttons = []
-        # TO-DO: Check if current value > max and change it automatically
-        self.threshold_start_input.setMaximum(self.synapse_response.df.shape[0])
-        self.threshold_stop_input.setMaximum(self.synapse_response.df.shape[0])
         self.labels = []
 
     def plot(self):
+        print('plot')
         """
         Plots a trace of the response that a specific Synapse gave.
         This is done by creating a instance of trace_plot (plot.py),
@@ -324,10 +207,11 @@ class ui_window(QWidget):
         self.threshold = compute_threshold(
             self.settings_.config["stim_used"],
             self.synapse_response.intensity,
-            self.threshold_input.value(),
+            self.settings_.config["threshold_mult"],
             self.settings_.config["threshold_start"],
             self.settings_.config["threshold_stop"],
         )
+        print(self.threshold)
         # ----------------------------------- plot ----------------------------------- #
         self.tr_plot = trace_plot(
             self.synapse_response.time, self.synapse_response.intensity, self.threshold
@@ -479,7 +363,7 @@ class ui_window(QWidget):
         # have 10 buttons per layout
         self.current_layout_count = 0
         self.current_layout_row = 0
-        if self.use_nms:
+        if self.settings_.config["nms"]:
             nms_peaks = self.synapse_response.non_max_supression(self.threshold)
         else:
             nms_peaks = []

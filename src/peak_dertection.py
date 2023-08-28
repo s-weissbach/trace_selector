@@ -18,4 +18,8 @@ def peak_detection_scipy(intenstiy: np.ndarray,
     else:
         tmp_peaks,_ = find_peaks(intenstiy,height=threshold)
         peaks += list(tmp_peaks)
+    # specifically for stimulation used it might happen that peaks are detected
+    # twice, when the patience window is higher than the time between two 
+    # consecutive pulses
+    peaks = list(set(peaks))
     return peaks

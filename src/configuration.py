@@ -42,6 +42,3 @@ class gui_settings:
             os.mkdir(self.config['keep_folder'] )
         if not os.path.exists(self.config['trash_folder']):
             os.mkdir(self.config['trash_folder'])
-    
-    def refresh_plot(self) -> None:
-        pass
