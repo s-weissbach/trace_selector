@@ -130,7 +130,13 @@ class ui_window(QWidget):
         # plot
         self.plot()
         self.selected_peaks = []
-        self.stimframes = []
+        if len(self.settings_.config["stim_frames"]) > 0:
+            self.stimframes = [
+                int(frame) for frame in self.settings_.config["stim_frames"].split(",")
+            ]
+            self.stimframes = sorted(self.stimframes)
+        else:
+            self.stimframes = []
         self.current_layout_count = 0
 
     def initalize_file(self) -> None:
@@ -197,7 +203,6 @@ class ui_window(QWidget):
         self.labels = []
 
     def plot(self):
-        print('plot')
         """
         Plots a trace of the response that a specific Synapse gave.
         This is done by creating a instance of trace_plot (plot.py),
@@ -211,7 +216,6 @@ class ui_window(QWidget):
             self.settings_.config["threshold_start"],
             self.settings_.config["threshold_stop"],
         )
-        print(self.threshold)
         # ----------------------------------- plot ----------------------------------- #
         self.tr_plot = trace_plot(
             self.synapse_response.time, self.synapse_response.intensity, self.threshold
@@ -248,6 +252,7 @@ class ui_window(QWidget):
                 self.stimframes,
                 self.settings_.config["stim_frames_patience"]
             )
+            self.clear_selection_buttons()
             self.initalize_file()
         self.synapse_response.next()
         self.clear_selection_buttons()

@@ -21,5 +21,5 @@ def peak_detection_scipy(intenstiy: np.ndarray,
     # specifically for stimulation used it might happen that peaks are detected
     # twice, when the patience window is higher than the time between two 
     # consecutive pulses
-    peaks = list(set(peaks))
+    peaks = sorted(list(set(peaks)))
     return peaks
