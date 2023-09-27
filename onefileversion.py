@@ -6,6 +6,9 @@ from PyQt6.QtWidgets import QFileDialog
 import os
 import sys
 
+from PyQt6.QtWidgets import QApplication
+import sys
+
 from PyQt6 import QtWebEngineWidgets
 from PyQt6.QtWidgets import (
     QLabel,
@@ -106,6 +109,7 @@ class synapse_response_data_class:
                 output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
                 peak_df.to_csv(os.path.join(keep_path,output_name),index=False)
             if ppr:
+                print(peak_df)
                 ppr_df = paired_pulse_ratio(peak_df,stimulation_timepoints,patience)
                 if export_xlsx:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.xlsx"
@@ -422,6 +426,13 @@ class SettingsWindow(QWidget):
                     "}")
     
     def save_and_close(self) -> None:
+        if len(self.settings_.config["stim_frames"]) > 0:
+            self.stimframes = [
+                int(frame) for frame in self.settings_.config["stim_frames"].split(",")
+            ]
+            self.stimframes = sorted(self.stimframes)
+        else:
+            self.stimframes = []
         self.parent.settings_ = self.settings_
         self.parent.stimframes = self.stimframes
         self.settings_.write_settings()
@@ -438,7 +449,6 @@ class SettingsWindow(QWidget):
         self.close()
 
 
-
 def paired_pulse_ratio(peaks: pd.DataFrame,
                        stimulation_timepoints: list[int],
                        patience: int) -> pd.DataFrame:
@@ -449,11 +459,11 @@ def paired_pulse_ratio(peaks: pd.DataFrame,
         first_pulse_response = np.nan
         for i,stimulation in enumerate(stimulation_timepoints):
             if peaks[(peaks['Frame'] >= stimulation) &
-                                     (peaks['Frame'] <= stimulation+patience) &
-                                     (peaks['ROI#'] == roi)].shape[0] == 0:
+                     (peaks['Frame'] <= stimulation+patience) &
+                     (peaks['ROI#'] == roi)].shape[0] == 0:
                 response_for_each_pulse = False
                 roi_response.append([f'Pulse {i+1}', roi, np.nan, np.nan, np.nan])
-                break
+                continue
             max_response_rel = peaks[(peaks['Frame'] >= stimulation) &
                                      (peaks['Frame'] <= stimulation+patience) &
                                      (peaks['ROI#'] == roi)]['rel. Amplitude'].max()
@@ -464,8 +474,9 @@ def paired_pulse_ratio(peaks: pd.DataFrame,
                 first_pulse_response = max_response_abs
             ppr_tmp = max_response_abs/first_pulse_response
             roi_response.append([f'Pulse {i+1}', roi, max_response_rel, max_response_abs, ppr_tmp])
-        for i in range(len(stimulation_timepoints)):
+        for i in range(len(roi_response)):
             roi_response[i].append(response_for_each_pulse)
+        result += roi_response
     return pd.DataFrame(result,columns=['Pulse', 'ROI', 'rel. Amplitute', 'max. Amplitute', 'PPR', 'responded to all pulses'])
         
 
@@ -993,3 +1004,16 @@ class gui_settings:
             os.mkdir(self.config['keep_folder'] )
         if not os.path.exists(self.config['trash_folder']):
             os.mkdir(self.config['trash_folder'])
+
+
+
+def main():
+    settings = gui_settings()
+    app = QApplication(sys.argv)
+    main = ui_window(settings)
+    main.show()
+    sys.exit(app.exec())
+
+if __name__ == '__main__':
+    main()
+
