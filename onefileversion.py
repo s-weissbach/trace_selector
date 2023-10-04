@@ -109,7 +109,6 @@ class synapse_response_data_class:
                 output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
                 peak_df.to_csv(os.path.join(keep_path,output_name),index=False)
             if ppr:
-                print(peak_df)
                 ppr_df = paired_pulse_ratio(peak_df,stimulation_timepoints,patience)
                 if export_xlsx:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.xlsx"
@@ -797,7 +796,8 @@ class ui_window(QWidget):
             )
             self.clear_selection_buttons()
             self.initalize_file()
-        self.synapse_response.next()
+        else:
+            self.synapse_response.next()
         self.clear_selection_buttons()
         self.peak_selection_buttons = []
         self.plot()

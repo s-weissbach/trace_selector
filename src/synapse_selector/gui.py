@@ -254,7 +254,8 @@ class ui_window(QWidget):
             )
             self.clear_selection_buttons()
             self.initalize_file()
-        self.synapse_response.next()
+        else:
+            self.synapse_response.next()
         self.clear_selection_buttons()
         self.peak_selection_buttons = []
         self.plot()
