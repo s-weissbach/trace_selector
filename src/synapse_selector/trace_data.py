@@ -3,6 +3,7 @@ from pandas.api.types import is_string_dtype
 import numpy as np
 import os
 from ppr_calculation import paired_pulse_ratio
+from decay_compute import compute_tau
 
 class synapse_response_data_class:
     def __init__(self,
@@ -65,7 +66,7 @@ class synapse_response_data_class:
             trash_df.to_csv(os.path.join(trash_path,self.filename),index=False)
         if len(self.selected_peaks) > 0:
             
-            peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay50'])
+            peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay constant (tau)'])
             if export_xlsx:
                 output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.xlsx"
                 peak_df.to_excel(os.path.join(keep_path,output_name),index=False)
@@ -129,11 +130,8 @@ class synapse_response_data_class:
             amplitude = self.intensity[peak_tp]
             baseline = np.min(self.intensity[max(0,peak_tp-15):peak_tp])
             relative_height = amplitude-baseline
-            relative_height50 = relative_height/2 + baseline
-            tmp = np.where(self.intensity[peak_tp:]<relative_height50)[0]
-            decay50 = np.nan
-            if len(tmp) > 0:
-                decay50 = tmp[0]
+            min_after_peak = np.argmin(self.intensity[peak_tp:min(peak_tp+6,len(self.intensity-1))])
+            decay50 = compute_tau(self.intensity[peak_tp:min(min_after_peak+1,len(self.intensity-1))])
             self.selected_peaks.append([
                 self.filename,
                 self.columns[self.idx],
