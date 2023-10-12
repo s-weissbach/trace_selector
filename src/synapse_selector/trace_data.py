@@ -116,6 +116,7 @@ class synapse_response_data_class:
 
     def keep(self,
              select_responses: bool,
+             frames_for_decay: int,
              selection: list[int]) -> None:
         '''
         Puts currently viewed trace to the keep data and if peaks selected appends
@@ -130,15 +131,15 @@ class synapse_response_data_class:
             amplitude = self.intensity[peak_tp]
             baseline = np.min(self.intensity[max(0,peak_tp-15):peak_tp])
             relative_height = amplitude-baseline
-            min_after_peak = np.argmin(self.intensity[peak_tp:min(peak_tp+6,len(self.intensity-1))])
-            decay50 = compute_tau(self.intensity[peak_tp:min(min_after_peak+1,len(self.intensity-1))])
+            min_after_peak = np.argmin(self.intensity[peak_tp:min(peak_tp+frames_for_decay,len(self.intensity-1))]) + peak_tp
+            decay_tau = compute_tau(self.intensity[peak_tp:min(min_after_peak+1,len(self.intensity-1))])
             self.selected_peaks.append([
                 self.filename,
                 self.columns[self.idx],
                 peak_tp,
                 amplitude,
                 relative_height,
-                decay50
+                decay_tau
             ])
     
     def trash(self) -> None:

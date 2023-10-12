@@ -24,5 +24,6 @@
         "empty",
         "average Z"
     ],
-    "export_xlsx": false
+    "export_xlsx": false,
+    "frames_for_decay": 6
 }

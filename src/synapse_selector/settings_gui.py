@@ -63,6 +63,14 @@ class SettingsWindow(QWidget):
         self.compute_ppr.setChecked(self.settings_.config["compute_ppr"])
         self.compute_ppr.stateChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.compute_ppr)
+        tau_desc = QLabel("Time window for tau computation:")
+        tau_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
+        response_layout.addWidget(tau_desc)
+        self.frames_for_decay = QSpinBox()
+        self.frames_for_decay.setValue(self.settings_.config["frames_for_decay"])
+        self.frames_for_decay.setToolTip("In the timeframe from peak to the value set, the program will search for the minimum and compute the decay constant tau.")
+        self.frames_for_decay.valueChanged.connect(self.settings_value_changed)
+        response_layout.addWidget(self.frames_for_decay)
         response_layout.addStretch()
         settingslayout.addLayout(response_layout)
         # --------------------------- stimulation settings --------------------------- #
@@ -118,6 +126,7 @@ class SettingsWindow(QWidget):
         self.settings_.config["threshold_start"] = self.threshold_start_input.value()
         self.settings_.config["threshold_stop"] = self.threshold_stop_input.value()
         self.settings_.config["stim_frames_patience"] = self.patience_input.value()
+        self.settings_.config["frames_for_decay"] = self.frames_for_decay.value()
         self.settings_.config["stim_frames"] = self.stimframes_input.text()
         if len(self.settings_.config["stim_frames"]) > 0:
             self.stimframes = [

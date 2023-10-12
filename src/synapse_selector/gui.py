@@ -280,7 +280,9 @@ class ui_window(QWidget):
             ]
         else:
             selection = []
-        self.synapse_response.keep(self.settings_.config["select_responses"], selection)
+        self.synapse_response.keep(self.settings_.config["select_responses"], 
+                                   self.settings_.config['frames_for_decay'],
+                                   selection)
         self.next()
 
     def trash_trace(self):
