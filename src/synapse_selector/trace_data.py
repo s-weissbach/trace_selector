@@ -66,7 +66,7 @@ class synapse_response_data_class:
             trash_df.to_csv(os.path.join(trash_path,self.filename),index=False)
         if len(self.selected_peaks) > 0:
             
-            peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay constant (tau)'])
+            peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay constant (tau)', 'inv. decay constant (invtau)'])
             if export_xlsx:
                 output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.xlsx"
                 peak_df.to_excel(os.path.join(keep_path,output_name),index=False)
@@ -132,14 +132,15 @@ class synapse_response_data_class:
             baseline = np.min(self.intensity[max(0,peak_tp-15):peak_tp])
             relative_height = amplitude-baseline
             min_after_peak = np.argmin(self.intensity[peak_tp:min(peak_tp+frames_for_decay,len(self.intensity-1))]) + peak_tp
-            decay_tau = compute_tau(self.intensity[peak_tp:min(min_after_peak+1,len(self.intensity-1))])
+            inv_tau,tau = compute_tau(self.intensity[peak_tp:min(min_after_peak+1,len(self.intensity-1))])
             self.selected_peaks.append([
                 self.filename,
                 self.columns[self.idx],
                 peak_tp,
                 amplitude,
                 relative_height,
-                decay_tau
+                tau,
+                inv_tau
             ])
     
     def trash(self) -> None:
