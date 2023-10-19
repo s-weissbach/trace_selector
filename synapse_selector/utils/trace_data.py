@@ -133,8 +133,8 @@ class synapse_response_data_class:
             amplitude = self.intensity[peak_tp]
             baseline = np.min(self.intensity[max(0, peak_tp-15):peak_tp])
             relative_height = amplitude-baseline
-            min_after_peak = np.argmin(self.intensity[peak_tp:min(peak_tp+frames_for_decay, len(self.intensity-1))]) + peak_tp
-            inv_tau, tau = compute_tau(self.intensity[peak_tp:min(min_after_peak+1, len(self.intensity-1))])
+            pos_after_peak = min(peak_tp+frames_for_decay,len(self.intensity-1))
+            inv_tau,tau = compute_tau(self.intensity[peak_tp:pos_after_peak])
             self.selected_peaks.append([
                 self.filename,
                 self.columns[self.idx],
