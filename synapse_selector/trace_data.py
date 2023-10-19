@@ -5,6 +5,7 @@ import os
 from ppr_calculation import paired_pulse_ratio
 from decay_compute import compute_tau
 
+
 class synapse_response_data_class:
     def __init__(self,
                  filepath: str,
@@ -12,7 +13,7 @@ class synapse_response_data_class:
                  meta_columns: list[str]) -> None:
         self.filename = filename
         if filepath.endswith('.txt') or filepath.endswith('.csv'):
-            self.df = pd.read_csv(filepath,sep=',')
+            self.df = pd.read_csv(filepath, sep=',')
         else:
             self.df = pd.read_excel(filepath)
         self.meta_columns = [col for col in self.df.columns if col in meta_columns or is_string_dtype(self.df[col])]
@@ -27,7 +28,7 @@ class synapse_response_data_class:
         self.intensity = self.df[self.columns[self.idx]].to_numpy()
         self.time = np.arange(len(self.intensity))
         self.automatic_peaks = []
-    
+
     def __len__(self) -> int:
         '''
         returns number of traces to look at as length.
@@ -39,7 +40,7 @@ class synapse_response_data_class:
         returns index and length of current file and computes percentage of
         sorted traces.
         '''
-        percentage = np.round(self.idx / len(self),4)*100
+        percentage = np.round(self.idx / len(self), 4)*100
         return f'{self.idx+1}/{len(self)} ({percentage}%)'
 
     def save(self,
@@ -56,31 +57,32 @@ class synapse_response_data_class:
         keep_df = self.df[self.meta_columns+self.keep_data]
         trash_df = self.df[self.meta_columns+self.trash_data]
         if export_xlsx:
-            keep_df.to_excel(os.path.join(keep_path,f'{self.filename}.xlsx'),index=False)
-            trash_df.to_excel(os.path.join(trash_path,f'{self.filename}.xlsx'),index=False)
+            keep_df.to_excel(os.path.join(keep_path, f'{self.filename}.xlsx'), index=False)
+            trash_df.to_excel(os.path.join(trash_path, f'{self.filename}.xlsx'), index=False)
         elif self.filename.endswith('.xlsx') or self.filename.endswith('.xls'):
-            keep_df.to_excel(os.path.join(keep_path,f'{self.filename}.xlsx'),index=False)
-            trash_df.to_excel(os.path.join(trash_path,f'{self.filename}.xlsx'),index=False)
+            keep_df.to_excel(os.path.join(keep_path, f'{self.filename}.xlsx'), index=False)
+            trash_df.to_excel(os.path.join(trash_path, f'{self.filename}.xlsx'), index=False)
         else:
-            keep_df.to_csv(os.path.join(keep_path,self.filename),index=False)
-            trash_df.to_csv(os.path.join(trash_path,self.filename),index=False)
+            keep_df.to_csv(os.path.join(keep_path, self.filename), index=False)
+            trash_df.to_csv(os.path.join(trash_path, self.filename), index=False)
         if len(self.selected_peaks) > 0:
-            
-            peak_df = pd.DataFrame(self.selected_peaks,columns=['Filename','ROI#','Frame','abs. Amplitude', 'rel. Amplitude','decay constant (tau)', 'inv. decay constant (invtau)'])
+
+            peak_df = pd.DataFrame(self.selected_peaks, columns=['Filename', 'ROI#', 'Frame', 'abs. Amplitude',
+                                   'rel. Amplitude', 'decay constant (tau)', 'inv. decay constant (invtau)'])
             if export_xlsx:
                 output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.xlsx"
-                peak_df.to_excel(os.path.join(keep_path,output_name),index=False)
+                peak_df.to_excel(os.path.join(keep_path, output_name), index=False)
             else:
                 output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
-                peak_df.to_csv(os.path.join(keep_path,output_name),index=False)
+                peak_df.to_csv(os.path.join(keep_path, output_name), index=False)
             if ppr:
-                ppr_df = paired_pulse_ratio(peak_df,stimulation_timepoints,patience)
+                ppr_df = paired_pulse_ratio(peak_df, stimulation_timepoints, patience)
                 if export_xlsx:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.xlsx"
-                    ppr_df.to_excel(os.path.join(keep_path,output_name),index=False)
+                    ppr_df.to_excel(os.path.join(keep_path, output_name), index=False)
                 else:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.csv"
-                    ppr_df.to_csv(os.path.join(keep_path,output_name),index=False)
+                    ppr_df.to_csv(os.path.join(keep_path, output_name), index=False)
 
     def next(self) -> None:
         '''
@@ -91,7 +93,7 @@ class synapse_response_data_class:
         self.manual_peaks = []
         self.intensity = self.df[self.columns[self.idx]].to_numpy()
         self.time = np.arange(len(self.intensity))
-    
+
     def back(self) -> bool:
         '''
         Go back one trace and undo the selection. If it is the first trace of
@@ -125,14 +127,14 @@ class synapse_response_data_class:
         self.keep_data.append(self.columns[self.idx])
         self.last.append('keep')
         if not select_responses:
-            return 
+            return
         # -------------------------- save selected responses ------------------------- #
         for peak_tp in selection:
             amplitude = self.intensity[peak_tp]
-            baseline = np.min(self.intensity[max(0,peak_tp-15):peak_tp])
+            baseline = np.min(self.intensity[max(0, peak_tp-15):peak_tp])
             relative_height = amplitude-baseline
-            min_after_peak = np.argmin(self.intensity[peak_tp:min(peak_tp+frames_for_decay,len(self.intensity-1))]) + peak_tp
-            inv_tau,tau = compute_tau(self.intensity[peak_tp:min(min_after_peak+1,len(self.intensity-1))])
+            min_after_peak = np.argmin(self.intensity[peak_tp:min(peak_tp+frames_for_decay, len(self.intensity-1))]) + peak_tp
+            inv_tau, tau = compute_tau(self.intensity[peak_tp:min(min_after_peak+1, len(self.intensity-1))])
             self.selected_peaks.append([
                 self.filename,
                 self.columns[self.idx],
@@ -142,19 +144,19 @@ class synapse_response_data_class:
                 tau,
                 inv_tau
             ])
-    
+
     def trash(self) -> None:
         '''
         Puts currently viewed trace to trash.
         '''
         self.trash_data.append(self.columns[self.idx])
         self.last.append('trash')
-    
+
     def trash_rest(self) -> None:
         '''
         Puts all remaining not seen traces to the trash df.
         '''
-        self.trash_data += [self.columns[i] for i in range(self.idx,len(self.columns))]
+        self.trash_data += [self.columns[i] for i in range(self.idx, len(self.columns))]
         self.idx = len(self.columns)-1
 
     def end_of_file(self) -> bool:
@@ -171,14 +173,14 @@ class synapse_response_data_class:
         '''
         self.automatic_peaks = peaks
         self.peaks = self.automatic_peaks + self.manual_peaks
-    
+
     def add_manual_peak(self, peak: int) -> bool:
         '''
         Check if the manual peak is valid and if so add it to the peaks.
         '''
-        if not (peak not in self.peaks and 
-            peak not in self.manual_peaks and
-              peak >= 0 and peak < len(self.time)):
+        if not (peak not in self.peaks and
+                peak not in self.manual_peaks and
+                peak >= 0 and peak < len(self.time)):
             return False
         self.manual_peaks.append(peak)
         self.peaks = self.automatic_peaks + self.manual_peaks
@@ -189,8 +191,9 @@ class synapse_response_data_class:
         Keeps only maximum peak per threshold crossing.
         '''
         nms_peaks = []
-        for i,peak in enumerate(self.automatic_peaks):
-            if peak in nms_peaks: continue
+        for i, peak in enumerate(self.automatic_peaks):
+            if peak in nms_peaks:
+                continue
             peak_height = self.intensity[peak]
             i_inner = i
             keep = True

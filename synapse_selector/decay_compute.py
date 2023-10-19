@@ -1,7 +1,8 @@
 from scipy.optimize import curve_fit
 import numpy as np
 
-def compute_tau(voltage: np.ndarray) -> tuple[float,float]:
+
+def compute_tau(voltage: np.ndarray) -> tuple[float, float]:
     '''
     Fit an exponential curve to calculate the decay constant tau.
     '''
@@ -15,4 +16,4 @@ def compute_tau(voltage: np.ndarray) -> tuple[float,float]:
     params, _ = curve_fit(exp_decay, frames, voltage, maxfev=5000)
     inv_tau = params[2]
     tau = 1/inv_tau
-    return (inv_tau,tau)
+    return (inv_tau, tau)

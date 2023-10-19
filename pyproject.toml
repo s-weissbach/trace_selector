@@ -1,28 +1,21 @@
-[build-system]
-requires = ["hatchling",
-          'pyqt6',
-          'pyqt6-webengine',
-          'numpy',
-          'pandas',
-          'scipy',
-          'plotly'
-      ]
-build-backend = "hatchling.build"
-[project]
-name = "synapse_selector"
-version = "0.0.3"
-authors = [
-  { name="Stephan Weissbach", email="s.weissbach@uni-mainz.de" },
-]
+[tool.poetry]
+name = "synapse-selector"
+version = "0.1.0"
 description = "Small internal package for post-selection of Glutmate/Calcium signal responses."
+authors = ["Stephan Weissbach <s.weissbach@uni-mainz.de>"]
 readme = "README.md"
-requires-python = ">=3.8"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+packages = [{include = "synapse_selector"}]
 
-[project.urls]
-"Homepage" = "https://github.com/s-weissbach/synapse_selector"
-"Bug Tracker" = "https://github.com/s-weissbach/synapse_selector/issues"
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+pyqt6 = "^6.5.3"
+pyqt6-webengine = "^6.5.0"
+numpy = "^1.26.1"
+pandas = "^2.1.1"
+scipy = "^1.11.3"
+plotly = "^5.17.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

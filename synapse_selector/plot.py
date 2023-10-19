@@ -1,8 +1,9 @@
 import numpy as np
 import plotly.express as px
 
+
 class trace_plot:
-    def __init__(self, 
+    def __init__(self,
                  time: np.ndarray,
                  intenstity: np.ndarray,
                  threshold: float):
@@ -15,7 +16,7 @@ class trace_plot:
         Creates the basic trace plot with a threshold.
         '''
         self.fig = px.line(x=self.time, y=self.intenstity)
-        self.fig.add_hline(y=self.threshold,line_color='red',line_dash='dash')
+        self.fig.add_hline(y=self.threshold, line_color='red', line_dash='dash')
         self.fig.update_layout(xaxis=dict(rangeslider=dict(visible=True),
                                type="linear"))
 
@@ -32,7 +33,7 @@ class trace_plot:
                                fillcolor="yellow",
                                opacity=0.25,
                                line_width=0)
-    
+
     def add_peaks(self,
                   peaks: list,
                   use_nms: bool,
@@ -42,7 +43,7 @@ class trace_plot:
         '''
         labels = []
         if use_nms:
-            peaks = [peak for i,peak in enumerate(peaks) if selection[i]]
+            peaks = [peak for i, peak in enumerate(peaks) if selection[i]]
         for peak in peaks:
             self.fig.add_annotation(
                 x=peak,
@@ -51,14 +52,14 @@ class trace_plot:
                 showarrow=True)
             labels.append(peak)
         return labels
-    
+
     def add_label(self,
                   peak) -> None:
         self.fig.add_annotation(x=peak,
                                 y=self.intenstity[peak],
                                 text=f'frame: {peak}, height: {self.intenstity[peak]}',
                                 showarrow=True)
-    
+
     def reload_plot(self) -> None:
         self.fig.update_layout(xaxis=dict(rangeslider=dict(visible=True),
-                                type="linear"))
+                                          type="linear"))

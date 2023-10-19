@@ -1,1 +1,1 @@
-# synapse_selector
+# Synapse Selector

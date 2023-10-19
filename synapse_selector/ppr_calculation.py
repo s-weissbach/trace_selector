@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 def paired_pulse_ratio(peaks: pd.DataFrame,
                        stimulation_timepoints: list[int],
                        patience: int) -> pd.DataFrame:
@@ -9,7 +10,7 @@ def paired_pulse_ratio(peaks: pd.DataFrame,
         roi_response = []
         response_for_each_pulse = True
         first_pulse_response = np.nan
-        for i,stimulation in enumerate(stimulation_timepoints):
+        for i, stimulation in enumerate(stimulation_timepoints):
             if peaks[(peaks['Frame'] >= stimulation) &
                      (peaks['Frame'] <= stimulation+patience) &
                      (peaks['ROI#'] == roi)].shape[0] == 0:
@@ -29,4 +30,4 @@ def paired_pulse_ratio(peaks: pd.DataFrame,
         for i in range(len(roi_response)):
             roi_response[i].append(response_for_each_pulse)
         result += roi_response
-    return pd.DataFrame(result,columns=['Pulse', 'ROI', 'rel. Amplitute', 'max. Amplitute', 'PPR', 'responded to all pulses'])
+    return pd.DataFrame(result, columns=['Pulse', 'ROI', 'rel. Amplitute', 'max. Amplitute', 'PPR', 'responded to all pulses'])
