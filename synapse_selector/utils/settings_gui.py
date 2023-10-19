@@ -1,7 +1,8 @@
-from PyQt6.QtWidgets import (QLabel, QVBoxLayout, QHBoxLayout, QWidget, 
+from PyQt6.QtWidgets import (QLabel, QVBoxLayout, QHBoxLayout, QWidget,
                              QSpinBox, QCheckBox, QLineEdit, QDoubleSpinBox,
                              QPushButton)
 from PyQt6.QtCore import Qt
+
 
 class SettingsWindow(QWidget):
     def __init__(self, settings, parent):
@@ -68,7 +69,8 @@ class SettingsWindow(QWidget):
         response_layout.addWidget(tau_desc)
         self.frames_for_decay = QSpinBox()
         self.frames_for_decay.setValue(self.settings_.config["frames_for_decay"])
-        self.frames_for_decay.setToolTip("In the timeframe from peak to the value set, the program will search for the minimum and compute the decay constant tau.")
+        self.frames_for_decay.setToolTip(
+            "In the timeframe from peak to the value set, the program will search for the minimum and compute the decay constant tau.")
         self.frames_for_decay.valueChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.frames_for_decay)
         response_layout.addStretch()
@@ -114,7 +116,7 @@ class SettingsWindow(QWidget):
         btn_layout.addWidget(cancel_btn)
         settingslayout.addLayout(btn_layout)
         self.setLayout(settingslayout)
-    
+
     def settings_value_changed(self) -> None:
         """
         Whenever any setting is changed this function is called and notes that
@@ -160,8 +162,7 @@ class SettingsWindow(QWidget):
             self.compute_ppr.setEnabled(False)
             self.non_max_supression_button.setEnabled(False)
         self.check_patience()
-        
-    
+
     def check_patience(self) -> None:
         self.patience_input.setStyleSheet("")
         if not self.compute_ppr.isChecked() or len(self.stimframes) <= 1:
@@ -172,10 +173,10 @@ class SettingsWindow(QWidget):
                 min_distance = self.stimframes[i+1] - self.stimframes[i]
         if min_distance < self.settings_.config['stim_frames_patience']:
             self.patience_input.setStyleSheet("QSpinBox"
-                    "{"
-                    "background : #ff5959;"
-                    "}")
-    
+                                              "{"
+                                              "background : #ff5959;"
+                                              "}")
+
     def save_and_close(self) -> None:
         self.parent.settings_ = self.settings_
         self.parent.stimframes = self.stimframes
@@ -188,7 +189,6 @@ class SettingsWindow(QWidget):
             self.parent.response_input.setEnabled(False)
         self.parent.plot()
         self.close()
-    
+
     def close_(self) -> None:
         self.close()
-

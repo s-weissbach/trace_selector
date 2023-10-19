@@ -12,15 +12,14 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QWidget,
-    QVBoxLayout,
 )
 from PyQt6.QtCore import QEventLoop
 from PyQt6.QtGui import QFont
-from threshold import compute_threshold
-from plot import trace_plot
-from trace_data import synapse_response_data_class
-from peak_dertection import peak_detection_scipy
-from settings_gui import SettingsWindow
+from .threshold import compute_threshold
+from .plot import trace_plot
+from .trace_data import synapse_response_data_class
+from .peak_detection import peak_detection_scipy
+from .settings_gui import SettingsWindow
 
 
 class ui_window(QWidget):
@@ -103,7 +102,7 @@ class ui_window(QWidget):
         # ---------------------------------------------------------------------------- #
         #                                     row 4                                    #
         # ---------------------------------------------------------------------------- #
-        # --------------------- second layer for spike selection --------------------- #        
+        # --------------------- second layer for spike selection --------------------- #
         # selection box layout
         self.response_selection_layout = QHBoxLayout()
         self.response_input_label = QLabel("Add Response: ")
@@ -147,12 +146,11 @@ class ui_window(QWidget):
         self.open_file()
 
     def change_settings(self) -> None:
-        self.w = SettingsWindow(self.settings_,self)
+        self.w = SettingsWindow(self.settings_, self)
         self.w.show()
         loop = QEventLoop()
         self.w.destroyed.connect(loop.quit)
         loop.exec()
-        
 
     def get_filepath(self):
         if self.directory is not None:
@@ -187,7 +185,7 @@ class ui_window(QWidget):
             os.mkdir(self.current_trash_folder)
         self.filename = os.path.basename(self.filepath)
         self.directory = os.path.dirname(self.filepath)
-        self.current_file_label.setText(self.filepath)  
+        self.current_file_label.setText(self.filepath)
 
     def open_file(self):
         """
@@ -280,7 +278,7 @@ class ui_window(QWidget):
             ]
         else:
             selection = []
-        self.synapse_response.keep(self.settings_.config["select_responses"], 
+        self.synapse_response.keep(self.settings_.config["select_responses"],
                                    self.settings_.config['frames_for_decay'],
                                    selection)
         self.next()
