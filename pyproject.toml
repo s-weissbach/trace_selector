@@ -19,3 +19,6 @@ plotly = "^5.17.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+synapse_selector = 'synapse_selector.main:main'
