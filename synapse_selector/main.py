@@ -1,5 +1,5 @@
-from gui import ui_window
-from configuration import gui_settings
+from synapse_selector.utils.gui import ui_window
+from synapse_selector.utils.configuration import gui_settings
 from PyQt6.QtWidgets import QApplication
 import sys
 

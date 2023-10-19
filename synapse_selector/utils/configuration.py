@@ -22,20 +22,23 @@ class gui_settings:
             self.config_folder = os.path.join(os.environ.get('HOME'), '.synapse')
             self.user_config_path = os.path.join(self.config_folder, 'config.json')
         # -------------------------------- parse file -------------------------------- #
+        # default config path
+        current_file_path = os.path.abspath(__file__)
+        default_config_path = os.path.join(os.path.dirname(current_file_path), "default_config.json")
+
         if os.path.exists(self.user_config_path) and os.path.isfile(self.user_config_path):
             config_path = self.user_config_path
             with open(config_path, 'r') as in_json:
                 self.config = json.load(in_json)
             # in case the settings file is updated add new keys to the saved config
-            with open('default_config.json', 'r') as in_json:
+            with open(default_config_path, 'r') as in_json:
                 template_config = json.load(in_json)
             for key in template_config:
                 if key not in self.config:
                     self.config[key] = template_config[key]
                     self.write_settings()
         else:
-            config_path = 'default_config.json'
-            with open(config_path, 'r') as in_json:
+            with open(default_config_path, 'r') as in_json:
                 self.config = json.load(in_json)
 
     def write_settings(self) -> None:

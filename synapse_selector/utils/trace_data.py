@@ -2,8 +2,8 @@ import pandas as pd
 from pandas.api.types import is_string_dtype
 import numpy as np
 import os
-from ppr_calculation import paired_pulse_ratio
-from decay_compute import compute_tau
+from .ppr_calculation import paired_pulse_ratio
+from .decay_compute import compute_tau
 
 
 class synapse_response_data_class:
