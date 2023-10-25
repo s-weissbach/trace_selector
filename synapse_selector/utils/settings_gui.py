@@ -116,6 +116,13 @@ class SettingsWindow(QWidget):
         btn_layout.addWidget(cancel_btn)
         settingslayout.addLayout(btn_layout)
         self.setLayout(settingslayout)
+        if len(self.settings_.config["stim_frames"]) > 0:
+            self.stimframes = [
+                int(frame) for frame in self.settings_.config["stim_frames"].split(",")
+            ]
+            self.stimframes = sorted(self.stimframes)
+        else:
+            self.stimframes = []
 
     def settings_value_changed(self) -> None:
         """
