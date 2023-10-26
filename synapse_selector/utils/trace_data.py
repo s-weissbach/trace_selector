@@ -4,6 +4,7 @@ import numpy as np
 import os
 from .ppr_calculation import paired_pulse_ratio
 from .decay_compute import compute_tau
+from .failure_rate import failure_rate
 
 
 class synapse_response_data_class:
@@ -66,7 +67,6 @@ class synapse_response_data_class:
             keep_df.to_csv(os.path.join(keep_path, self.filename), index=False)
             trash_df.to_csv(os.path.join(trash_path, self.filename), index=False)
         if len(self.selected_peaks) > 0:
-
             peak_df = pd.DataFrame(self.selected_peaks, columns=['Filename', 'ROI#', 'Frame', 'abs. Amplitude',
                                    'rel. Amplitude', 'decay constant (tau)', 'inv. decay constant (invtau)'])
             if export_xlsx:
@@ -83,6 +83,16 @@ class synapse_response_data_class:
                 else:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.csv"
                     ppr_df.to_csv(os.path.join(keep_path, output_name), index=False)
+            if len(stimulation_timepoints) > 0:
+                failure_df = failure_rate(peak_df, stimulation_timepoints, patience)
+                if export_xlsx:
+                    output_name = f"{'.'.join(self.filename.split('.')[:-1])}_failurerate.xlsx"
+                    failure_df.to_excel(os.path.join(keep_path, output_name), index=False)
+                else:
+                    output_name = f"{'.'.join(self.filename.split('.')[:-1])}_failurerate.csv"
+                    failure_df.to_csv(os.path.join(keep_path, output_name), index=False)
+
+
 
     def next(self) -> None:
         '''
