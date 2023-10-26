@@ -24,8 +24,8 @@ def paired_pulse_ratio(peaks: pd.DataFrame,
                                      (peaks['Frame'] <= stimulation+patience) &
                                      (peaks['ROI#'] == roi)]['abs. Amplitude'].max()
             if np.isnan(first_pulse_response):
-                first_pulse_response = max_response_abs
-            ppr_tmp = max_response_abs/first_pulse_response
+                first_pulse_response = max_response_rel
+            ppr_tmp = max_response_rel/first_pulse_response
             roi_response.append([f'Pulse {i+1}', roi, max_response_rel, max_response_abs, ppr_tmp])
         for i in range(len(roi_response)):
             roi_response[i].append(response_for_each_pulse)
