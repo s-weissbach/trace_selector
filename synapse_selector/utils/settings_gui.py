@@ -95,7 +95,7 @@ class SettingsWindow(QWidget):
         stimulation_layout.addWidget(patience_label)
         self.patience_input = QSpinBox()
         self.patience_input.setValue(self.settings_.config["stim_frames_patience"])
-        self.patience_input.setEnabled(False)
+        self.patience_input.setEnabled(self.settings_.config["stim_used"])
         self.patience_input.editingFinished.connect(self.settings_value_changed)
         self.patience_input.valueChanged.connect(self.settings_value_changed)
         stimulation_layout.addWidget(self.patience_input)

@@ -2,6 +2,8 @@ import pandas as pd
 from pandas.api.types import is_string_dtype
 import numpy as np
 import os
+
+from synapse_selector.utils.fraction_respond_first_pulse import compute_fraction_first_pulse
 from .ppr_calculation import paired_pulse_ratio
 from .decay_compute import compute_tau
 from .failure_rate import failure_rate
@@ -84,6 +86,7 @@ class synapse_response_data_class:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.csv"
                     ppr_df.to_csv(os.path.join(keep_path, output_name), index=False)
             if len(stimulation_timepoints) > 0:
+                # failure rate on a synaptic level
                 failure_df = failure_rate(peak_df, stimulation_timepoints, patience)
                 if export_xlsx:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_failurerate.xlsx"
@@ -91,6 +94,14 @@ class synapse_response_data_class:
                 else:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_failurerate.csv"
                     failure_df.to_csv(os.path.join(keep_path, output_name), index=False)
+                # fraction responding to the first pulse
+                responses_first_pulse = compute_fraction_first_pulse(peak_df, stimulation_timepoints, patience)
+                if export_xlsx:
+                    output_name = f"{'.'.join(self.filename.split('.')[:-1])}_fraction_respond_first_pulse.xlsx"
+                    responses_first_pulse.to_excel(os.path.join(keep_path, output_name), index=False)
+                else:
+                    output_name = f"{'.'.join(self.filename.split('.')[:-1])}_fraction_respond_first_pulse.csv"
+                    responses_first_pulse.to_csv(os.path.join(keep_path, output_name), index=False)
 
 
 
@@ -196,25 +207,23 @@ class synapse_response_data_class:
         self.peaks = self.automatic_peaks + self.manual_peaks
         return True
 
-    def non_max_supression(self, threshold: float) -> list[int]:
+    def non_max_supression(self, 
+                           stimframes: list[int],
+                           patience: int) -> list[int]:
         '''
-        Keeps only maximum peak per threshold crossing.
+        Keeps only maximum peak per stimulation
         '''
         nms_peaks = []
-        for i, peak in enumerate(self.automatic_peaks):
-            if peak in nms_peaks:
-                continue
-            peak_height = self.intensity[peak]
-            i_inner = i
-            keep = True
-            while True:
-                if self.intensity[i_inner] < threshold:
-                    break
-                if self.intensity[i_inner] > peak_height:
-                    keep = False
-                    break
-                if i_inner in self.automatic_peaks:
-                    nms_peaks.append(i_inner)
-            if not keep:
-                nms_peaks.append(peak)
+        for stimframe in stimframes:
+            tmp_peaks = []
+            tmp_amplitudes = []
+            for peak in self.automatic_peaks:
+                if peak < stimframe or peak > stimframe + patience:
+                    continue
+                tmp_peaks.append(peak)
+                tmp_amplitudes.append(self.intensity[peak])
+            if len(tmp_peaks) > 1:
+                _ = tmp_peaks.pop(np.argmax(tmp_amplitudes))
+                for peak in tmp_peaks:
+                    nms_peaks.append(peak)
         return nms_peaks

@@ -370,7 +370,7 @@ class ui_window(QWidget):
         self.current_layout_count = 0
         self.current_layout_row = 0
         if self.settings_.config["nms"]:
-            nms_peaks = self.synapse_response.non_max_supression(self.threshold)
+            nms_peaks = self.synapse_response.non_max_supression(self.stimframes, self.settings_.config["stim_frames_patience"])
         else:
             nms_peaks = []
         for peak in self.synapse_response.peaks:

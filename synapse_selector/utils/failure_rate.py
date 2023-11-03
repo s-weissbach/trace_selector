@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 
 def failure_rate(peaks: pd.DataFrame,
