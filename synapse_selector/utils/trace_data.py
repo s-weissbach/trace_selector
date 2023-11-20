@@ -103,8 +103,6 @@ class synapse_response_data_class:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_fraction_respond_first_pulse.csv"
                     responses_first_pulse.to_csv(os.path.join(keep_path, output_name), index=False)
 
-
-
     def next(self) -> None:
         '''
         Go to next trace and load the data
@@ -154,8 +152,8 @@ class synapse_response_data_class:
             amplitude = self.intensity[peak_tp]
             baseline = np.min(self.intensity[max(0, peak_tp-15):peak_tp])
             relative_height = amplitude-baseline
-            pos_after_peak = min(peak_tp+frames_for_decay,len(self.intensity-1))
-            inv_tau,tau = compute_tau(self.intensity[peak_tp:pos_after_peak])
+            pos_after_peak = min(peak_tp+frames_for_decay, len(self.intensity-1))
+            inv_tau, tau = compute_tau(self.intensity[peak_tp:pos_after_peak])
             self.selected_peaks.append([
                 self.filename,
                 self.columns[self.idx],
@@ -207,7 +205,7 @@ class synapse_response_data_class:
         self.peaks = self.automatic_peaks + self.manual_peaks
         return True
 
-    def non_max_supression(self, 
+    def non_max_supression(self,
                            stimframes: list[int],
                            patience: int) -> list[int]:
         '''

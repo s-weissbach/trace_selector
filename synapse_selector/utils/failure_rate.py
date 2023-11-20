@@ -2,8 +2,8 @@ import pandas as pd
 
 
 def failure_rate(peaks: pd.DataFrame,
-                stimulation_timepoints: list[int],
-                patience: int) -> pd.DataFrame:
+                 stimulation_timepoints: list[int],
+                 patience: int) -> pd.DataFrame:
     result = []
     for roi in peaks["ROI#"].unique():
         responses = 0
