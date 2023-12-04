@@ -19,6 +19,7 @@ from .threshold import compute_threshold
 from .plot import trace_plot
 from .trace_data import synapse_response_data_class
 from .peak_detection import peak_detection_scipy
+from .pytorch_models import torch_cnn_model
 from .settings_gui import SettingsWindow
 
 
@@ -27,6 +28,8 @@ class ui_window(QWidget):
         super().__init__()
         self.settings_ = settings
         self.directory = None
+        # initalize CNN detection
+        self.cnn_model = torch_cnn_model()
         # layout
         mainwindowlayout = QVBoxLayout()
         if self.settings_.config["output_filepath"] == "":
@@ -59,12 +62,12 @@ class ui_window(QWidget):
         top_row.addStretch()
         # skip rest
         skip_rest_btn = QPushButton("Skip Rest")
-        skip_rest_btn.setToolTip('Remaining traces are trashed, selection is saved.')
+        skip_rest_btn.setToolTip("Remaining traces are trashed, selection is saved.")
         skip_rest_btn.clicked.connect(self.skip_rest)
         top_row.addWidget(skip_rest_btn)
         # open new file
         open_n_file_btn = QPushButton("Open new File")
-        open_n_file_btn.setToolTip('All selections are discarded and new file is opned')
+        open_n_file_btn.setToolTip("All selections are discarded and new file is opned")
         open_n_file_btn.clicked.connect(self.open_n_file)
         top_row.addWidget(open_n_file_btn)
         mainwindowlayout.addLayout(top_row)
@@ -248,7 +251,7 @@ class ui_window(QWidget):
                 self.current_trash_folder,
                 self.settings_.config["compute_ppr"],
                 self.stimframes,
-                self.settings_.config["stim_frames_patience"]
+                self.settings_.config["stim_frames_patience"],
             )
             self.clear_selection_buttons()
             self.initalize_file()
@@ -278,9 +281,11 @@ class ui_window(QWidget):
             ]
         else:
             selection = []
-        self.synapse_response.keep(self.settings_.config["select_responses"],
-                                   self.settings_.config['frames_for_decay'],
-                                   selection)
+        self.synapse_response.keep(
+            self.settings_.config["select_responses"],
+            self.settings_.config["frames_for_decay"],
+            selection,
+        )
         self.next()
 
     def trash_trace(self):
@@ -350,13 +355,14 @@ class ui_window(QWidget):
         """
         Runs peak detection and hands peaks to synapse_response data class.
         """
-        automatic_peaks = peak_detection_scipy(
+        """automatic_peaks = peak_detection_scipy(
             self.synapse_response.intensity,
             self.threshold,
             self.settings_.config["stim_used"],
             self.stimframes,
             self.settings_.config["stim_frames_patience"],
-        )
+        )"""
+        automatic_peaks = self.cnn_model.predict(self.synapse_response.intensity)
         self.synapse_response.add_automatic_peaks(automatic_peaks)
 
     def peak_selection(self):
@@ -370,7 +376,9 @@ class ui_window(QWidget):
         self.current_layout_count = 0
         self.current_layout_row = 0
         if self.settings_.config["nms"]:
-            nms_peaks = self.synapse_response.non_max_supression(self.stimframes, self.settings_.config["stim_frames_patience"])
+            nms_peaks = self.synapse_response.non_max_supression(
+                self.stimframes, self.settings_.config["stim_frames_patience"]
+            )
         else:
             nms_peaks = []
         for peak in self.synapse_response.peaks:
