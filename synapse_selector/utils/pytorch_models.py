@@ -6,7 +6,7 @@ import numpy as np
 class torch_cnn_model:
     def __init__(
         self,
-        model_path: str = "/Users/stephanweissbach/Desktop/synapse_selector_detect/models/anomaly_50_conv-out.pth",
+        model_path: str = "/models/anomaly_50_conv-out.pth",
         window_len: int = 50,
     ) -> None:
         # define structure
