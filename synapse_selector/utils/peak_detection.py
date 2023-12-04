@@ -16,7 +16,7 @@ def peak_detection_scipy(
     if stim_used and len(stim_frames) > 0:
         for frame in stim_frames:
             tmp_peaks, _ = find_peaks(
-                intenstiy[frame - 1 : frame + patience + 1], height=threshold
+                intenstiy[frame - 1: frame + patience + 1], height=threshold
             )
             peaks += [peak + frame - 1 for peak in tmp_peaks]
     else:

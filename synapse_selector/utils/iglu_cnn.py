@@ -2,7 +2,6 @@ import torch.nn.functional as F
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
-import torch.nn.functional as F
 
 
 class PeakDetectionModel_convout(pl.LightningModule):
