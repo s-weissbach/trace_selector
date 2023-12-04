@@ -8,8 +8,6 @@ packages = [{include = "synapse_selector"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
-pyqt6 = "^6.5.3"
-pyqt6-webengine = "^6.5.0"
 numpy = "^1.26.1"
 pandas = "^2.1.1"
 scipy = "^1.11.3"
@@ -17,6 +15,7 @@ plotly = "^5.17.0"
 openpyxl = "^3.1.2"
 torch = "^2.1.1"
 pytorch-lightning = "^2.1.1"
+pyqt6-webengine = "^6.6.0"
 
 
 [build-system]
