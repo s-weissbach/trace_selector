@@ -21,6 +21,7 @@ from .trace_data import synapse_response_data_class
 from .peak_detection import peak_detection_scipy
 from .pytorch_models import torch_cnn_model
 from .settings_gui import SettingsWindow
+import torch
 
 
 class ui_window(QWidget):
@@ -28,6 +29,7 @@ class ui_window(QWidget):
         super().__init__()
         self.settings_ = settings
         self.directory = None
+        self.model = torch_cnn_model()
         # layout
         mainwindowlayout = QVBoxLayout()
         if self.settings_.config["output_filepath"] == "":
@@ -360,7 +362,7 @@ class ui_window(QWidget):
             self.stimframes,
             self.settings_.config["stim_frames_patience"],
         )"""
-        automatic_peaks = torch_cnn_model().predict(self.synapse_response.intensity)
+        automatic_peaks = self.model.predict(self.synapse_response.intensity)
         self.synapse_response.add_automatic_peaks(automatic_peaks)
 
     def peak_selection(self):

@@ -1,10 +1,9 @@
 import torch.nn.functional as F
 import torch
 import torch.nn as nn
-import pytorch_lightning as pl
 
 
-class PeakDetectionModel_convout(pl.LightningModule):
+class PeakDetectionModel_convout(nn.Module):
     def __init__(self):
         super(PeakDetectionModel_convout, self).__init__()
 
@@ -15,10 +14,10 @@ class PeakDetectionModel_convout(pl.LightningModule):
         self.conv4 = nn.Conv1d(64, 128, kernel_size=3, stride=1, padding=1)
 
         # Batch normalization layers
-        self.batch_norm1 = nn.BatchNorm1d(16)
-        self.batch_norm2 = nn.BatchNorm1d(32)
-        self.batch_norm3 = nn.BatchNorm1d(64)
-        self.batch_norm4 = nn.BatchNorm1d(128)
+        # self.batch_norm1 = nn.BatchNorm1d(16)
+        # self.batch_norm2 = nn.BatchNorm1d(32)
+        # self.batch_norm3 = nn.BatchNorm1d(64)
+        # self.batch_norm4 = nn.BatchNorm1d(128)
 
         # Output convolutional layer with 1 channel
         self.output_conv = nn.Conv1d(128, 1, kernel_size=1, stride=1)
@@ -27,10 +26,15 @@ class PeakDetectionModel_convout(pl.LightningModule):
         # Input shape: (batch_size, 1, sequence_length)
 
         # Convolutional layers with batch normalization and relu activation
-        x = F.relu(self.batch_norm1(self.conv1(x)))
-        x = F.relu(self.batch_norm2(self.conv2(x)))
-        x = F.relu(self.batch_norm3(self.conv3(x)))
-        x = F.relu(self.batch_norm4(self.conv4(x)))
+        # x = F.relu(self.batch_norm1(self.conv1(x)))
+        # x = F.relu(self.batch_norm2(self.conv2(x)))
+        # x = F.relu(self.batch_norm3(self.conv3(x)))
+        # x = F.relu(self.batch_norm4(self.conv4(x)))
+
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = F.relu(self.conv4(x))
 
         # Apply output convolutional layer with 1 channel
         x = self.output_conv(x)
@@ -39,20 +43,3 @@ class PeakDetectionModel_convout(pl.LightningModule):
         x = torch.sigmoid(x)
 
         return x[:, -1, :]  # Squeeze the channel dimension for a 1D output
-
-    def training_step(self, batch, batch_idx):
-        data, targets = batch
-        outputs = self(data)
-        loss = F.binary_cross_entropy(outputs, targets)
-        self.log("train_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        data, targets = batch
-        outputs = self(data)
-        loss = F.binary_cross_entropy(outputs, targets)
-        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
-        return loss
-
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.001)
