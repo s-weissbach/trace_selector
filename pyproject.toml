@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "synapse-selector"
-version = "0.1.16b2"
+version = "0.1.16b34"
 description = "Small internal package for post-selection of Glutmate/Calcium signal responses."
 authors = ["Stephan Weissbach <s.weissbach@uni-mainz.de>"]
 readme = "README.md"
@@ -15,6 +15,7 @@ plotly = "^5.17.0"
 openpyxl = "^3.1.2"
 torch = "^2.1.1"
 pyqt6-webengine = "^6.6.0"
+requests = "^2.31.0"
 
 
 [build-system]
