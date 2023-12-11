@@ -25,5 +25,7 @@
         "average Z"
     ],
     "export_xlsx": false,
-    "frames_for_decay": 6
+    "frames_for_decay": 6,
+    "peak_detection_type": "Thresholding",
+    "model_path": ""
 }

@@ -1,7 +1,17 @@
-from PyQt6.QtWidgets import (QLabel, QVBoxLayout, QHBoxLayout, QWidget,
-                             QSpinBox, QCheckBox, QLineEdit, QDoubleSpinBox,
-                             QPushButton)
+from PyQt6.QtWidgets import (
+    QLabel,
+    QVBoxLayout,
+    QHBoxLayout,
+    QWidget,
+    QSpinBox,
+    QCheckBox,
+    QLineEdit,
+    QDoubleSpinBox,
+    QPushButton,
+    QComboBox,
+)
 from PyQt6.QtCore import Qt
+import warnings
 
 
 class SettingsWindow(QWidget):
@@ -16,7 +26,9 @@ class SettingsWindow(QWidget):
         threshold_start_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
         threshold_layout.addWidget(threshold_start_desc)
         self.threshold_start_input = QSpinBox()
-        self.threshold_start_input.setToolTip('Baseline calculation for threshold starts from this frame.')
+        self.threshold_start_input.setToolTip(
+            "Baseline calculation for threshold starts from this frame."
+        )
         self.threshold_start_input.setValue(self.settings_.config["threshold_start"])
         self.threshold_start_input.valueChanged.connect(self.settings_value_changed)
         threshold_layout.addWidget(self.threshold_start_input)
@@ -24,7 +36,9 @@ class SettingsWindow(QWidget):
         threshold_stop_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
         threshold_layout.addWidget(threshold_stop_desc)
         self.threshold_stop_input = QSpinBox()
-        self.threshold_stop_input.setToolTip('Baseline calculation for threshold ends at this frame.')
+        self.threshold_stop_input.setToolTip(
+            "Baseline calculation for threshold ends at this frame."
+        )
         self.threshold_stop_input.setValue(self.settings_.config["threshold_stop"])
         self.threshold_stop_input.valueChanged.connect(self.settings_value_changed)
         threshold_layout.addWidget(self.threshold_stop_input)
@@ -33,7 +47,9 @@ class SettingsWindow(QWidget):
         threshold_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
         threshold_layout.addWidget(threshold_desc)
         self.threshold_input = QDoubleSpinBox()
-        self.threshold_input.setToolTip('Threshold is calculated based on this multiplier.')
+        self.threshold_input.setToolTip(
+            "Threshold is calculated based on this multiplier."
+        )
         self.threshold_input.setSingleStep(self.settings_.config["threshold_step"])
         self.threshold_input.setValue(self.settings_.config["threshold_mult"])
         self.threshold_input.valueChanged.connect(self.settings_value_changed)
@@ -50,6 +66,28 @@ class SettingsWindow(QWidget):
             self.settings_value_changed
         )
         response_layout.addWidget(self.activate_response_selection)
+        # peak detection type
+        peak_detection_type_label = QLabel("Detection method")
+        response_layout.addWidget(peak_detection_type_label)
+        self.peak_detection_type = QComboBox()
+        self.peak_detection_type.addItems(["Thresholding", "ML-based"])
+        if self.settings_.config["peak_detection_type"] == "Thresholding":
+            idx = 0
+        else:
+            idx = 1
+        self.peak_detection_type.setCurrentIndex(idx)
+        self.peak_detection_type.currentIndexChanged.connect(
+            self.settings_value_changed
+        )
+        response_layout.addWidget(self.peak_detection_type)
+        # load model
+        ml_model_used = QLabel("ML model")
+        response_layout.addWidget(ml_model_used)
+        self.ml_model = QComboBox()
+        self.ml_model.addItems(self.settings_.modelzoo.available_models.keys())
+        self.ml_model.setCurrentIndex(0)
+        self.ml_model.currentIndexChanged.connect(self.settings_value_changed)
+        response_layout.addWidget(self.ml_model)
         # nms toggle
         self.non_max_supression_button = QCheckBox("Non-Maximum Supression")
         self.non_max_supression_button.setChecked(self.settings_.config["nms"])
@@ -70,7 +108,8 @@ class SettingsWindow(QWidget):
         self.frames_for_decay = QSpinBox()
         self.frames_for_decay.setValue(self.settings_.config["frames_for_decay"])
         self.frames_for_decay.setToolTip(
-            "In the timeframe from peak to the value set, the program will search for the minimum and compute the decay constant tau.")
+            "In the timeframe from peak to the value set, the program will search for the minimum and compute the decay constant tau."
+        )
         self.frames_for_decay.valueChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.frames_for_decay)
         response_layout.addStretch()
@@ -108,10 +147,10 @@ class SettingsWindow(QWidget):
         settingslayout.addWidget(self.xlsx_export_box)
         # ------------------------------- close buttons ------------------------------ #
         btn_layout = QHBoxLayout()
-        ok_btn = QPushButton('Ok')
+        ok_btn = QPushButton("Ok")
         ok_btn.clicked.connect(self.save_and_close)
         btn_layout.addWidget(ok_btn)
-        cancel_btn = QPushButton('Cancel')
+        cancel_btn = QPushButton("Cancel")
         cancel_btn.clicked.connect(self.close_)
         btn_layout.addWidget(cancel_btn)
         settingslayout.addLayout(btn_layout)
@@ -137,6 +176,13 @@ class SettingsWindow(QWidget):
         self.settings_.config["stim_frames_patience"] = self.patience_input.value()
         self.settings_.config["frames_for_decay"] = self.frames_for_decay.value()
         self.settings_.config["stim_frames"] = self.stimframes_input.text()
+        self.settings_.config[
+            "peak_detection_type"
+        ] = self.peak_detection_type.currentText()
+        model_path = self.settings_.modelzoo.available_models[
+            self.ml_model.currentText()
+        ]
+        self.settings_.config["model_path"] = model_path
         if len(self.settings_.config["stim_frames"]) > 0:
             self.stimframes = [
                 int(frame) for frame in self.settings_.config["stim_frames"].split(",")
@@ -175,18 +221,24 @@ class SettingsWindow(QWidget):
         if not self.compute_ppr.isChecked() or len(self.stimframes) <= 1:
             return
         min_distance = self.stimframes[1] - self.stimframes[0]
-        for i in range(len(self.stimframes)-1):
-            if self.stimframes[i+1] - self.stimframes[i] < min_distance:
-                min_distance = self.stimframes[i+1] - self.stimframes[i]
-        if min_distance < self.settings_.config['stim_frames_patience']:
-            self.patience_input.setStyleSheet("QSpinBox"
-                                              "{"
-                                              "background : #ff5959;"
-                                              "}")
+        for i in range(len(self.stimframes) - 1):
+            if self.stimframes[i + 1] - self.stimframes[i] < min_distance:
+                min_distance = self.stimframes[i + 1] - self.stimframes[i]
+        if min_distance < self.settings_.config["stim_frames_patience"]:
+            self.patience_input.setStyleSheet(
+                "QSpinBox" "{" "background : #ff5959;" "}"
+            )
 
     def save_and_close(self) -> None:
         self.parent.settings_ = self.settings_
         self.parent.stimframes = self.stimframes
+        self.settings_.config["model_path"]
+        if (
+            self.settings_.config["peak_detection_type"] == "ML-based"
+            and self.settings_.config["model_path"] == ""
+        ):
+            warnings.warn("No model selected. Will switch to thresholding.")
+            self.settings_.config["peak_detection_type"] = "Thresholding"
         self.settings_.write_settings()
         if self.settings_.config["select_responses"]:
             self.parent.response_input_label.setEnabled(True)

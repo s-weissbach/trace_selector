@@ -8,9 +8,9 @@ class PeakDetectionModel_convout(nn.Module):
         super(PeakDetectionModel_convout, self).__init__()
 
         # 1D Convolution layers
-        self.conv1 = nn.Conv1d(1, 16, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv1d(16, 32, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv1d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv1d(1, 16, kernel_size=9, stride=1, padding=4)
+        self.conv2 = nn.Conv1d(16, 32, kernel_size=7, stride=1, padding=3)
+        self.conv3 = nn.Conv1d(32, 64, kernel_size=5, stride=1, padding=2)
         self.conv4 = nn.Conv1d(64, 128, kernel_size=3, stride=1, padding=1)
 
         # Batch normalization layers
