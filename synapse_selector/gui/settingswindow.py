@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QVBoxLayout,
     QHBoxLayout,
+    QStackedLayout,
     QWidget,
     QSpinBox,
     QCheckBox,
@@ -9,6 +10,7 @@ from PyQt6.QtWidgets import (
     QDoubleSpinBox,
     QPushButton,
     QComboBox,
+    QTabWidget,
 )
 from PyQt6.QtCore import Qt
 import warnings
@@ -18,150 +20,185 @@ class SettingsWindow(QWidget):
     def __init__(self, settings, parent):
         super().__init__()
         self.parent = parent
-        self.settings_ = settings
-        settingslayout = QVBoxLayout()
-        # ---------------------------- Threshold settings ---------------------------- #
-        threshold_layout = QHBoxLayout()
+        self.settings = settings
+
+        page_layout = QVBoxLayout()
+        tab_widget = QTabWidget()
+
+        page_layout.addWidget(tab_widget)
+
+        self.setLayout(page_layout)
+
+        # --- threshold settings ---
+
+        threshold_layout = QVBoxLayout()
         threshold_start_desc = QLabel("Baseline start:")
-        threshold_start_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
+        # threshold_start_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
         threshold_layout.addWidget(threshold_start_desc)
+
         self.threshold_start_input = QSpinBox()
-        self.threshold_start_input.setToolTip(
-            "Baseline calculation for threshold starts from this frame."
-        )
-        self.threshold_start_input.setValue(self.settings_.config["threshold_start"])
-        self.threshold_start_input.valueChanged.connect(self.settings_value_changed)
+        self.threshold_start_input.setToolTip("Baseline calculation for threshold starts from this frame.")
+        # self.threshold_start_input.setValue(self.settings.config["threshold_start"])
+        # self.threshold_start_input.valueChanged.connect(self.settings_value_changed)
         threshold_layout.addWidget(self.threshold_start_input)
+
         threshold_stop_desc = QLabel("Baseline stop:")
-        threshold_stop_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
+        # threshold_stop_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
         threshold_layout.addWidget(threshold_stop_desc)
+
         self.threshold_stop_input = QSpinBox()
-        self.threshold_stop_input.setToolTip(
-            "Baseline calculation for threshold ends at this frame."
-        )
-        self.threshold_stop_input.setValue(self.settings_.config["threshold_stop"])
-        self.threshold_stop_input.valueChanged.connect(self.settings_value_changed)
+        self.threshold_stop_input.setToolTip("Baseline calculation for threshold ends at this frame.")
+        # self.threshold_stop_input.setValue(self.settings.config["threshold_stop"])
+        # self.threshold_stop_input.valueChanged.connect(self.settings_value_changed)
         threshold_layout.addWidget(self.threshold_stop_input)
-        # threshold multiplier
+
         threshold_desc = QLabel("Threshold multiplier:")
-        threshold_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
+        # threshold_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
         threshold_layout.addWidget(threshold_desc)
+
         self.threshold_input = QDoubleSpinBox()
-        self.threshold_input.setToolTip(
-            "Threshold is calculated based on this multiplier."
-        )
-        self.threshold_input.setSingleStep(self.settings_.config["threshold_step"])
-        self.threshold_input.setValue(self.settings_.config["threshold_mult"])
-        self.threshold_input.valueChanged.connect(self.settings_value_changed)
+        self.threshold_input.setToolTip("Threshold is calculated based on this multiplier.")
+        # self.threshold_input.setSingleStep(self.settings.config["threshold_step"])
+        # self.threshold_input.setValue(self.settings.config["threshold_mult"])
+        # self.threshold_input.valueChanged.connect(self.settings_value_changed)
         threshold_layout.addWidget(self.threshold_input)
         threshold_layout.addStretch()
-        settingslayout.addLayout(threshold_layout)
-        # ------------------------ response selection settings ----------------------- #
-        response_layout = QHBoxLayout()
-        self.activate_response_selection = QCheckBox("Select Responses")
-        self.activate_response_selection.setChecked(
-            self.settings_.config["select_responses"]
-        )
-        self.activate_response_selection.stateChanged.connect(
-            self.settings_value_changed
-        )
+
+        threshold_wrapper_widget = QWidget()
+        threshold_wrapper_widget.setLayout(threshold_layout)
+
+        # --- response settings ---
+
+        response_layout = QVBoxLayout()
+        self.activate_response_selection = QCheckBox("Select Responses:")
+        # self.activate_response_selection.setChecked(self.settings.config["select_responses"])
+        # self.activate_response_selection.stateChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.activate_response_selection)
-        # peak detection type
-        peak_detection_type_label = QLabel("Detection method")
+
+        peak_detection_type_label = QLabel("Select Detection Method:")
         response_layout.addWidget(peak_detection_type_label)
+
         self.peak_detection_type = QComboBox()
         self.peak_detection_type.addItems(["Thresholding", "ML-based"])
-        if self.settings_.config["peak_detection_type"] == "Thresholding":
+        if self.settings.config["peak_detection_type"] == "Thresholding":
             idx = 0
         else:
             idx = 1
         self.peak_detection_type.setCurrentIndex(idx)
-        self.peak_detection_type.currentIndexChanged.connect(
-            self.settings_value_changed
-        )
+        # self.peak_detection_type.currentIndexChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.peak_detection_type)
-        # load model
-        ml_model_used = QLabel("ML model")
+
+        ml_model_used = QLabel("Select Deep Learning Model:")
         response_layout.addWidget(ml_model_used)
+
         self.ml_model = QComboBox()
-        self.ml_model.addItems(self.settings_.modelzoo.available_models.keys())
+        # self.ml_model.addItems(self.settings.modelzoo.available_models.keys())
         self.ml_model.setCurrentIndex(0)
-        self.ml_model.currentIndexChanged.connect(self.settings_value_changed)
+        # self.ml_model.currentIndexChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.ml_model)
-        # nms toggle
-        self.non_max_supression_button = QCheckBox("Non-Maximum Supression")
-        self.non_max_supression_button.setChecked(self.settings_.config["nms"])
-        self.non_max_supression_button.setEnabled(
-            self.settings_.config["select_responses"]
-        )
-        self.use_nms = self.settings_.config["nms"]
-        self.non_max_supression_button.stateChanged.connect(self.settings_value_changed)
+
+        self.non_max_supression_button = QCheckBox("Non-Maximum Supression:")
+        # self.non_max_supression_button.setChecked(self.settings.config["nms"])
+        # self.non_max_supression_button.setEnabled(self.settings.config["select_responses"])
+        # self.use_nms = self.settings.config["nms"]
+        # self.non_max_supression_button.stateChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.non_max_supression_button)
-        # compute PPR
-        self.compute_ppr = QCheckBox("Compute PPR")
-        self.compute_ppr.setChecked(self.settings_.config["compute_ppr"])
-        self.compute_ppr.stateChanged.connect(self.settings_value_changed)
+
+        self.compute_ppr = QCheckBox("Compute PPR:")
+        # self.compute_ppr.setChecked(self.settings.config["compute_ppr"])
+        # self.compute_ppr.stateChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.compute_ppr)
+
         tau_desc = QLabel("Time window for tau computation:")
-        tau_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
+        # tau_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
         response_layout.addWidget(tau_desc)
+
         self.frames_for_decay = QSpinBox()
-        self.frames_for_decay.setValue(self.settings_.config["frames_for_decay"])
+        # self.frames_for_decay.setValue(self.settings.config["frames_for_decay"])
         self.frames_for_decay.setToolTip(
             "In the timeframe from peak to the value set, the program will search for the minimum and compute the decay constant tau."
         )
-        self.frames_for_decay.valueChanged.connect(self.settings_value_changed)
+        # self.frames_for_decay.valueChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.frames_for_decay)
+
         response_layout.addStretch()
-        settingslayout.addLayout(response_layout)
-        # --------------------------- stimulation settings --------------------------- #
-        stimulation_layout = QHBoxLayout()
-        # stimulation used
+
+        response_wrapper_widget = QWidget()
+        response_wrapper_widget.setLayout(response_layout)
+
+        # --- stimulation settings ---
+
+        stimulation_layout = QVBoxLayout()
+
         self.stim_used_box = QCheckBox("Stimulation used")
-        self.stim_used_box.setChecked(self.settings_.config["stim_used"])
-        self.stim_used_box.stateChanged.connect(self.settings_value_changed)
+        # self.stim_used_box.setChecked(self.settings.config["stim_used"])
+        # self.stim_used_box.stateChanged.connect(self.settings_value_changed)
         stimulation_layout.addWidget(self.stim_used_box)
-        # stim frames
+
         self.stimframes_label = QLabel("Stimulation Frames")
-        self.stimframes_label.setEnabled(self.settings_.config["stim_used"])
+        # self.stimframes_label.setEnabled(self.settings.config["stim_used"])
         stimulation_layout.addWidget(self.stimframes_label)
-        self.stimframes_input = QLineEdit(self.settings_.config["stim_frames"])
+
+        self.stimframes_input = QLineEdit(self.settings.config["stim_frames"])
         self.stimframes_input.setMaximumWidth(200)
-        self.stimframes_input.setEnabled(self.settings_.config["stim_used"])
-        self.stimframes_input.editingFinished.connect(self.settings_value_changed)
+        # self.stimframes_input.setEnabled(self.settings.config["stim_used"])
+        # self.stimframes_input.editingFinished.connect(self.settings_value_changed)
         stimulation_layout.addWidget(self.stimframes_input)
+
         patience_label = QLabel("Patience")
         stimulation_layout.addWidget(patience_label)
+
         self.patience_input = QSpinBox()
-        self.patience_input.setValue(self.settings_.config["stim_frames_patience"])
-        self.patience_input.setEnabled(self.settings_.config["stim_used"])
-        self.patience_input.editingFinished.connect(self.settings_value_changed)
-        self.patience_input.valueChanged.connect(self.settings_value_changed)
+        # self.patience_input.setValue(self.settings.config["stim_frames_patience"])
+        # self.patience_input.setEnabled(self.settings_.config["stim_used"])
+        # self.patience_input.editingFinished.connect(self.settings_value_changed)
+        # self.patience_input.valueChanged.connect(self.settings_value_changed)
         stimulation_layout.addWidget(self.patience_input)
+
         stimulation_layout.addStretch()
-        settingslayout.addLayout(stimulation_layout)
-        # xlsx export
+
+        simulation_wrapper_widget = QWidget()
+        simulation_wrapper_widget.setLayout(stimulation_layout)
+
+        # --- export ---
+
+        export_layout = QVBoxLayout()
+
         self.xlsx_export_box = QCheckBox("Export as .xlsx")
-        self.xlsx_export_box.setChecked(self.settings_.config["export_xlsx"])
-        self.xlsx_export_box.clicked.connect(self.settings_value_changed)
-        settingslayout.addWidget(self.xlsx_export_box)
-        # ------------------------------- close buttons ------------------------------ #
-        btn_layout = QHBoxLayout()
-        ok_btn = QPushButton("Ok")
-        ok_btn.clicked.connect(self.save_and_close)
-        btn_layout.addWidget(ok_btn)
-        cancel_btn = QPushButton("Cancel")
-        cancel_btn.clicked.connect(self.close_)
-        btn_layout.addWidget(cancel_btn)
-        settingslayout.addLayout(btn_layout)
-        self.setLayout(settingslayout)
-        if len(self.settings_.config["stim_frames"]) > 0:
-            self.stimframes = [
-                int(frame) for frame in self.settings_.config["stim_frames"].split(",")
-            ]
-            self.stimframes = sorted(self.stimframes)
-        else:
-            self.stimframes = []
+        # self.xlsx_export_box.setChecked(self.settings.config["export_xlsx"])
+        # self.xlsx_export_box.clicked.connect(self.settings_value_changed)
+        export_layout.addWidget(self.xlsx_export_box)
+
+        export_layout.addStretch()
+
+        export_wrapper_widget = QWidget()
+        export_wrapper_widget.setLayout(export_layout)
+
+        # --- buttons ---
+
+        button_layout = QHBoxLayout()
+        # ok_btn = QPushButton("Save (-> just save on every change?)")
+        # ok_btn.clicked.connect(self.save_and_close)
+        # button_layout.addWidget(ok_btn)
+
+        cancel_btn = QPushButton("Back")
+        # cancel_btn.clicked.connect(self.close_)
+        button_layout.addWidget(cancel_btn)
+
+        page_layout.addLayout(button_layout)
+
+        # if len(self.settings_.config["stim_frames"]) > 0:
+        #     self.stimframes = [
+        #         int(frame) for frame in self.settings_.config["stim_frames"].split(",")
+        #     ]
+        #     self.stimframes = sorted(self.stimframes)
+        # else:
+        #     self.stimframes = []
+
+        tab_widget.addTab(threshold_wrapper_widget, 'Threshold')
+        tab_widget.addTab(response_wrapper_widget, 'Detection')
+        tab_widget.addTab(simulation_wrapper_widget, 'Simulation')
+        tab_widget.addTab(export_wrapper_widget, 'Export')
 
     def settings_value_changed(self) -> None:
         """

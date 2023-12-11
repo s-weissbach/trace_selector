@@ -7,10 +7,13 @@ from PyQt6.QtWidgets import (
     QWidget,
     QFileDialog,
     QMessageBox,
+    QStackedLayout,
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6 import QtWebEngineWidgets
+
+from synapse_selector.gui.settingswindow import SettingsWindow
 
 import os
 
@@ -19,19 +22,22 @@ asset_path = '/'.join(file_path.split('/')[0:-1]) + '/assets'
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, settings):
         super(MainWindow, self).__init__()
 
         # --- variables ---
         self.directory = None
 
-        # --- layout ---
+        # --- settings ---
+        self.settings = settings
+
+        # --- function calls ---
+        self.setup_gui()
+
+    # --- helper functions ---
+
+    def setup_gui(self):
         self.setWindowTitle("Synapse Selector")
-
-        label = QLabel("Hello!")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.setCentralWidget(label)
 
         # toolbar
         toolbar = QToolBar("Toolbar")
@@ -40,11 +46,39 @@ class MainWindow(QMainWindow):
         # status bar
         self.setStatusBar(QStatusBar(self))
 
-        # layouts
+        # main 'tab'
+        main_wrapper_widget = QWidget()
         main_layout = QVBoxLayout()
-        wrapper_widget = QWidget()
+        main_wrapper_widget.setLayout(main_layout)
+
+        # settings 'tab'
+        settings_wrapper_widget = QWidget()
+        settings_layout = QVBoxLayout()
+        settings_wrapper_widget.setLayout(settings_layout)
+
+        settings_layout.addWidget(SettingsWindow(self.settings, self))
+
+        # stack layout
+        stack_wrapper_widget = QWidget()
+        stack_layout = QStackedLayout()
+        stack_layout.addWidget(main_wrapper_widget)
+        stack_layout.addWidget(settings_wrapper_widget)
+        stack_wrapper_widget.setLayout(stack_layout)
+
+        # set stack layout as central widget
+        self.setCentralWidget(stack_wrapper_widget)
 
         # toolbar buttons
+
+        # home
+        button_home = QAction(QIcon(os.path.join(asset_path, 'home.svg')), 'Open file', self)
+        button_home.setStatusTip('Go back to the main menu')
+        button_home.triggered.connect(lambda: stack_layout.setCurrentIndex(0))
+        toolbar.addAction(button_home)
+
+        # spacing between main options and home button
+        toolbar.addSeparator()
+
         # open
         button_open = QAction(QIcon(os.path.join(asset_path, 'open.svg')), 'Open file', self)
         button_open.setStatusTip('Open a file containing traces using your file system')
@@ -60,7 +94,7 @@ class MainWindow(QMainWindow):
         # settings
         button_settings = QAction(QIcon(os.path.join(asset_path, 'settings.svg')), 'Open file', self)
         button_settings.setStatusTip('Make the Synapse Selector Experience your own')
-        # button_settings.triggered.connect()
+        button_settings.triggered.connect(lambda: stack_layout.setCurrentIndex(1))
         toolbar.addAction(button_settings)
 
         # spacer between settings and navigation
@@ -100,11 +134,6 @@ class MainWindow(QMainWindow):
         # plot
         self.trace_plot = QtWebEngineWidgets.QWebEngineView(self)
         main_layout.addWidget(self.trace_plot)
-
-        wrapper_widget.setLayout(main_layout)
-        self.setCentralWidget(wrapper_widget)
-
-    # --- helper functions ---
 
     def update_file_path_label(self, filepath: str):
         self.file_path_label.setText('Current open file: ' + filepath)

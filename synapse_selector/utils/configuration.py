@@ -7,8 +7,15 @@ from synapse_selector.detection.model_zoo import ModelZoo
 
 class gui_settings:
     def __init__(self, modelzoo: ModelZoo) -> None:
-        self.parse_settings()
         self.modelzoo = modelzoo
+
+        # setup paths
+        file_path = os.path.dirname(__file__)
+        settings_path = '/'.join(file_path.split('/')[0:-1]) + '/settings'
+        self.default_config_path = os.path.join(settings_path, 'default_settings.json')
+        self.user_config_path = os.path.join(settings_path, 'settings.json')
+
+        self.parse_settings()
 
     def parse_settings(self):
         """
@@ -16,42 +23,26 @@ class gui_settings:
         first time, the default "default_config.json" file is used, otherwise the
         settings from the previous run are loaded.
         """
-        # ------------------------- user path specific for OS ------------------------ #
-        if platform.system() == "Windows":
-            self.config_folder = os.path.join(
-                str(os.environ.get("USERPROFILE")), ".synapse"
-            )
-            self.user_config_path = os.path.join(self.config_folder, "config.json")
-        else:
-            self.config_folder = os.path.join(str(os.environ.get("HOME")), ".synapse")
-            self.user_config_path = os.path.join(self.config_folder, "config.json")
-        # -------------------------------- parse file -------------------------------- #
-        # default config path
-        current_file_path = os.path.abspath(__file__)
-        default_config_path = os.path.join(
-            os.path.dirname(current_file_path), "default_config.json"
-        )
-
-        if os.path.exists(self.user_config_path) and os.path.isfile(
-            self.user_config_path
-        ):
+        # user settings exist
+        if os.path.exists(self.user_config_path) and os.path.isfile(self.user_config_path):
             config_path = self.user_config_path
+
             with open(config_path, "r") as in_json:
                 self.config = json.load(in_json)
+
             # in case the settings file is updated add new keys to the saved config
-            with open(default_config_path, "r") as in_json:
+            with open(self.default_config_path, "r") as in_json:
                 template_config = json.load(in_json)
             for key in template_config:
                 if key not in self.config:
                     self.config[key] = template_config[key]
                     self.write_settings()
+        # user settings don't exist -> load default settings
         else:
-            with open(default_config_path, "r") as in_json:
+            with open(self.default_config_path, "r") as in_json:
                 self.config = json.load(in_json)
 
     def write_settings(self) -> None:
-        if not os.path.exists(self.config_folder):
-            os.mkdir(self.config_folder)
         with open(self.user_config_path, "w") as out_json:
             json.dump(self.config, out_json)
 

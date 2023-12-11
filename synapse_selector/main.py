@@ -1,4 +1,4 @@
-from synapse_selector.utils.gui_rework import MainWindow
+from synapse_selector.gui.gui_rework import MainWindow
 from synapse_selector.gui.mainwindow import UiWindow
 from synapse_selector.utils.configuration import gui_settings
 from synapse_selector.detection.model_zoo import ModelZoo
@@ -26,7 +26,7 @@ def main():
     settings = gui_settings(modelzoo)
     # initalize GUI
     app = QApplication(sys.argv)
-    main = MainWindow()
+    main = MainWindow(settings)
     # main = UiWindow(settings)
     main.show()
     sys.exit(app.exec())
