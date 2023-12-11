@@ -2,7 +2,7 @@ import os
 import json
 import platform
 from PyQt6.QtWidgets import QFileDialog
-from .model_zoo import ModelZoo
+from synapse_selector.detection.model_zoo import ModelZoo
 
 
 class gui_settings:
@@ -69,3 +69,4 @@ class gui_settings:
             os.mkdir(self.config["keep_folder"])
         if not os.path.exists(self.config["trash_folder"]):
             os.mkdir(self.config["trash_folder"])
+        self.write_settings()

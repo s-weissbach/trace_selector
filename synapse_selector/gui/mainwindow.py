@@ -17,26 +17,26 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtCore import QEventLoop
 from PyQt6.QtGui import QFont
-from .threshold import compute_threshold
-from .plot import trace_plot
-from .trace_data import synapse_response_data_class
-from .peak_detection import peak_detection_scipy
-from .pytorch_models import torch_cnn_model
-from .settings_gui import SettingsWindow
+from ..utils.threshold import compute_threshold
+from ..utils.plot import trace_plot
+from ..utils.trace_data import synapse_response_data_class
+from ..detection.peak_detection import peak_detection_scipy
+from ..detection.model_wraper import torch_model
+from .settingswindow import SettingsWindow
 
 
-class ui_window(QWidget):
+class UiWindow(QWidget):
     def __init__(self, settings):
         super().__init__()
         self.settings_ = settings
         self.directory = None
-        self.model = torch_cnn_model()
+        self.model = torch_model()
         # load weights for CNN
         if self.settings_.config["peak_detection_type"] == "ML-based":
             self.model.load_weights(self.settings_.config["model_path"])
-        # layout
-        mainwindowlayout = QVBoxLayout()
         if self.settings_.config["output_filepath"] == "":
+            self.settings_.get_output_folder(self)
+        elif not os.path.exists(self.settings_.config["output_filepath"]):
             self.settings_.get_output_folder(self)
         else:
             response = QMessageBox.question(
@@ -46,10 +46,27 @@ class ui_window(QWidget):
             )
             if response == QMessageBox.StandardButton.Yes:
                 self.settings_.get_output_folder(self)
+
         if len(self.settings_.config["stim_frames"]) > 0:
             self.stimframes = [
                 int(frame) for frame in self.settings_.config["stim_frames"].split(",")
             ]
+            self.stimframes = sorted(self.stimframes)
+        else:
+            self.stimframes = []
+
+        self.initialize_gui()
+
+        # load a file
+        self.get_filepath()
+        self.open_file()
+        # start inference from first response
+        self.peak_detection()
+        self.plot()
+
+    def initialize_gui(self) -> None:
+        # layout
+        mainwindowlayout = QVBoxLayout()
         # ---------------------------------------------------------------------------- #
         #                                     row 1                                    #
         # ---------------------------------------------------------------------------- #
@@ -86,6 +103,9 @@ class ui_window(QWidget):
         settings_button = QPushButton("settings")
         settings_button.clicked.connect(self.change_settings)
         settingsrow.addWidget(settings_button)
+        self.normalized_trace_toggle = QCheckBox("Show normalized trace")
+        self.normalized_trace_toggle.clicked.connect(self.plot)
+        settingsrow.addWidget(self.normalized_trace_toggle)
         settingsrow.addStretch()
         mainwindowlayout.addLayout(settingsrow)
         # ---------------------------------------------------------------------------- #
@@ -96,7 +116,7 @@ class ui_window(QWidget):
         self.threshold_slider.setMinimumWidth(300)
         self.threshold_slider.setMinimumHeight(40)
         self.threshold_slider.setValue(50)
-        self.threshold_slider.setMinimum(0)
+        self.threshold_slider.setMinimum(1)
         self.threshold_slider.setMaximum(100)
         self.threshold_slider.setTickInterval(10)
         self.threshold_slider.valueChanged.connect(self.update_probability_label)
@@ -105,7 +125,6 @@ class ui_window(QWidget):
         probability_layout.addWidget(self.threshold_slider)
         self.current_threshold = QLabel(f"{self.threshold_slider.value()}%")
         probability_layout.addWidget(self.current_threshold)
-
         mainwindowlayout.addLayout(probability_layout)
 
         # ---------------------------------------------------------------------------- #
@@ -149,20 +168,6 @@ class ui_window(QWidget):
         self.response_button_v_layout.addLayout(self.response_button_layout_list[0])
         mainwindowlayout.addLayout(self.response_button_v_layout)
         self.setLayout(mainwindowlayout)
-        # select file
-        self.get_filepath()
-        # load file
-        self.open_file()
-        # plot
-        self.plot()
-        self.selected_peaks = []
-        if len(self.settings_.config["stim_frames"]) > 0:
-            self.stimframes = [
-                int(frame) for frame in self.settings_.config["stim_frames"].split(",")
-            ]
-            self.stimframes = sorted(self.stimframes)
-        else:
-            self.stimframes = []
         self.current_layout_count = 0
 
     def initalize_file(self) -> None:
@@ -238,36 +243,39 @@ class ui_window(QWidget):
         This is done by creating a instance of trace_plot (plot.py),
         that handels all operations of the figure.
         """
-        # ----------------------------- compute threshold ---------------------------- #
+        if self.normalized_trace_toggle.isChecked():
+            trace = self.synapse_response.norm_intensity
+        else:
+            trace = self.synapse_response.intensity
+        if self.settings_.config["select_responses"]:
+            self.peak_selection()
         self.threshold = compute_threshold(
             self.settings_.config["stim_used"],
-            self.synapse_response.intensity,
+            trace,
             self.settings_.config["threshold_mult"],
             self.settings_.config["threshold_start"],
             self.settings_.config["threshold_stop"],
         )
-        # ----------------------------------- plot ----------------------------------- #
         if self.settings_.config["peak_detection_type"] == "Thresholding":
             self.tr_plot = trace_plot(
                 self.synapse_response.time,
-                self.synapse_response.intensity,
+                trace,
                 self.threshold,
             )
         else:
             self.tr_plot = trace_plot(
                 self.synapse_response.time,
-                self.synapse_response.intensity,
+                trace,
                 self.threshold,
                 self.model.preds,
             )
         self.tr_plot.create_plot()
-        # --------------------------------- responses -------------------------------- #
+        # add responses
         if self.settings_.config["select_responses"]:
             if self.settings_.config["stim_used"]:
                 self.tr_plot.add_stimulation_window(
                     self.stimframes, self.settings_.config["stim_frames_patience"]
                 )
-            self.peak_selection()
             selection = [btn.isChecked() for btn in self.peak_selection_buttons]
             if self.settings_.config["peak_detection_type"] == "Thresholding":
                 self.labels = self.tr_plot.add_peaks(
@@ -332,6 +340,8 @@ class ui_window(QWidget):
             self.settings_.config["select_responses"],
             self.settings_.config["frames_for_decay"],
             selection,
+            self.stimframes,
+            self.settings_.config["stim_frames_patience"],
         )
         self.next()
 
@@ -404,7 +414,7 @@ class ui_window(QWidget):
         """
         if self.settings_.config["peak_detection_type"] == "Thresholding":
             automatic_peaks = peak_detection_scipy(
-                self.synapse_response.intensity,
+                self.synapse_response.norm_intensity,
                 self.threshold,
                 self.settings_.config["stim_used"],
                 self.stimframes,
@@ -414,7 +424,8 @@ class ui_window(QWidget):
             if not self.model.weights_loaded:
                 self.model.load_weights(self.settings_.config["model_path"])
             automatic_peaks = self.model.predict(
-                self.synapse_response.intensity, self.threshold_slider.value() / 100
+                self.synapse_response.norm_intensity,
+                self.threshold_slider.value() / 100,
             )
         self.synapse_response.add_automatic_peaks(automatic_peaks)
 
@@ -485,9 +496,9 @@ class ui_window(QWidget):
 
     def update_probability_label(self) -> None:
         self.current_threshold.setText(f"{self.threshold_slider.value()}%")
-
-    def update_peaks_new_threshold(self) -> None:
         automatic_peaks = self.model.update_predictions(
             self.threshold_slider.value() / 100
         )
+        self.synapse_response.automatic_peaks = []
+        self.synapse_response.add_automatic_peaks(automatic_peaks)
         self.plot()

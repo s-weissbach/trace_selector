@@ -9,7 +9,6 @@ from PyQt6.QtWidgets import (
     QDoubleSpinBox,
     QPushButton,
     QComboBox,
-    QFileDialog,
 )
 from PyQt6.QtCore import Qt
 import warnings
@@ -72,7 +71,11 @@ class SettingsWindow(QWidget):
         response_layout.addWidget(peak_detection_type_label)
         self.peak_detection_type = QComboBox()
         self.peak_detection_type.addItems(["Thresholding", "ML-based"])
-        self.peak_detection_type.setCurrentIndex(0)
+        if self.settings_.config["peak_detection_type"] == "Thresholding":
+            idx = 0
+        else:
+            idx = 1
+        self.peak_detection_type.setCurrentIndex(idx)
         self.peak_detection_type.currentIndexChanged.connect(
             self.settings_value_changed
         )

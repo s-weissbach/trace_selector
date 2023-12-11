@@ -1,15 +1,15 @@
 import pandas as pd
 from pandas.api.types import is_string_dtype
 import numpy as np
-from numpy.typing import ArrayLike
 import os
 
-from synapse_selector.utils.fraction_respond_first_pulse import (
+from synapse_selector.utils.post_selection.fraction_respond_first_pulse import (
     compute_fraction_first_pulse,
 )
-from .ppr_calculation import paired_pulse_ratio
-from .decay_compute import compute_tau
-from .failure_rate import failure_rate
+from synapse_selector.utils.post_selection.ppr_calculation import paired_pulse_ratio
+from synapse_selector.utils.post_selection.decay_compute import compute_tau
+from synapse_selector.utils.post_selection.failure_rate import failure_rate
+from synapse_selector.utils.normalization import sliding_window_normalization
 
 
 class synapse_response_data_class:
@@ -33,6 +33,9 @@ class synapse_response_data_class:
         self.manual_peaks = []
         self.selected_peaks = []
         self.intensity = self.df[self.columns[self.idx]].to_numpy()
+        self.norm_intensity = sliding_window_normalization(
+            self.df[self.columns[self.idx]].to_numpy()
+        )
         self.time = np.arange(len(self.intensity))
         self.automatic_peaks = []
 
@@ -63,25 +66,22 @@ class synapse_response_data_class:
         Save the sorted trace to the respective keep and trash file and if peak
         detection was used also save the result table for the keep responses.
         """
+        os.makedirs(keep_path, exist_ok=True)
+        os.makedirs(trash_path, exist_ok=True)
         keep_df = self.df[self.meta_columns + self.keep_data]
         trash_df = self.df[self.meta_columns + self.trash_data]
-        if export_xlsx:
-            keep_df.to_excel(
-                os.path.join(keep_path, f"{self.filename}.xlsx"), index=False
-            )
-            trash_df.to_excel(
-                os.path.join(trash_path, f"{self.filename}.xlsx"), index=False
-            )
-        elif self.filename.endswith(".xlsx") or self.filename.endswith(".xls"):
-            keep_df.to_excel(
-                os.path.join(keep_path, f"{self.filename}.xlsx"), index=False
-            )
-            trash_df.to_excel(
-                os.path.join(trash_path, f"{self.filename}.xlsx"), index=False
-            )
+        if (
+            export_xlsx
+            or self.filename.endswith(".xlsx")
+            or self.filename.endswith(".xls")
+        ):
+            output_name = f"{'.'.join(self.filename.split('.')[:-1])}.xlsx"
+            keep_df.to_excel(os.path.join(keep_path, output_name), index=False)
+            trash_df.to_excel(os.path.join(trash_path, output_name), index=False)
         else:
-            keep_df.to_csv(os.path.join(keep_path, self.filename), index=False)
-            trash_df.to_csv(os.path.join(trash_path, self.filename), index=False)
+            output_name = f"{'.'.join(self.filename.split('.')[:-1])}.csv"
+            keep_df.to_csv(os.path.join(keep_path, output_name), index=False)
+            trash_df.to_csv(os.path.join(trash_path, output_name), index=False)
         if len(self.selected_peaks) > 0:
             peak_df = pd.DataFrame(
                 self.selected_peaks,
@@ -91,6 +91,8 @@ class synapse_response_data_class:
                     "Frame",
                     "abs. Amplitude",
                     "rel. Amplitude",
+                    "evoked",
+                    "automatic detected peak",
                     "decay constant (tau)",
                     "inv. decay constant (invtau)",
                 ],
@@ -149,6 +151,9 @@ class synapse_response_data_class:
         self.peaks = []
         self.manual_peaks = []
         self.intensity = self.df[self.columns[self.idx]].to_numpy()
+        self.norm_intensity = sliding_window_normalization(
+            self.df[self.columns[self.idx]].to_numpy()
+        )
         self.time = np.arange(len(self.intensity))
 
     def back(self) -> bool:
@@ -174,7 +179,12 @@ class synapse_response_data_class:
         return True
 
     def keep(
-        self, select_responses: bool, frames_for_decay: int, selection: list[int]
+        self,
+        select_responses: bool,
+        frames_for_decay: int,
+        selection: list[int],
+        stimulation: list[int],
+        patience: int,
     ) -> None:
         """
         Puts currently viewed trace to the keep data and if peaks selected appends
@@ -185,12 +195,18 @@ class synapse_response_data_class:
         if not select_responses:
             return
         # -------------------------- save selected responses ------------------------- #
-        for peak_tp in selection:
+        for peak_tp in sorted(selection):
             amplitude = self.intensity[peak_tp]
-            baseline = np.min(self.intensity[max(0, peak_tp - 15) : peak_tp])
+            baseline = np.median(self.intensity[max(0, peak_tp - 15) : peak_tp])
             relative_height = amplitude - baseline
             pos_after_peak = min(peak_tp + frames_for_decay, len(self.intensity - 1))
             inv_tau, tau = compute_tau(self.intensity[peak_tp:pos_after_peak])
+            automatic_detected = True if peak_tp in self.automatic_peaks else False
+            responded_to_stim = [
+                True if stim <= peak_tp and peak_tp <= stim + patience else False
+                for stim in stimulation
+            ]
+            evoked = np.any(responded_to_stim)
             self.selected_peaks.append(
                 [
                     self.filename,
@@ -198,6 +214,8 @@ class synapse_response_data_class:
                     peak_tp,
                     amplitude,
                     relative_height,
+                    evoked,
+                    automatic_detected,
                     tau,
                     inv_tau,
                 ]

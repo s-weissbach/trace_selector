@@ -1,6 +1,7 @@
 import numpy as np
 import plotly.express as px
 import pandas as pd
+from typing import Union
 
 
 class trace_plot:
@@ -17,7 +18,7 @@ class trace_plot:
         if len(probabilities) == 0:
             self.probabilities = [0 for _ in range(len(time))]
         else:
-            self.probabilities = [f"{p}%" for p in probabilities]
+            self.probabilities = [f"{np.round(p*100,2)}%" for p in probabilities]
         self.plot_df = pd.DataFrame(
             {
                 "time": self.time,
@@ -34,7 +35,7 @@ class trace_plot:
             self.plot_df, x="time", y="intensity", hover_data="probability"
         )
         self.fig.update_layout(
-            template="simple_white",
+            template="plotly_white",
             xaxis=dict(rangeslider=dict(visible=True), type="linear"),
         )
         self.fig.add_hline(y=self.threshold, line_color="red", line_dash="dash")
@@ -58,7 +59,7 @@ class trace_plot:
         peaks: list,
         use_nms: bool,
         selection: list[bool],
-        probabilities: list[float] = [],
+        probabilities: Union[list[float], np.ndarray] = [],
     ) -> list:
         """
         Adds all peaks for selection to the plot.
@@ -71,7 +72,7 @@ class trace_plot:
                 self.fig.add_annotation(
                     x=peak,
                     y=self.intenstity[peak],
-                    text=f"frame: {peak}, height: {round(self.intenstity[peak],2)}, probability: {round(probabilities[peak]*100,2)}%",
+                    text=f"frame: {peak}, height: {np.round(self.intenstity[peak],2)}, probability: {np.round(probabilities[peak]*100,2)}%",
                     showarrow=True,
                 )
             else:
