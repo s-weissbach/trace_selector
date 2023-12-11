@@ -125,6 +125,7 @@ class ui_window(QWidget):
         self.response_button_v_layout.addLayout(self.response_button_layout_list[0])
         mainwindowlayout.addLayout(self.response_button_v_layout)
         self.setLayout(mainwindowlayout)
+
         # select file
         self.get_filepath()
         # load file

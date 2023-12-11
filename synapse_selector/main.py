@@ -1,4 +1,5 @@
 from synapse_selector.utils.gui import ui_window
+from synapse_selector.utils.gui_rework import MainWindow
 from synapse_selector.utils.configuration import gui_settings
 from PyQt6.QtWidgets import QApplication
 import sys
@@ -7,7 +8,8 @@ import sys
 def main():
     settings = gui_settings()
     app = QApplication(sys.argv)
-    main = ui_window(settings)
+    main = MainWindow()
+    # main = ui_window(settings)
     main.show()
     sys.exit(app.exec())
 
