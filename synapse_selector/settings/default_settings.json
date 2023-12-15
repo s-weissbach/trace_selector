@@ -29,6 +29,6 @@
     "peak_detection_type": "Thresholding",
     "model_path": "",
     "normalized_trace": true,
-    "threshold_slider_ml": 50,
+    "threshold_slider_ml": 50
 }
 
