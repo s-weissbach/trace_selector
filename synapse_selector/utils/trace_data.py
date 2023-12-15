@@ -12,7 +12,7 @@ from synapse_selector.utils.post_selection.failure_rate import failure_rate
 from synapse_selector.utils.normalization import sliding_window_normalization
 
 
-class synapse_response_data_class:
+class SynapseResponseData:
     def __init__(self, filepath: str, filename: str, meta_columns: list[str]) -> None:
         self.filename = filename
         if filepath.endswith(".txt") or filepath.endswith(".csv"):
@@ -197,7 +197,7 @@ class synapse_response_data_class:
         # -------------------------- save selected responses ------------------------- #
         for peak_tp in sorted(selection):
             amplitude = self.intensity[peak_tp]
-            baseline = np.median(self.intensity[max(0, peak_tp - 15) : peak_tp])
+            baseline = np.median(self.intensity[max(0, peak_tp - 15): peak_tp])
             relative_height = amplitude - baseline
             pos_after_peak = min(peak_tp + frames_for_decay, len(self.intensity - 1))
             inv_tau, tau = compute_tau(self.intensity[peak_tp:pos_after_peak])

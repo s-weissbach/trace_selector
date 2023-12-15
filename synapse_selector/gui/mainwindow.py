@@ -19,7 +19,7 @@ from PyQt6.QtCore import QEventLoop
 from PyQt6.QtGui import QFont
 from ..utils.threshold import compute_threshold
 from ..utils.plot import trace_plot
-from ..utils.trace_data import synapse_response_data_class
+from ..utils.trace_data import SynapseResponseData
 from ..detection.peak_detection import peak_detection_scipy
 from ..detection.model_wraper import torch_model
 from .settingswindow import SettingsWindow
@@ -231,7 +231,7 @@ class UiWindow(QWidget):
         resulting output dataframes and response columns.
         All responses columns will be plotted.
         """
-        self.synapse_response = synapse_response_data_class(
+        self.synapse_response = SynapseResponseData(
             self.filepath, self.filename, self.settings_.config["meta_columns"]
         )
         self.peak_selection_buttons = []
@@ -358,7 +358,7 @@ class UiWindow(QWidget):
         open next file.
         """
         response = QMessageBox.question(
-            self, "Skip Rest", "Do you wish skip the remaining traces?"
+            self, "Skip Rest", "Do you wish skip the remaining traces and save your current results?"
         )
         if response == QMessageBox.StandardButton.No:
             return

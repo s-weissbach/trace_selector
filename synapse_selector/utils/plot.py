@@ -21,9 +21,9 @@ class trace_plot:
             self.probabilities = [f"{np.round(p*100,2)}%" for p in probabilities]
         self.plot_df = pd.DataFrame(
             {
-                "time": self.time,
-                "intensity": self.intenstity,
-                "probability": self.probabilities,
+                "Time": self.time,
+                "Intensity": self.intenstity,
+                "Probability": self.probabilities,
             }
         )
 
@@ -32,7 +32,7 @@ class trace_plot:
         Creates the basic trace plot with a threshold.
         """
         self.fig = px.line(
-            self.plot_df, x="time", y="intensity", hover_data="probability"
+            self.plot_df, x="Time", y="Intensity", hover_data="Probability"
         )
         self.fig.update_layout(
             template="plotly_white",

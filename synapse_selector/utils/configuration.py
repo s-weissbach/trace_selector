@@ -47,17 +47,11 @@ class gui_settings:
             json.dump(self.config, out_json)
 
     def get_output_folder(self, parent) -> None:
-        self.config["output_folder"] = str(
-            QFileDialog.getExistingDirectory(parent, "Select output directory")
-        )
-        self.config["keep_folder"] = os.path.join(
-            self.config["output_folder"], "keep_folder"
-        )
-        self.config["trash_folder"] = os.path.join(
-            self.config["output_folder"], "trash_folder"
-        )
-        if not os.path.exists(self.config["keep_folder"]):
-            os.mkdir(self.config["keep_folder"])
-        if not os.path.exists(self.config["trash_folder"]):
-            os.mkdir(self.config["trash_folder"])
+        self.config["output_filepath"] = str(QFileDialog.getExistingDirectory(parent, "Select output directory"))
+        keep_path = os.path.join(self.config["output_filepath"], "keep_folder")
+        trash_path = os.path.join(self.config["output_filepath"], "trash_folder")
+        if not os.path.exists(keep_path):
+            os.mkdir(keep_path)
+        if not os.path.exists(trash_path):
+            os.mkdir(trash_path)
         self.write_settings()
