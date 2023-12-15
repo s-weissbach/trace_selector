@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
         button_home = QAction(QIcon(os.path.join(asset_path, 'home.svg')), 'Home (H)', self)
         button_home.setStatusTip('Go back to the main menu (H)')
         button_home.triggered.connect(lambda: stack_layout.setCurrentIndex(0))
-        button_home.setShortcut(QKeySequence("h"))
+        button_home.setShortcut(QKeySequence('h'))
         toolbar.addAction(button_home)
 
         # spacing between main options and home button
@@ -101,42 +101,48 @@ class MainWindow(QMainWindow):
         toolbar.addAction(button_open)
 
         # save
-        button_save = QAction(QIcon(os.path.join(asset_path, 'save.svg')), 'Save your work', self)
-        button_save.setStatusTip('Saves all traces up to this point and skips the rest')
+        button_save = QAction(QIcon(os.path.join(asset_path, 'save.svg')), 'Save your work (CTRL + S)', self)
+        button_save.setStatusTip('Saves all traces up to this point and skips the rest (CTRL + S)')
         button_save.triggered.connect(self.skip_rest)
+        button_save.setShortcut(QKeySequence("Ctrl+s"))
         toolbar.addAction(button_save)
 
         # settings
-        button_settings = QAction(QIcon(os.path.join(asset_path, 'settings.svg')), 'Open Settings', self)
-        button_settings.setStatusTip('Make the Synapse Selector Experience your own')
+        button_settings = QAction(QIcon(os.path.join(asset_path, 'settings.svg')), 'Open Settings (S)', self)
+        button_settings.setStatusTip('Make the Synapse Selector Experience your own (S)')
         button_settings.triggered.connect(lambda: stack_layout.setCurrentIndex(1))
+        button_settings.setShortcut(QKeySequence("s"))
         toolbar.addAction(button_settings)
 
         # spacer between settings and navigation
         toolbar.addSeparator()
 
         # back
-        button_back = QAction(QIcon(os.path.join(asset_path, 'back.svg')), 'Go back to previous Sample', self)
-        button_back.setStatusTip('Go back to the previous trace')
+        button_back = QAction(QIcon(os.path.join(asset_path, 'back.svg')), 'Go back to previous Sample (B)', self)
+        button_back.setStatusTip('Go back to the previous trace (B)')
         button_back.triggered.connect(self.back)
+        button_back.setShortcut(QKeySequence("b"))
         toolbar.addAction(button_back)
 
         # trash
-        button_trash = QAction(QIcon(os.path.join(asset_path, 'trash.svg')), 'Trash Sample', self)
-        button_trash.setStatusTip('Trash the current trace')
+        button_trash = QAction(QIcon(os.path.join(asset_path, 'trash.svg')), 'Trash Sample (Q)', self)
+        button_trash.setStatusTip('Trash the current trace (Q)')
         button_trash.triggered.connect(self.trash_trace)
+        button_trash.setShortcut(QKeySequence("q"))
         toolbar.addAction(button_trash)
 
         # keep
-        button_keep = QAction(QIcon(os.path.join(asset_path, 'keep.svg')), 'Keep Sample', self)
-        button_keep.setStatusTip('Keep the current trace')
+        button_keep = QAction(QIcon(os.path.join(asset_path, 'keep.svg')), 'Keep Sample (E)', self)
+        button_keep.setStatusTip('Keep the current trace (E)')
         button_keep.triggered.connect(self.keep_trace)
+        button_keep.setShortcut(QKeySequence("e"))
         toolbar.addAction(button_keep)
 
         # add
-        self.button_add = QAction(QIcon(os.path.join(asset_path, 'add.svg')), 'Add Response', self)
-        self.button_add.setStatusTip('Add another peak')
+        self.button_add = QAction(QIcon(os.path.join(asset_path, 'add.svg')), 'Add Response (A)', self)
+        self.button_add.setStatusTip('Add another peak (A)')
         self.button_add.setEnabled(self.settings.config['select_responses'])
+        self.button_add.setShortcut(QKeySequence("a"))
         # button_add.triggered.connect()
         toolbar.addAction(self.button_add)
 
