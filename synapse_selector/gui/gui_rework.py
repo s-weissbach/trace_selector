@@ -4,13 +4,14 @@ from PyQt6.QtWidgets import (
     QToolBar,
     QStatusBar,
     QVBoxLayout,
+    QHBoxLayout,
     QWidget,
     QFileDialog,
     QMessageBox,
     QStackedLayout,
 )
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction, QIcon, QKeySequence
+from PyQt6.QtGui import QAction, QIcon, QKeySequence, QFont
 from PyQt6 import QtWebEngineWidgets
 
 from synapse_selector.gui.settingswindow import SettingsWindow
@@ -150,21 +151,38 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
 
         # file path
+        font = QFont()
+        font.setPointSize(12)
+
         self.file_path_label = QLabel('Current open file: ')
-        toolbar.addWidget(self.file_path_label)
+        self.file_path_label.setFont(font)
+
+        # state indicator
+        self.current_state_indicator = QLabel("")
+        self.current_state_indicator.setFont(font)
+
+        # bar above plot
+        bar_layout = QHBoxLayout()
+        bar_layout.addWidget(self.file_path_label)
+        bar_layout.addWidget(self.current_state_indicator)
+        bar_layout.addStretch()
+
+        self.bar_layout_widget_wrapper = QWidget()
+        self.bar_layout_widget_wrapper.setLayout(bar_layout)
+        self.main_layout.addWidget(self.bar_layout_widget_wrapper)
 
         # plot
         self.trace_plot = QtWebEngineWidgets.QWebEngineView(self)
         self.trace_plot.hide()
 
-        # small bar above plot
-        self.bar = QWidget()
-        self.main_layout.addWidget(self.bar)
-
         # startup label
         self.startup_label = QLabel('Welcome to Synapse Selector! As a first step open up a file with traces using the toolbar.')
         self.startup_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        font.setBold(True)
+        self.startup_label.setFont(font)
         self.main_layout.addWidget(self.startup_label)
+
+        self.apply_main_stretch()
 
         if (self.synapse_response):
             self.plot()
@@ -172,12 +190,18 @@ class MainWindow(QMainWindow):
     def update_file_path_label(self, filepath: str):
         self.file_path_label.setText('Current open file: ' + filepath.split('/')[-1])
 
+    def apply_main_stretch(self):
+        self.main_layout.setStretch(0, 1)
+        self.main_layout.setStretch(1, 10)
+
     def reset(self):
         self.main_layout.removeWidget(self.trace_plot)
         self.trace_plot.hide()
+        self.startup_label.show()
         self.main_layout.addWidget(self.startup_label)
         self.synapse_response = None
         self.update_file_path_label('')
+        self.apply_main_stretch()
 
     # --- slot functions ---
     def get_filepath(self):
@@ -220,8 +244,10 @@ class MainWindow(QMainWindow):
         self.labels = []
         # remove startup label and add plot
         self.main_layout.removeWidget(self.startup_label)
+        self.startup_label.hide()
         self.trace_plot.show()
         self.main_layout.addWidget(self.trace_plot)
+        self.apply_main_stretch()
         self.plot()
 
     def plot(self):
@@ -286,11 +312,16 @@ class MainWindow(QMainWindow):
 
         # set plot
         self.trace_plot.setHtml(self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
+        print(self.synapse_response.return_state())
+        self.current_state_indicator.setText(self.synapse_response.return_state())
 
     def next(self):
         """
         Opens next trace and if this is the last trace, it opens a new file.
         """
+        if not self.synapse_response:
+            return
+
         # reinitalize labels
         self.labels = []
         # check if end of file
@@ -337,6 +368,9 @@ class MainWindow(QMainWindow):
         """
         Go one trace plot back
         """
+        if not self.synapse_response:
+            return
+
         success = self.synapse_response.back()
         if success:
             self.next()
@@ -345,6 +379,9 @@ class MainWindow(QMainWindow):
         """
         Select trace as a trace that is kept.
         """
+        if not self.synapse_response:
+            return
+
         if self.settings.config["select_responses"]:
             selection = [int(btn.text().split(" ")[1]) for btn in self.peak_selection_buttons if btn.isChecked()]
         else:
@@ -363,6 +400,9 @@ class MainWindow(QMainWindow):
         """
         Put trace to the unselected traces
         """
+        if not self.synapse_response:
+            return
+
         self.synapse_response.trash()
         self.next()
 
@@ -371,6 +411,9 @@ class MainWindow(QMainWindow):
         Method to skip all remaining traces (these will be appended to trash) and
         open next file.
         """
+        if not self.synapse_response:
+            return
+
         response = QMessageBox.question(
             self, "Skip Rest", "Do you wish skip the remaining traces and save your current results?"
         )
@@ -388,7 +431,7 @@ class MainWindow(QMainWindow):
                 self.synapse_response.norm_intensity,
                 self.threshold,
                 self.settings.config["stim_used"],
-                self.stimframes,
+                self.stim_frames,
                 self.settings.config["stim_frames_patience"],
             )
         else:
