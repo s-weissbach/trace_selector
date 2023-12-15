@@ -28,6 +28,7 @@
     "frames_for_decay": 6,
     "peak_detection_type": "Thresholding",
     "model_path": "",
-    "normalized_trace": true 
+    "normalized_trace": true,
+    "threshold_slider_ml": 50,
 }
 

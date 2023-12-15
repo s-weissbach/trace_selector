@@ -157,6 +157,10 @@ class MainWindow(QMainWindow):
         self.trace_plot = QtWebEngineWidgets.QWebEngineView(self)
         self.trace_plot.hide()
 
+        # small bar above plot
+        self.bar = QWidget()
+        self.main_layout.addWidget(self.bar)
+
         # startup label
         self.startup_label = QLabel('Welcome to Synapse Selector! As a first step open up a file with traces using the toolbar.')
         self.startup_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
