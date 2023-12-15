@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
     QStackedLayout,
 )
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtGui import QAction, QIcon, QKeySequence
 from PyQt6 import QtWebEngineWidgets
 
 from synapse_selector.gui.settingswindow import SettingsWindow
@@ -84,18 +84,20 @@ class MainWindow(QMainWindow):
         # toolbar buttons
 
         # home
-        button_home = QAction(QIcon(os.path.join(asset_path, 'home.svg')), 'Open file', self)
-        button_home.setStatusTip('Go back to the main menu')
+        button_home = QAction(QIcon(os.path.join(asset_path, 'home.svg')), 'Home (H)', self)
+        button_home.setStatusTip('Go back to the main menu (H)')
         button_home.triggered.connect(lambda: stack_layout.setCurrentIndex(0))
+        button_home.setShortcut(QKeySequence("h"))
         toolbar.addAction(button_home)
 
         # spacing between main options and home button
         toolbar.addSeparator()
 
         # open
-        button_open = QAction(QIcon(os.path.join(asset_path, 'open.svg')), 'Open file', self)
-        button_open.setStatusTip('Open a file containing traces using your file system')
+        button_open = QAction(QIcon(os.path.join(asset_path, 'open.svg')), 'Open file (CTRL + O)', self)
+        button_open.setStatusTip('Open a file containing traces using your file system (CTRL + O)')
         button_open.triggered.connect(self.get_filepath)
+        button_open.setShortcut(QKeySequence("Ctrl+o"))
         toolbar.addAction(button_open)
 
         # save
@@ -182,12 +184,12 @@ class MainWindow(QMainWindow):
                 filter="Table(*.txt *.csv *.xlsx *.xls)",
             )[0]
 
-        # if no path has been selected, ask whether the programm should be terminated
         if self.filepath == '':
             warning = QMessageBox(self)
             warning.setWindowTitle('Warning')
             warning.setText('No file has been selected')
             warning.exec()
+            return
 
         self.filename = os.path.basename(self.filepath)
         self.directory = os.path.dirname(self.filepath)
