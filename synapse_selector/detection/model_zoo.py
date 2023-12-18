@@ -1,5 +1,6 @@
 import os
 import requests
+from synapse_selector.utils.hash import sha256_hash
 
 
 class ModelZoo:
@@ -37,12 +38,27 @@ class ModelZoo:
         self.available_models = {}
         os.makedirs(self.modelzoo_path, exist_ok=True)
         for filename in os.listdir(self.modelzoo_path):
-            if not filename.endswith(".pt") or filename.endswith(".pth"):
+            if not filename.endswith(".pt"):
                 continue
             filename_no_ext = filename.split(".pt")[0]
-            self.available_models[filename_no_ext] = os.path.join(
-                self.modelzoo_path, filename
-            )
+            self.available_models[filename_no_ext] = {
+                'filepath': os.path.join(self.modelzoo_path, filename),
+                'hash': sha256_hash(os.path.join(self.modelzoo_path,filename))
+            }
+        self.load_model_info()
+
+    
+    def load_model_info(self):
+        """
+        Loads model information from the 'model.json' file in the GitHub repository.
+        """
+        try:
+            model_json_url = "https://raw.githubusercontent.com/s-weissbach/synapse_selector_modelzoo/main/models.json"
+            response = requests.get(model_json_url)
+            response.raise_for_status()
+            self.model_info = response.json()
+        except requests.RequestException as e:
+            print(f"Error loading model information: {e}")
 
     def check_for_updates(self):
         """
@@ -59,9 +75,16 @@ class ModelZoo:
             for file_info in github_files:
                 filename = file_info["name"]
                 download_url = file_info["download_url"]
-
-                if not os.path.exists(os.path.join(self.modelzoo_path, filename)):
-                    self.download_model(download_url, filename)
+                if not filename.endswith('.pt'): continue
+                if os.path.exists(os.path.join(self.modelzoo_path, filename)):
+                    # model exists
+                    filename_no_ext = filename.split('.pt')[0]
+                    if filename_no_ext in self.model_info.keys():
+                        if self.model_info[filename_no_ext] == self.available_models[filename_no_ext]['hash']:
+                            # weights are unchanged, otherwise reload model
+                            continue
+                # in all other cases -> load new model weights
+                self.download_model(download_url, filename)
 
             print("Models updated.")
 
@@ -91,3 +114,5 @@ class ModelZoo:
 
         except requests.RequestException as e:
             print(f"Error downloading model: {e}")
+
+    

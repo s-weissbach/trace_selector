@@ -258,7 +258,7 @@ class SettingsWindow(QWidget):
         self.settings.config["frames_for_decay"] = self.frames_for_decay.value()
         self.settings.config["stim_frames"] = self.stimframes_input.text()
         self.settings.config["peak_detection_type"] = self.peak_detection_type.currentText()
-        model_path = self.settings.modelzoo.available_models[self.ml_model.currentText()]
+        model_path = self.settings.modelzoo.available_models[self.ml_model.currentText()]['filepath']
         self.settings.config["model_path"] = model_path
         self.settings.config["nms"] = self.non_max_supression_button.isChecked()
         self.settings.config["stim_used"] = self.stim_used_box.isChecked()

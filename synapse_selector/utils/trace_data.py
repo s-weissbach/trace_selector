@@ -69,8 +69,8 @@ class SynapseResponseData:
         returns index and length of current file and computes percentage of
         sorted traces.
         """
-        percentage = np.round(self.idx / len(self), 4) * 100
-        return f"{self.idx+1}/{len(self)} ({percentage}%)"
+        percentage = np.round(((self.idx+1)/len(self))* 100,2)
+        return f"{self.idx+1}/{len(self)} ({np.round(percentage,2)}%)"
 
     def save(
         self,
