@@ -20,6 +20,7 @@ from synapse_selector.utils.threshold import compute_threshold
 from synapse_selector.utils.plot import trace_plot
 from synapse_selector.detection.model_wraper import torch_model
 from synapse_selector.detection.peak_detection import peak_detection_scipy
+from synapse_selector.gui.add_window import AddWindow
 
 import os
 
@@ -174,9 +175,9 @@ class MainWindow(QMainWindow):
             QIcon(os.path.join(asset_path, "add.svg")), "Add Response (A)", self
         )
         self.button_add.setStatusTip("Add another peak (A)")
-        self.button_add.setEnabled(self.settings.config["select_responses"])
+        self.button_add.setEnabled(self.settings.config["select_responses"] and self.synapse_response.file_opened)
         self.button_add.setShortcut(QKeySequence("a"))
-        # button_add.triggered.connect()
+        self.button_add.triggered.connect(self.open_add_window)
         toolbar.addAction(self.button_add)
 
         # add separator between file path and rest
@@ -216,6 +217,9 @@ class MainWindow(QMainWindow):
 
         self.apply_main_stretch()
 
+        self.add_window = AddWindow(add_handler=self.add_response, parent=self, v_line_handler=self.v_line_handler,
+                                    close_handler=self.close_add_window)
+
         if self.synapse_response.file_opened:
             self.plot()
 
@@ -231,10 +235,29 @@ class MainWindow(QMainWindow):
         self.trace_plot.hide()
         self.startup_label.show()
         self.main_layout.addWidget(self.startup_label)
+        self.button_add.setEnabled(self.settings.config["select_responses"] and self.synapse_response.file_opened)
         self.update_file_path_label("")
         self.apply_main_stretch()
+        self.close_add_window()
+
+    def v_line_handler(self, value):
+        self.plot(replot_only_minimum=True, v_line_value=value)
 
     # --- slot functions ---
+
+    def close_add_window(self):
+        self.add_window.hide()
+        self.plot(replot_only_minimum=True, v_line_value=0)
+
+    def open_add_window(self):
+        self.close_add_window()
+        self.add_window.show()
+
+    def update_add_window(self):
+        self.add_window.update_length(len(self.synapse_response.intensity))
+        # self.add_window.update_preds(self.model.preds)
+        self.add_window.load_peaks(self.labels)
+
     def get_filepath(self):
         # no directory has been saved
         if self.directory is not None:
@@ -279,21 +302,36 @@ class MainWindow(QMainWindow):
         self.trace_plot.show()
         self.main_layout.addWidget(self.trace_plot)
         self.apply_main_stretch()
+        self.button_add.setEnabled(self.settings.config["select_responses"] and self.synapse_response.file_opened)
         self.plot()
 
-    def plot(self):
+    def plot(self, replot_only_minimum=False, v_line_value=0):
         """
         Plots a trace of the response that a specific Synapse gave.
         This is done by creating a instance of trace_plot (plot.py),
         that handels all operations of the figure.
         """
-        trace = self.synapse_response.intensity
-        # check to load normalized or unnormalized trace
-        if self.settings.config["normalized_trace"]:
-            trace = self.synapse_response.norm_intensity
 
-        if self.settings.config["select_responses"]:
-            self.peak_detection()
+        # check to load normalized or unnormalized trace
+        trace = self.synapse_response.norm_intensity if self.settings.config['normalized_trace'] else self.synapse_response.intensity
+
+        if replot_only_minimum:
+            if self.settings.config["peak_detection_type"] == "Thresholding":
+                self.tr_plot = trace_plot(
+                    self.synapse_response.time,
+                    trace,
+                    self.threshold,
+                )
+            else:
+                self.tr_plot = trace_plot(
+                    self.synapse_response.time,
+                    trace,
+                    self.threshold,
+                    self.model.preds,
+                )
+            self.tr_plot.create_plot(v_line_value=v_line_value)
+            self.trace_plot.setHtml(self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
+            return
 
         self.threshold = compute_threshold(
             self.settings.config["stim_used"],
@@ -302,6 +340,9 @@ class MainWindow(QMainWindow):
             self.settings.config["threshold_start"],
             self.settings.config["threshold_stop"],
         )
+
+        # if self.settings.config["select_responses"]:
+        #     self.peak_detection()
 
         self.peak_detection()
 
@@ -330,7 +371,7 @@ class MainWindow(QMainWindow):
             selection = [btn.isChecked() for btn in self.peak_selection_buttons]
             if self.settings.config["peak_detection_type"] == "Thresholding":
                 self.labels = self.tr_plot.add_peaks(
-                    self.synapse_response.peaks, self.settings_.config["nms"], selection
+                    self.synapse_response.peaks, self.settings.config["nms"], selection
                 )
             else:
                 self.labels = self.tr_plot.add_peaks(
@@ -340,9 +381,9 @@ class MainWindow(QMainWindow):
                     self.model.preds,
                 )
 
+        self.update_add_window()
         # set plot
         self.trace_plot.setHtml(self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
-        print(self.synapse_response.return_state())
         self.current_state_indicator.setText(self.synapse_response.return_state())
 
     def next(self):
@@ -495,3 +536,32 @@ class MainWindow(QMainWindow):
         self.synapse_response.automatic_peaks = []
         self.synapse_response.add_automatic_peaks(automatic_peaks)
         self.plot()
+
+    def add_response(self):
+        """
+        Add a response manually that was not detected by the regular peak detection
+        """
+        # parse peak
+        peak = self.add_window.get_input()
+
+        # check if peak is valid
+        self.synapse_response.add_manual_peak(peak)
+
+        # add response to plot
+        self.label_changed()
+
+    def label_changed(self) -> None:
+        """
+        Get changes made in selection to update the trace plot's annotation.
+        """
+        change_made = False
+        for i, peak in enumerate(self.synapse_response.peaks):
+            if peak in self.labels:
+                continue
+            change_made = True
+            self.labels.append(peak)
+            self.tr_plot.add_label(peak)
+
+        if change_made:
+            self.tr_plot.reload_plot()
+            self.trace_plot.setHtml(self.tr_plot.fig.to_html(include_plotlyjs="cdn"))

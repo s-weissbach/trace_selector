@@ -1,5 +1,6 @@
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
 from typing import Union
 
@@ -27,7 +28,7 @@ class trace_plot:
             }
         )
 
-    def create_plot(self) -> None:
+    def create_plot(self, v_line_value=None) -> None:
         """
         Creates the basic trace plot with a threshold.
         """
@@ -39,6 +40,12 @@ class trace_plot:
             xaxis=dict(rangeslider=dict(visible=True), type="linear"),
         )
         self.fig.add_hline(y=self.threshold, line_color="red", line_dash="dash")
+        width = 0 if v_line_value == 0 else 2
+        min_val = min(self.intenstity) - 0.1 * min(self.intenstity)
+        max_val = max(self.intenstity) - 0.1 * max(self.intenstity)
+        self.v_line = go.Scatter(x=[v_line_value, v_line_value], y=[min_val, max_val], mode='lines',
+                                 line=dict(color='orange', width=width), hoverinfo='none', showlegend=False)
+        self.fig.add_trace(self.v_line)
 
     def add_stimulation_window(self, frames: list[int], patience: int) -> None:
         """

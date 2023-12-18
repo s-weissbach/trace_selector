@@ -386,7 +386,7 @@ class UiWindow(QWidget):
         peak = int(self.response_input.text())
         # check if peak is valid
         self.synapse_response.add_manual_peak(peak)
-        # ----------------------------- selection buttons ---------------------------- #
+        # --------------------min(self.intenstity), max(self.intenstity)]--------- selection buttons ---------------------------- #
         # add label
         if self.current_layout_count > 14:
             self.current_layout_count = 0
