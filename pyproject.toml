@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "synapse-selector"
-version = "0.1.16b43"
+version = "0.1.17b1"
 description = "Small internal package for post-selection of Glutmate/Calcium signal responses."
 authors = ["Stephan Weissbach <s.weissbach@uni-mainz.de>"]
 readme = "README.md"

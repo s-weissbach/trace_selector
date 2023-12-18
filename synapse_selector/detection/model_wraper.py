@@ -1,14 +1,14 @@
 import torch
 import numpy as np
 
-from synapse_selector.detection.model_implementation import PeakDetectionModel_convout
+from synapse_selector.detection.model_implementation import PeakDetectionModel
 
 
 class torch_model:
     def __init__(
         self,
     ) -> None:
-        self.model = PeakDetectionModel_convout()
+        self.model = PeakDetectionModel()
         self.weights_loaded = False
 
     def load_weights(self, model_path: str) -> None:
@@ -20,8 +20,6 @@ class torch_model:
         self,
         arr: np.ndarray,
         threshold: float = 0.5,
-        use_median: bool = True,
-        norm_window_size: int = 50,
     ) -> list[int]:
         # reshape input to (1, 1, length)
         input_tensor = torch.reshape(

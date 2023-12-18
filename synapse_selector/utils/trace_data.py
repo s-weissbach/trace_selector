@@ -13,7 +13,25 @@ from synapse_selector.utils.normalization import sliding_window_normalization
 
 
 class SynapseResponseData:
-    def __init__(self, filepath: str, filename: str, meta_columns: list[str]) -> None:
+    def __init__(self) -> None:
+        self.filename = ""
+        self.df = pd.DataFrame()
+        self.meta_columns = []
+        self.columns = []
+        self.keep_data = []
+        self.trash_data = []
+        self.idx = 0
+        self.last = []
+        self.peaks = []
+        self.manual_peaks = []
+        self.selected_peaks = []
+        self.intensity = np.empty(0, dtype=np.float64)
+        self.norm_intensity = np.empty(0, dtype=np.float64)
+        self.time = np.empty(0, dtype=np.float64)
+        self.automatic_peaks = []
+        self.file_opened = False
+
+    def open_file(self, filepath: str, filename: str, meta_columns: list[str]):
         self.filename = filename
         if filepath.endswith(".txt") or filepath.endswith(".csv"):
             self.df = pd.read_csv(filepath, sep=",")
@@ -32,12 +50,13 @@ class SynapseResponseData:
         self.peaks = []
         self.manual_peaks = []
         self.selected_peaks = []
-        self.intensity = self.df[self.columns[self.idx]].to_numpy()
+        self.intensity = self.df[self.columns[self.idx]].to_numpy(dtype=np.float64)
         self.norm_intensity = sliding_window_normalization(
             self.df[self.columns[self.idx]].to_numpy()
         )
         self.time = np.arange(len(self.intensity))
         self.automatic_peaks = []
+        self.file_opened = True
 
     def __len__(self) -> int:
         """
@@ -197,15 +216,17 @@ class SynapseResponseData:
         # -------------------------- save selected responses ------------------------- #
         for peak_tp in sorted(selection):
             amplitude = self.intensity[peak_tp]
-            baseline = np.median(self.intensity[max(0, peak_tp - 15): peak_tp])
+            baseline = np.median(self.intensity[max(0, peak_tp - 15) : peak_tp])
             relative_height = amplitude - baseline
             pos_after_peak = min(peak_tp + frames_for_decay, len(self.intensity - 1))
             inv_tau, tau = compute_tau(self.intensity[peak_tp:pos_after_peak])
             automatic_detected = True if peak_tp in self.automatic_peaks else False
-            responded_to_stim = [
-                True if stim <= peak_tp and peak_tp <= stim + patience else False
-                for stim in stimulation
-            ]
+            responded_to_stim = np.array(
+                [
+                    True if stim <= peak_tp and peak_tp <= stim + patience else False
+                    for stim in stimulation
+                ]
+            )
             evoked = np.any(responded_to_stim)
             self.selected_peaks.append(
                 [

@@ -1,5 +1,4 @@
 from synapse_selector.gui.gui_rework import MainWindow
-from synapse_selector.gui.mainwindow import UiWindow
 from synapse_selector.utils.configuration import gui_settings
 from synapse_selector.detection.model_zoo import ModelZoo
 

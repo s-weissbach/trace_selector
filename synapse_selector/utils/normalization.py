@@ -1,9 +1,10 @@
 import numpy as np
+import numpy.typing as npt
 
 
 def sliding_window_normalization(
     trace: np.ndarray, use_median: bool = True, window_size: int = 50
-) -> np.ndarray:
+) -> npt.NDArray[np.float64]:
     """
     Normalize a 1D numpy array using a sliding window.
 

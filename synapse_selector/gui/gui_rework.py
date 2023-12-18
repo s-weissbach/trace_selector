@@ -24,7 +24,7 @@ from synapse_selector.detection.peak_detection import peak_detection_scipy
 import os
 
 file_path = os.path.dirname(__file__)
-asset_path = '/'.join(file_path.split('/')[0:-1]) + '/assets'
+asset_path = "/".join(file_path.split("/")[0:-1]) + "/assets"
 
 
 class MainWindow(QMainWindow):
@@ -35,15 +35,19 @@ class MainWindow(QMainWindow):
 
         # --- variables ---
         self.directory = None
-        self.synapse_response = None
+        self.synapse_response = SynapseResponseData()
 
         self.model = torch_model()
         # load weights for CNN
         if self.settings.config["peak_detection_type"] == "ML-based":
             self.model.load_weights(self.settings.config["model_path"])
 
-        stim_frames = self.settings.config['stim_frames']
-        self.stim_frames = sorted([int(frame) for frame in stim_frames.split(",")]) if len(stim_frames) > 0 else []
+        stim_frames = self.settings.config["stim_frames"]
+        self.stim_frames = (
+            sorted([int(frame) for frame in stim_frames.split(",")])
+            if len(stim_frames) > 0
+            else []
+        )
 
         # --- function calls ---
         self.setup_gui()
@@ -70,7 +74,9 @@ class MainWindow(QMainWindow):
         settings_layout = QVBoxLayout()
         settings_wrapper_widget.setLayout(settings_layout)
 
-        settings_layout.addWidget(SettingsWindow(self.settings, self, lambda: stack_layout.setCurrentIndex(0)))
+        settings_layout.addWidget(
+            SettingsWindow(self.settings, self, lambda: stack_layout.setCurrentIndex(0))
+        )
 
         # stack layout
         stack_wrapper_widget = QWidget()
@@ -85,32 +91,48 @@ class MainWindow(QMainWindow):
         # toolbar buttons
 
         # home
-        button_home = QAction(QIcon(os.path.join(asset_path, 'home.svg')), 'Home (H)', self)
-        button_home.setStatusTip('Go back to the main menu (H)')
+        button_home = QAction(
+            QIcon(os.path.join(asset_path, "home.svg")), "Home (H)", self
+        )
+        button_home.setStatusTip("Go back to the main menu (H)")
         button_home.triggered.connect(lambda: stack_layout.setCurrentIndex(0))
-        button_home.setShortcut(QKeySequence('h'))
+        button_home.setShortcut(QKeySequence("h"))
         toolbar.addAction(button_home)
 
         # spacing between main options and home button
         toolbar.addSeparator()
 
         # open
-        button_open = QAction(QIcon(os.path.join(asset_path, 'open.svg')), 'Open file (CTRL + O)', self)
-        button_open.setStatusTip('Open a file containing traces using your file system (CTRL + O)')
+        button_open = QAction(
+            QIcon(os.path.join(asset_path, "open.svg")), "Open file (CTRL + O)", self
+        )
+        button_open.setStatusTip(
+            "Open a file containing traces using your file system (CTRL + O)"
+        )
         button_open.triggered.connect(self.get_filepath)
         button_open.setShortcut(QKeySequence("Ctrl+o"))
         toolbar.addAction(button_open)
 
         # save
-        button_save = QAction(QIcon(os.path.join(asset_path, 'save.svg')), 'Save your work (CTRL + S)', self)
-        button_save.setStatusTip('Saves all traces up to this point and skips the rest (CTRL + S)')
+        button_save = QAction(
+            QIcon(os.path.join(asset_path, "save.svg")),
+            "Save your work (CTRL + S)",
+            self,
+        )
+        button_save.setStatusTip(
+            "Saves all traces up to this point and skips the rest (CTRL + S)"
+        )
         button_save.triggered.connect(self.skip_rest)
         button_save.setShortcut(QKeySequence("Ctrl+s"))
         toolbar.addAction(button_save)
 
         # settings
-        button_settings = QAction(QIcon(os.path.join(asset_path, 'settings.svg')), 'Open Settings (S)', self)
-        button_settings.setStatusTip('Make the Synapse Selector Experience your own (S)')
+        button_settings = QAction(
+            QIcon(os.path.join(asset_path, "settings.svg")), "Open Settings (S)", self
+        )
+        button_settings.setStatusTip(
+            "Make the Synapse Selector Experience your own (S)"
+        )
         button_settings.triggered.connect(lambda: stack_layout.setCurrentIndex(1))
         button_settings.setShortcut(QKeySequence("s"))
         toolbar.addAction(button_settings)
@@ -119,30 +141,40 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
 
         # back
-        button_back = QAction(QIcon(os.path.join(asset_path, 'back.svg')), 'Go back to previous Sample (B)', self)
-        button_back.setStatusTip('Go back to the previous trace (B)')
+        button_back = QAction(
+            QIcon(os.path.join(asset_path, "back.svg")),
+            "Go back to previous Sample (B)",
+            self,
+        )
+        button_back.setStatusTip("Go back to the previous trace (B)")
         button_back.triggered.connect(self.back)
         button_back.setShortcut(QKeySequence("b"))
         toolbar.addAction(button_back)
 
         # trash
-        button_trash = QAction(QIcon(os.path.join(asset_path, 'trash.svg')), 'Trash Sample (Q)', self)
-        button_trash.setStatusTip('Trash the current trace (Q)')
+        button_trash = QAction(
+            QIcon(os.path.join(asset_path, "trash.svg")), "Trash Sample (Q)", self
+        )
+        button_trash.setStatusTip("Trash the current trace (Q)")
         button_trash.triggered.connect(self.trash_trace)
         button_trash.setShortcut(QKeySequence("q"))
         toolbar.addAction(button_trash)
 
         # keep
-        button_keep = QAction(QIcon(os.path.join(asset_path, 'keep.svg')), 'Keep Sample (E)', self)
-        button_keep.setStatusTip('Keep the current trace (E)')
+        button_keep = QAction(
+            QIcon(os.path.join(asset_path, "keep.svg")), "Keep Sample (E)", self
+        )
+        button_keep.setStatusTip("Keep the current trace (E)")
         button_keep.triggered.connect(self.keep_trace)
         button_keep.setShortcut(QKeySequence("e"))
         toolbar.addAction(button_keep)
 
         # add
-        self.button_add = QAction(QIcon(os.path.join(asset_path, 'add.svg')), 'Add Response (A)', self)
-        self.button_add.setStatusTip('Add another peak (A)')
-        self.button_add.setEnabled(self.settings.config['select_responses'])
+        self.button_add = QAction(
+            QIcon(os.path.join(asset_path, "add.svg")), "Add Response (A)", self
+        )
+        self.button_add.setStatusTip("Add another peak (A)")
+        self.button_add.setEnabled(self.settings.config["select_responses"])
         self.button_add.setShortcut(QKeySequence("a"))
         # button_add.triggered.connect()
         toolbar.addAction(self.button_add)
@@ -154,7 +186,7 @@ class MainWindow(QMainWindow):
         font = QFont()
         font.setPointSize(12)
 
-        self.file_path_label = QLabel('Current open file: ')
+        self.file_path_label = QLabel("Current open file: ")
         self.file_path_label.setFont(font)
 
         # state indicator
@@ -176,7 +208,7 @@ class MainWindow(QMainWindow):
         self.trace_plot.hide()
 
         # startup label
-        self.startup_label = QLabel('Welcome to Synapse Selector! As a first step open up a file with traces using the toolbar.')
+        self.startup_label = QLabel("Open up a file with traces using the toolbar.")
         self.startup_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font.setBold(True)
         self.startup_label.setFont(font)
@@ -184,11 +216,11 @@ class MainWindow(QMainWindow):
 
         self.apply_main_stretch()
 
-        if (self.synapse_response):
+        if self.synapse_response.file_opened:
             self.plot()
 
     def update_file_path_label(self, filepath: str):
-        self.file_path_label.setText('Current open file: ' + filepath.split('/')[-1])
+        self.file_path_label.setText("Current open file: " + filepath.split("/")[-1])
 
     def apply_main_stretch(self):
         self.main_layout.setStretch(0, 1)
@@ -199,8 +231,7 @@ class MainWindow(QMainWindow):
         self.trace_plot.hide()
         self.startup_label.show()
         self.main_layout.addWidget(self.startup_label)
-        self.synapse_response = None
-        self.update_file_path_label('')
+        self.update_file_path_label("")
         self.apply_main_stretch()
 
     # --- slot functions ---
@@ -218,10 +249,10 @@ class MainWindow(QMainWindow):
                 filter="Table(*.txt *.csv *.xlsx *.xls)",
             )[0]
 
-        if self.filepath == '':
+        if self.filepath == "":
             warning = QMessageBox(self)
-            warning.setWindowTitle('Warning')
-            warning.setText('No file has been selected')
+            warning.setWindowTitle("Warning")
+            warning.setText("No file has been selected")
             warning.exec()
             return
 
@@ -237,7 +268,7 @@ class MainWindow(QMainWindow):
         resulting output dataframes and response columns.
         All responses columns will be plotted.
         """
-        self.synapse_response = SynapseResponseData(
+        self.synapse_response.open_file(
             self.filepath, self.filename, self.settings.config["meta_columns"]
         )
         self.peak_selection_buttons = []
@@ -256,14 +287,13 @@ class MainWindow(QMainWindow):
         This is done by creating a instance of trace_plot (plot.py),
         that handels all operations of the figure.
         """
+        trace = self.synapse_response.intensity
         # check to load normalized or unnormalized trace
-        if self.settings.config['normalized_trace']:
+        if self.settings.config["normalized_trace"]:
             trace = self.synapse_response.norm_intensity
-        else:
-            trace = self.synapse_response.intensity
 
         if self.settings.config["select_responses"]:
-            self.peak_selection()
+            self.peak_detection()
 
         self.threshold = compute_threshold(
             self.settings.config["stim_used"],
@@ -319,7 +349,7 @@ class MainWindow(QMainWindow):
         """
         Opens next trace and if this is the last trace, it opens a new file.
         """
-        if not self.synapse_response:
+        if not self.synapse_response.file_opened:
             return
 
         # reinitalize labels
@@ -327,35 +357,42 @@ class MainWindow(QMainWindow):
         # check if end of file
         if self.synapse_response.end_of_file():
             # if the output paths are not set, the user needs to set them now
-            if self.settings.config['output_filepath'] == '':
+            if self.settings.config["output_filepath"] == "":
                 warning = QMessageBox(self)
-                warning.setWindowTitle('Warning')
-                warning.setText('No output path has been set. Please select it before your files can be saved.')
+                warning.setWindowTitle("Warning")
+                warning.setText(
+                    "No output path has been set. Please select it before your files can be saved."
+                )
                 warning.exec()
                 self.settings.get_output_folder(self)
                 # abort next() if output paths have not been set
-                if self.settings.config['output_filepath'] == '':
+                if self.settings.config["output_filepath"] == "":
                     warning = QMessageBox(self)
-                    warning.setWindowTitle('Warning')
-                    warning.setText('No output path has been set. Your data has not been lost. Make sure to select an output path.')
+                    warning.setWindowTitle("Warning")
+                    warning.setText(
+                        "No output path has been set. Your data has not been lost. Make sure to select an output path."
+                    )
                     warning.exec()
                     return
 
             # tell the user that the file was done and it has been saved
             msg = QMessageBox(self)
-            msg.setWindowTitle('Info')
-            msg.setText('You reached the end of the file. Your data will be saved at the set output path')
+            msg.setWindowTitle("Info")
+            msg.setText(
+                "You reached the end of the file. Your data will be saved at the set output path"
+            )
             msg.exec()
             self.synapse_response.save(
                 self.settings.config["export_xlsx"],
-                os.path.join(self.settings.config['output_filepath'], 'keep_folder'),
-                os.path.join(self.settings.config['output_filepath'], 'trash_folder'),
+                os.path.join(self.settings.config["output_filepath"], "keep_folder"),
+                os.path.join(self.settings.config["output_filepath"], "trash_folder"),
                 self.settings.config["compute_ppr"],
                 self.stim_frames,
                 self.settings.config["stim_frames_patience"],
             )
             # self.clear_selection_buttons()
             self.reset()
+            self.open_file()
             return
 
         # advance to next trace if file isn't at eof
@@ -383,7 +420,11 @@ class MainWindow(QMainWindow):
             return
 
         if self.settings.config["select_responses"]:
-            selection = [int(btn.text().split(" ")[1]) for btn in self.peak_selection_buttons if btn.isChecked()]
+            selection = [
+                int(btn.text().split(" ")[1])
+                for btn in self.peak_selection_buttons
+                if btn.isChecked()
+            ]
         else:
             selection = []
 
@@ -415,7 +456,9 @@ class MainWindow(QMainWindow):
             return
 
         response = QMessageBox.question(
-            self, "Skip Rest", "Do you wish skip the remaining traces and save your current results?"
+            self,
+            "Skip Rest",
+            "Do you wish skip the remaining traces and save your current results?",
         )
         if response == QMessageBox.StandardButton.No:
             return
@@ -437,12 +480,17 @@ class MainWindow(QMainWindow):
         else:
             if not self.model.weights_loaded:
                 self.model.load_weights(self.settings.config["model_path"])
-            automatic_peaks = self.model.predict(self.synapse_response.norm_intensity, self.settings.config['threshold_slider_ml'] / 100,)
+            automatic_peaks = self.model.predict(
+                self.synapse_response.norm_intensity,
+                self.settings.config["threshold_slider_ml"] / 100,
+            )
         self.synapse_response.add_automatic_peaks(automatic_peaks)
 
     def update_probability_label(self) -> None:
         # self.current_threshold.setText(f"{self.threshold_slider.value()}%")
-        automatic_peaks = self.model.update_predictions(self.settings.config['threshold_slider_ml'] / 100)
+        automatic_peaks = self.model.update_predictions(
+            self.settings.config["threshold_slider_ml"] / 100
+        )
         self.synapse_response.automatic_peaks = []
         self.synapse_response.add_automatic_peaks(automatic_peaks)
         self.plot()
