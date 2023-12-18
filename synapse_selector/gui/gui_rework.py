@@ -392,6 +392,7 @@ class MainWindow(QMainWindow):
             )
             # self.clear_selection_buttons()
             self.reset()
+            self.get_filepath()
             self.open_file()
             return
 
