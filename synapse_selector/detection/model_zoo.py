@@ -83,10 +83,12 @@ class ModelZoo:
                         if self.model_info[filename_no_ext] == self.available_models[filename_no_ext]['hash']:
                             # weights are unchanged, otherwise reload model
                             continue
+                        print(f'Model {filename_no_ext} has new weights.')
                 # in all other cases -> load new model weights
                 self.download_model(download_url, filename)
+                
 
-            print("Models updated.")
+            print("All models are up-to-date.")
 
         except requests.RequestException as e:
             print(f"Error checking for updates: {e}")
@@ -107,10 +109,12 @@ class ModelZoo:
             local_path = os.path.join(self.modelzoo_path, filename)
             with open(local_path, "wb") as file:
                 file.write(response.content)
-            file_no_ext = filename.split(".pt")[0]
-            self.available_models[file_no_ext] = os.path.join(
-                self.modelzoo_path, filename
-            )
+            filename_no_ext = filename.split(".pt")[0]
+            self.available_models[filename_no_ext] = {
+                'filepath': os.path.join(self.modelzoo_path, filename),
+                'hash': sha256_hash(local_path)
+            }
+            print(f'Downloaded model: {filename_no_ext} ({self.available_models[filename_no_ext]["hash"]})')
 
         except requests.RequestException as e:
             print(f"Error downloading model: {e}")
