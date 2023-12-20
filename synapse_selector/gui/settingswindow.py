@@ -350,7 +350,8 @@ class SettingsWindow(QWidget):
             self.parent.button_add.setDisabled(True)
 
         # replot whenever any setting is changed
-        self.parent.plot()
+        if self.parent.synapse_response.file_opened:
+            self.parent.plot()
 
     def check_patience(self) -> None:
         self.patience_input.setStyleSheet("")
