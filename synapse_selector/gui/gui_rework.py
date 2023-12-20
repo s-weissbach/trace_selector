@@ -454,6 +454,8 @@ class MainWindow(QMainWindow):
         if not self.synapse_response.file_opened:
             return
 
+        self.add_window.reset()
+
         # reinitalize labels
         self.labels = []
         # check if end of file

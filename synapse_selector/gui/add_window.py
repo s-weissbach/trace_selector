@@ -137,8 +137,13 @@ class AddWindow(QMainWindow):
         self.slider_input.setValue(0)
 
     def reset(self):
+        for peak_widget in self.peak_widgets:
+            self.peak_widget_layout.removeWidget(peak_widget)
+            peak_widget.deleteLater()
+            peak_widget = None
         self.__reset_input()
         self.peak_dict = {}
+        self.peak_widgets = []
 
     def update_length(self, value):
         self.spinner_input.setMaximum(value)
@@ -152,10 +157,6 @@ class AddWindow(QMainWindow):
         # peak dict is not empty
         if self.peak_dict:
             return
-        for peak_widget in self.peak_widgets:
-            self.peak_widget_layout.removeWidget(peak_widget)
-            peak_widget.deleteLater()
-            peak_widget = None
         self.reset()
         for idx, peak in enumerate(peak_arr):
             self.peak_dict[peak] = True
