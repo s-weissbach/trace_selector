@@ -1,15 +1,14 @@
-from PyQt6.QtWidgets import (
-    QMainWindow,
-    QLabel,
-    QToolBar,
-    QStatusBar,
-    QVBoxLayout,
-    QHBoxLayout,
-    QWidget,
-    QFileDialog,
-    QMessageBox,
-    QStackedLayout,
-)
+from PyQt6.QtWidgets import (QMainWindow,
+                             QLabel,
+                             QToolBar,
+                             QStatusBar,
+                             QVBoxLayout,
+                             QHBoxLayout,
+                             QWidget,
+                             QFileDialog,
+                             QMessageBox,
+                             QStackedLayout,
+                             )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QFont
 from PyQt6 import QtWebEngineWidgets
@@ -23,6 +22,7 @@ from synapse_selector.detection.peak_detection import peak_detection_scipy
 from synapse_selector.gui.add_window import AddWindow
 
 import os
+from typing import Union
 
 file_path = os.path.dirname(__file__)
 asset_path = "/".join(file_path.split("/")[0:-1]) + "/assets"
@@ -40,10 +40,10 @@ class MainWindow(QMainWindow):
 
         self.model = torch_model()
         # load weights for CNN
-        if self.settings.config["peak_detection_type"] == "ML-based":
-            self.model.load_weights(self.settings.config["model_path"])
+        if self.get_setting("peak_detection_type") == "ML-based":
+            self.model.load_weights(self.get_setting("model_path"))
 
-        stim_frames = self.settings.config["stim_frames"]
+        stim_frames = self.get_setting("stim_frames")
         self.stim_frames = (
             sorted([int(frame) for frame in stim_frames.split(",")])
             if len(stim_frames) > 0
@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         # --- function calls ---
         self.setup_gui()
 
-    # --- helper functions ---
+    # --- gui ---
 
     def setup_gui(self):
         self.setWindowTitle("Synapse Selector")
@@ -76,7 +76,8 @@ class MainWindow(QMainWindow):
         settings_wrapper_widget.setLayout(settings_layout)
 
         settings_layout.addWidget(
-            SettingsWindow(self.settings, self, lambda: stack_layout.setCurrentIndex(0))
+            SettingsWindow(self.settings, self,
+                           lambda: stack_layout.setCurrentIndex(0))
         )
 
         # stack layout
@@ -105,7 +106,8 @@ class MainWindow(QMainWindow):
 
         # open
         button_open = QAction(
-            QIcon(os.path.join(asset_path, "open.svg")), "Open file (CTRL + O)", self
+            QIcon(os.path.join(asset_path, "open.svg")
+                  ), "Open file (CTRL + O)", self
         )
         button_open.setStatusTip(
             "Open a file containing traces using your file system (CTRL + O)"
@@ -129,12 +131,14 @@ class MainWindow(QMainWindow):
 
         # settings
         button_settings = QAction(
-            QIcon(os.path.join(asset_path, "settings.svg")), "Open Settings (S)", self
+            QIcon(os.path.join(asset_path, "settings.svg")
+                  ), "Open Settings (S)", self
         )
         button_settings.setStatusTip(
             "Make the Synapse Selector Experience your own (S)"
         )
-        button_settings.triggered.connect(lambda: stack_layout.setCurrentIndex(1))
+        button_settings.triggered.connect(
+            lambda: stack_layout.setCurrentIndex(1))
         button_settings.setShortcut(QKeySequence("s"))
         toolbar.addAction(button_settings)
 
@@ -154,7 +158,8 @@ class MainWindow(QMainWindow):
 
         # trash
         button_trash = QAction(
-            QIcon(os.path.join(asset_path, "trash.svg")), "Trash Sample (Q)", self
+            QIcon(os.path.join(asset_path, "trash.svg")
+                  ), "Trash Sample (Q)", self
         )
         button_trash.setStatusTip("Trash the current trace (Q)")
         button_trash.triggered.connect(self.trash_trace)
@@ -175,7 +180,7 @@ class MainWindow(QMainWindow):
             QIcon(os.path.join(asset_path, "add.svg")), "Add Response (A)", self
         )
         self.button_add.setStatusTip("Add another peak (A)")
-        self.button_add.setEnabled(self.settings.config["select_responses"] and self.synapse_response.file_opened)
+        self.set_add_button_functionality()
         self.button_add.setShortcut(QKeySequence("a"))
         self.button_add.triggered.connect(self.open_add_window)
         toolbar.addAction(self.button_add)
@@ -209,7 +214,8 @@ class MainWindow(QMainWindow):
         self.trace_plot.hide()
 
         # startup label
-        self.startup_label = QLabel("Open up a file with traces using the toolbar.")
+        self.startup_label = QLabel(
+            "Open up a file with traces using the toolbar.")
         self.startup_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font.setBold(True)
         self.startup_label.setFont(font)
@@ -217,48 +223,102 @@ class MainWindow(QMainWindow):
 
         self.apply_main_stretch()
 
-        self.add_window = AddWindow(add_handler=self.add_response, parent=self, v_line_handler=self.v_line_handler,
-                                    close_handler=self.close_add_window)
+        self.add_window = AddWindow(
+            add_handler=self.add_response, parent=self, close_handler=self.close_add_window)
 
         if self.synapse_response.file_opened:
             self.plot()
 
-    def update_file_path_label(self, filepath: str):
-        self.file_path_label.setText("Current open file: " + filepath.split("/")[-1])
-
-    def apply_main_stretch(self):
-        self.main_layout.setStretch(0, 1)
-        self.main_layout.setStretch(1, 10)
-
-    def reset(self):
-        self.main_layout.removeWidget(self.trace_plot)
-        self.trace_plot.hide()
-        self.startup_label.show()
-        self.main_layout.addWidget(self.startup_label)
-        self.button_add.setEnabled(self.settings.config["select_responses"] and self.synapse_response.file_opened)
-        self.update_file_path_label("")
-        self.apply_main_stretch()
-        self.close_add_window()
-
-    def v_line_handler(self, value):
-        self.plot(replot_only_minimum=True, v_line_value=value)
-
     # --- slot functions ---
 
-    def close_add_window(self):
-        self.add_window.hide()
-        self.plot(replot_only_minimum=True, v_line_value=0)
+    def add_response(self, peak_value):
+        """
+        Add a response manually that was not detected by the regular peak detection
+        """
+        # check if peak is valid
+        self.synapse_response.add_manual_peak(peak_value)
 
-    def open_add_window(self):
+        # add response to plot
+        changed = False
+        for i, peak in enumerate(self.synapse_response.peaks):
+            if peak in self.labels:
+                continue
+            changed = True
+            self.labels.append(peak)
+            self.tr_plot.add_annotation(peak)
+
+        if changed:
+            self.tr_plot.reload_plot()
+            self.trace_plot.setHtml(
+                self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
+
+    def back(self):
+        """
+        Go one trace plot back
+        """
+        if not self.synapse_response:
+            return
+
+        success = self.synapse_response.back()
+        if success:
+            self.next()
+
+    def keep_trace(self):
+        """
+        Select trace as a trace that is kept.
+        """
+        if not self.synapse_response:
+            return
+
+        self.synapse_response.keep(
+            self.settings.config["select_responses"],
+            self.settings.config["frames_for_decay"],
+            self.add_window.get_peak_dict(),
+            self.stim_frames,
+            self.settings.config["stim_frames_patience"],
+        )
+        self.next()
+
+    def trash_trace(self):
+        """
+        Put trace to the unselected traces
+        """
+        if not self.synapse_response:
+            return
+
+        self.synapse_response.trash()
+        self.next()
+
+    def skip_rest(self):
+        """
+        Method to skip all remaining traces (these will be appended to trash) and
+        open next file.
+        """
+        if not self.synapse_response:
+            return
+
+        response = QMessageBox.question(
+            self,
+            "Skip Rest",
+            "Do you wish skip the remaining traces and save your current results?",
+        )
+        if response == QMessageBox.StandardButton.No:
+            return
+        self.synapse_response.trash_rest()
+        self.next()
+
+    def close_add_window(self) -> None:
+        self.add_window.hide()
+
+    def open_add_window(self) -> None:
         self.close_add_window()
         self.add_window.show()
 
-    def update_add_window(self):
+    def initialize_add_window(self, peaks) -> None:
         self.add_window.update_length(len(self.synapse_response.intensity))
-        # self.add_window.update_preds(self.model.preds)
-        self.add_window.load_peaks(self.labels)
+        self.add_window.load_peaks(peaks)
 
-    def get_filepath(self):
+    def get_filepath(self) -> None:
         # no directory has been saved
         if self.directory is not None:
             self.filepath = QFileDialog.getOpenFileName(
@@ -284,7 +344,35 @@ class MainWindow(QMainWindow):
         self.update_file_path_label(self.filepath)
         self.open_file()
 
-    def open_file(self):
+    # --- helper functions ---
+
+    def set_add_button_functionality(self) -> None:
+        self.button_add.setEnabled(
+            self.settings.config["select_responses"]
+            and self.synapse_response.file_opened)
+
+    def update_file_path_label(self, filepath: str) -> None:
+        self.file_path_label.setText(
+            "Current open file: " + filepath.split("/")[-1])
+
+    def apply_main_stretch(self) -> None:
+        self.main_layout.setStretch(0, 1)
+        self.main_layout.setStretch(1, 10)
+
+    def get_setting(self, setting_key: str) -> Union[str, int, float]:
+        return self.settings.config[setting_key]
+
+    def reset(self) -> None:
+        self.main_layout.removeWidget(self.trace_plot)
+        self.trace_plot.hide()
+        self.startup_label.show()
+        self.main_layout.addWidget(self.startup_label)
+        self.set_add_button_functionality()
+        self.update_file_path_label("")
+        self.apply_main_stretch()
+        self.close_add_window()
+
+    def open_file(self) -> None:
         """
         Opens a new file holding the synaptic responses.
         This file should have meta columns (that will be ignored) and appended to the
@@ -292,9 +380,8 @@ class MainWindow(QMainWindow):
         All responses columns will be plotted.
         """
         self.synapse_response.open_file(
-            self.filepath, self.filename, self.settings.config["meta_columns"]
+            self.filepath, self.filename, self.get_setting("meta_columns")
         )
-        self.peak_selection_buttons = []
         self.labels = []
         # remove startup label and add plot
         self.main_layout.removeWidget(self.startup_label)
@@ -302,10 +389,10 @@ class MainWindow(QMainWindow):
         self.trace_plot.show()
         self.main_layout.addWidget(self.trace_plot)
         self.apply_main_stretch()
-        self.button_add.setEnabled(self.settings.config["select_responses"] and self.synapse_response.file_opened)
+        self.set_add_button_functionality()
         self.plot()
 
-    def plot(self, replot_only_minimum=False, v_line_value=0):
+    def plot(self) -> None:
         """
         Plots a trace of the response that a specific Synapse gave.
         This is done by creating a instance of trace_plot (plot.py),
@@ -313,52 +400,35 @@ class MainWindow(QMainWindow):
         """
 
         # check to load normalized or unnormalized trace
-        trace = self.synapse_response.norm_intensity if self.settings.config['normalized_trace'] else self.synapse_response.intensity
-
-        if replot_only_minimum:
-            if self.settings.config["peak_detection_type"] == "Thresholding":
-                self.tr_plot = trace_plot(
-                    self.synapse_response.time,
-                    trace,
-                    self.threshold,
-                )
-            else:
-                self.tr_plot = trace_plot(
-                    self.synapse_response.time,
-                    trace,
-                    self.threshold,
-                    self.model.preds,
-                )
-            self.tr_plot.create_plot(v_line_value=v_line_value)
-            self.trace_plot.setHtml(self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
-            return
+        trace = self.synapse_response.norm_intensity if self.get_setting(
+            'normalized_trace') else self.synapse_response.intensity
 
         self.threshold = compute_threshold(
-            self.settings.config["stim_used"],
+            self.get_setting("stim_used"),
             trace,
-            self.settings.config["threshold_mult"],
-            self.settings.config["threshold_start"],
-            self.settings.config["threshold_stop"],
+            self.get_setting("threshold_mult"),
+            self.get_setting("threshold_start"),
+            self.get_setting("threshold_stop"),
         )
 
-        # if self.settings.config["select_responses"]:
-        #     self.peak_detection()
-
         self.peak_detection()
+        self.initialize_add_window(self.synapse_response.peaks)
 
         # create plot depending on mode
         if self.settings.config["peak_detection_type"] == "Thresholding":
             self.tr_plot = trace_plot(
-                self.synapse_response.time,
-                trace,
-                self.threshold,
+                time=self.synapse_response.time,
+                intensity=trace,
+                threshold=self.threshold,
+                peak_detection_type=self.get_setting('peak_detection_type')
             )
         else:
             self.tr_plot = trace_plot(
-                self.synapse_response.time,
-                trace,
-                self.threshold,
-                self.model.preds,
+                time=self.synapse_response.time,
+                intensity=trace,
+                threshold=self.threshold,
+                probabilities=self.model.preds,
+                peak_detection_type=self.get_setting('peak_detection_type')
             )
         self.tr_plot.create_plot()
 
@@ -368,23 +438,14 @@ class MainWindow(QMainWindow):
                 self.tr_plot.add_stimulation_window(
                     self.stim_frames, self.settings.config["stim_frames_patience"]
                 )
-            selection = [btn.isChecked() for btn in self.peak_selection_buttons]
-            if self.settings.config["peak_detection_type"] == "Thresholding":
-                self.labels = self.tr_plot.add_peaks(
-                    self.synapse_response.peaks, self.settings.config["nms"], selection
-                )
-            else:
-                self.labels = self.tr_plot.add_peaks(
-                    self.synapse_response.peaks,
-                    self.settings.config["nms"],
-                    selection,
-                    self.model.preds,
-                )
+            self.labels = self.tr_plot.add_peaks(
+                self.add_window.get_peak_dict(), self.settings.config["nms"])
 
-        self.update_add_window()
         # set plot
-        self.trace_plot.setHtml(self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
-        self.current_state_indicator.setText(self.synapse_response.return_state())
+        self.trace_plot.setHtml(
+            self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
+        self.current_state_indicator.setText(
+            self.synapse_response.return_state())
 
     def next(self):
         """
@@ -425,8 +486,10 @@ class MainWindow(QMainWindow):
             msg.exec()
             self.synapse_response.save(
                 self.settings.config["export_xlsx"],
-                os.path.join(self.settings.config["output_filepath"], "keep_folder"),
-                os.path.join(self.settings.config["output_filepath"], "trash_folder"),
+                os.path.join(
+                    self.settings.config["output_filepath"], "keep_folder"),
+                os.path.join(
+                    self.settings.config["output_filepath"], "trash_folder"),
                 self.settings.config["compute_ppr"],
                 self.stim_frames,
                 self.settings.config["stim_frames_patience"],
@@ -439,73 +502,8 @@ class MainWindow(QMainWindow):
 
         # advance to next trace if file isn't at eof
         self.synapse_response.next()
-        self.peak_selection_buttons = []
         self.plot()
         # self.clear_selection_buttons()
-
-    def back(self):
-        """
-        Go one trace plot back
-        """
-        if not self.synapse_response:
-            return
-
-        success = self.synapse_response.back()
-        if success:
-            self.next()
-
-    def keep_trace(self):
-        """
-        Select trace as a trace that is kept.
-        """
-        if not self.synapse_response:
-            return
-
-        if self.settings.config["select_responses"]:
-            selection = [
-                int(btn.text().split(" ")[1])
-                for btn in self.peak_selection_buttons
-                if btn.isChecked()
-            ]
-        else:
-            selection = []
-
-        self.synapse_response.keep(
-            self.settings.config["select_responses"],
-            self.settings.config["frames_for_decay"],
-            selection,
-            self.stim_frames,
-            self.settings.config["stim_frames_patience"],
-        )
-        self.next()
-
-    def trash_trace(self):
-        """
-        Put trace to the unselected traces
-        """
-        if not self.synapse_response:
-            return
-
-        self.synapse_response.trash()
-        self.next()
-
-    def skip_rest(self):
-        """
-        Method to skip all remaining traces (these will be appended to trash) and
-        open next file.
-        """
-        if not self.synapse_response:
-            return
-
-        response = QMessageBox.question(
-            self,
-            "Skip Rest",
-            "Do you wish skip the remaining traces and save your current results?",
-        )
-        if response == QMessageBox.StandardButton.No:
-            return
-        self.synapse_response.trash_rest()
-        self.next()
 
     def peak_detection(self):
         """
@@ -536,32 +534,3 @@ class MainWindow(QMainWindow):
         self.synapse_response.automatic_peaks = []
         self.synapse_response.add_automatic_peaks(automatic_peaks)
         self.plot()
-
-    def add_response(self):
-        """
-        Add a response manually that was not detected by the regular peak detection
-        """
-        # parse peak
-        peak = self.add_window.get_input()
-
-        # check if peak is valid
-        self.synapse_response.add_manual_peak(peak)
-
-        # add response to plot
-        self.label_changed()
-
-    def label_changed(self) -> None:
-        """
-        Get changes made in selection to update the trace plot's annotation.
-        """
-        change_made = False
-        for i, peak in enumerate(self.synapse_response.peaks):
-            if peak in self.labels:
-                continue
-            change_made = True
-            self.labels.append(peak)
-            self.tr_plot.add_label(peak)
-
-        if change_made:
-            self.tr_plot.reload_plot()
-            self.trace_plot.setHtml(self.tr_plot.fig.to_html(include_plotlyjs="cdn"))

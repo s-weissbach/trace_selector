@@ -30,5 +30,6 @@ class torch_model:
         return infered_peaks
 
     def update_predictions(self, threshold: float) -> list[int]:
-        infered_peaks = list(np.argwhere(np.array(self.preds) > threshold).flatten())
+        infered_peaks = list(np.argwhere(
+            np.array(self.preds) > threshold).flatten())
         return infered_peaks

@@ -42,7 +42,8 @@ class SynapseResponseData:
             for col in self.df.columns
             if col in meta_columns or is_string_dtype(self.df[col])
         ]
-        self.columns = [col for col in self.df.columns if col not in self.meta_columns]
+        self.columns = [
+            col for col in self.df.columns if col not in self.meta_columns]
         self.keep_data = []
         self.trash_data = []
         self.idx = 0
@@ -50,7 +51,8 @@ class SynapseResponseData:
         self.peaks = []
         self.manual_peaks = []
         self.selected_peaks = []
-        self.intensity = self.df[self.columns[self.idx]].to_numpy(dtype=np.float64)
+        self.intensity = self.df[self.columns[self.idx]].to_numpy(
+            dtype=np.float64)
         self.norm_intensity = sliding_window_normalization(
             self.df[self.columns[self.idx]].to_numpy()
         )
@@ -69,7 +71,7 @@ class SynapseResponseData:
         returns index and length of current file and computes percentage of
         sorted traces.
         """
-        percentage = np.round(((self.idx+1)/len(self))* 100,2)
+        percentage = np.round(((self.idx+1)/len(self)) * 100, 2)
         return f"{self.idx+1}/{len(self)} ({np.round(percentage,2)}%)"
 
     def save(
@@ -96,7 +98,8 @@ class SynapseResponseData:
         ):
             output_name = f"{'.'.join(self.filename.split('.')[:-1])}.xlsx"
             keep_df.to_excel(os.path.join(keep_path, output_name), index=False)
-            trash_df.to_excel(os.path.join(trash_path, output_name), index=False)
+            trash_df.to_excel(os.path.join(
+                trash_path, output_name), index=False)
         else:
             output_name = f"{'.'.join(self.filename.split('.')[:-1])}.csv"
             keep_df.to_csv(os.path.join(keep_path, output_name), index=False)
@@ -120,21 +123,27 @@ class SynapseResponseData:
                 output_name = (
                     f"{'.'.join(self.filename.split('.')[:-1])}_responses.xlsx"
                 )
-                peak_df.to_excel(os.path.join(keep_path, output_name), index=False)
+                peak_df.to_excel(os.path.join(
+                    keep_path, output_name), index=False)
             else:
                 output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
-                peak_df.to_csv(os.path.join(keep_path, output_name), index=False)
+                peak_df.to_csv(os.path.join(
+                    keep_path, output_name), index=False)
             if ppr:
-                ppr_df = paired_pulse_ratio(peak_df, stimulation_timepoints, patience)
+                ppr_df = paired_pulse_ratio(
+                    peak_df, stimulation_timepoints, patience)
                 if export_xlsx:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.xlsx"
-                    ppr_df.to_excel(os.path.join(keep_path, output_name), index=False)
+                    ppr_df.to_excel(os.path.join(
+                        keep_path, output_name), index=False)
                 else:
                     output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.csv"
-                    ppr_df.to_csv(os.path.join(keep_path, output_name), index=False)
+                    ppr_df.to_csv(os.path.join(
+                        keep_path, output_name), index=False)
             if len(stimulation_timepoints) > 0:
                 # failure rate on a synaptic level
-                failure_df = failure_rate(peak_df, stimulation_timepoints, patience)
+                failure_df = failure_rate(
+                    peak_df, stimulation_timepoints, patience)
                 if export_xlsx:
                     output_name = (
                         f"{'.'.join(self.filename.split('.')[:-1])}_failurerate.xlsx"
@@ -146,7 +155,8 @@ class SynapseResponseData:
                     output_name = (
                         f"{'.'.join(self.filename.split('.')[:-1])}_failurerate.csv"
                     )
-                    failure_df.to_csv(os.path.join(keep_path, output_name), index=False)
+                    failure_df.to_csv(os.path.join(
+                        keep_path, output_name), index=False)
                 # fraction responding to the first pulse
                 responses_first_pulse = compute_fraction_first_pulse(
                     peak_df, stimulation_timepoints, patience
@@ -201,7 +211,7 @@ class SynapseResponseData:
         self,
         select_responses: bool,
         frames_for_decay: int,
-        selection: list[int],
+        peak_dict: dict[str: bool],
         stimulation: list[int],
         patience: int,
     ) -> None:
@@ -214,11 +224,12 @@ class SynapseResponseData:
         if not select_responses:
             return
         # -------------------------- save selected responses ------------------------- #
-        for peak_tp in sorted(selection):
+        for peak_tp in [peak for peak, selected in peak_dict.items() if selected]:
             amplitude = self.intensity[peak_tp]
-            baseline = np.median(self.intensity[max(0, peak_tp - 15) : peak_tp])
+            baseline = np.median(self.intensity[max(0, peak_tp - 15): peak_tp])
             relative_height = amplitude - baseline
-            pos_after_peak = min(peak_tp + frames_for_decay, len(self.intensity - 1))
+            pos_after_peak = min(peak_tp + frames_for_decay,
+                                 len(self.intensity - 1))
             inv_tau, tau = compute_tau(self.intensity[peak_tp:pos_after_peak])
             automatic_detected = True if peak_tp in self.automatic_peaks else False
             responded_to_stim = np.array(
@@ -253,7 +264,8 @@ class SynapseResponseData:
         """
         Puts all remaining not seen traces to the trash df.
         """
-        self.trash_data += [self.columns[i] for i in range(self.idx, len(self.columns))]
+        self.trash_data += [self.columns[i]
+                            for i in range(self.idx, len(self.columns))]
         self.idx = len(self.columns) - 1
 
     def end_of_file(self) -> bool:
