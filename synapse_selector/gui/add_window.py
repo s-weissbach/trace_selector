@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QWidget,
     QPushButton,
+    QScrollArea,
 )
 from PyQt6.QtCore import Qt
 from functools import partial
@@ -66,14 +67,22 @@ class AddWindow(QMainWindow):
         close_button.clicked.connect(close_handler)
         button_layout.addWidget(close_button)
 
-        main_layout.addStretch()
+        scroll = QScrollArea()
 
         self.peak_widget_layout = QVBoxLayout()
         self.peak_widget_layout.setContentsMargins(0, 0, 0, 0)
         self.peak_widget_layout.setSpacing(0)
         peak_widget_wrapper_widget = QWidget()
         peak_widget_wrapper_widget.setLayout(self.peak_widget_layout)
-        main_layout.addWidget(peak_widget_wrapper_widget)
+
+        scroll.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        scroll.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(peak_widget_wrapper_widget)
+
+        main_layout.addWidget(scroll)
 
     def __add_trace(self):
         # value is already a peak, just return
