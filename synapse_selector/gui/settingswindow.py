@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import (
     QLabel,
+    QFrame,
     QSlider,
     QPushButton,
     QVBoxLayout,
@@ -29,6 +30,34 @@ class SettingsWindow(QWidget):
         page_layout.addWidget(tab_widget)
 
         self.setLayout(page_layout)
+
+        # --- general ---
+
+        general_layout = QVBoxLayout()
+
+        self.output_folder_path_label = QLabel(
+            "Output Folder Path: " + self.settings.config["output_filepath"])
+        general_layout.addWidget(self.output_folder_path_label)
+
+        self.button_set_output_path = QPushButton("Set Output Folder Path")
+        self.button_set_output_path.clicked.connect(self.set_output_path)
+        general_layout.addWidget(self.button_set_output_path)
+
+        self.button_reset_output_path = QPushButton("Reset Output Folder Path")
+        self.button_reset_output_path.clicked.connect(self.reset_output_path)
+        general_layout.addWidget(self.button_reset_output_path)
+
+        self.add_line_to_layout(general_layout)
+
+        self.xlsx_export_box = QCheckBox("Export as .xlsx")
+        self.xlsx_export_box.setChecked(self.settings.config["export_xlsx"])
+        self.xlsx_export_box.clicked.connect(self.settings_value_changed)
+        general_layout.addWidget(self.xlsx_export_box)
+
+        general_layout.addStretch()
+
+        general_wrapper_widget = QWidget()
+        general_wrapper_widget.setLayout(general_layout)
 
         # --- threshold settings ---
 
@@ -72,51 +101,15 @@ class SettingsWindow(QWidget):
         self.threshold_input.valueChanged.connect(self.settings_value_changed)
         threshold_layout.addWidget(self.threshold_input)
 
-        threshold_wrapper_widget = QWidget()
-        threshold_wrapper_widget.setLayout(threshold_layout)
+        self.threshold_wrapper_widget = QWidget()
+        self.threshold_wrapper_widget.setLayout(threshold_layout)
+        self.threshold_wrapper_widget.setEnabled(
+            self.settings.config["peak_detection_type"] == "Thresholding")
 
-        probability_layout = QHBoxLayout()
-        self.threshold_slider = QSlider(Qt.Orientation.Horizontal, self)
-        self.threshold_slider.setMinimumWidth(300)
-        self.threshold_slider.setMinimumHeight(40)
-        self.threshold_slider.setValue(settings.config['threshold_slider_ml'])
-        self.threshold_slider.setMinimum(1)
-        self.threshold_slider.setMaximum(100)
-        self.threshold_slider.setTickInterval(10)
-        self.threshold_slider.valueChanged.connect(self.settings_value_changed)
-
-        if self.settings.config["peak_detection_type"] == "Thresholding":
-            self.threshold_slider.setEnabled(False)
-
-        self.current_threshold_label = QLabel(
-            f"{self.threshold_slider.value()}%")
-        threshold_label = QLabel("Current Prediction Threshold (ML):")
-
-        probability_layout.addWidget(threshold_label)
-        probability_layout.addWidget(self.threshold_slider)
-        probability_layout.addWidget(self.current_threshold_label)
-
-        probability_layout_wrapper_widget = QWidget()
-        probability_layout_wrapper_widget.setLayout(probability_layout)
-        threshold_layout.addWidget(probability_layout_wrapper_widget)
         threshold_layout.addStretch()
 
         # --- response settings ---
-
         response_layout = QVBoxLayout()
-        self.normalized_trace_toggle = QCheckBox("Show normalized trace")
-        self.normalized_trace_toggle.setChecked(
-            self.settings.config["normalized_trace"])
-        self.normalized_trace_toggle.clicked.connect(
-            self.settings_value_changed)
-        response_layout.addWidget(self.normalized_trace_toggle)
-
-        self.activate_response_selection = QCheckBox("Select responses:")
-        self.activate_response_selection.setChecked(
-            self.settings.config["select_responses"])
-        self.activate_response_selection.stateChanged.connect(
-            self.settings_value_changed)
-        response_layout.addWidget(self.activate_response_selection)
 
         peak_detection_type_label = QLabel("Select Detection Method:")
         response_layout.addWidget(peak_detection_type_label)
@@ -132,28 +125,50 @@ class SettingsWindow(QWidget):
             self.settings_value_changed)
         response_layout.addWidget(self.peak_detection_type)
 
-        ml_model_used = QLabel("Select Deep Learning Model:")
-        response_layout.addWidget(ml_model_used)
+        self.ml_model_used = QLabel("Select Deep Learning Model:")
+        self.ml_model_used.setEnabled(
+            self.settings.config["peak_detection_type"] == "ML-based")
+        response_layout.addWidget(self.ml_model_used)
 
         self.ml_model = QComboBox()
         self.ml_model.addItems(self.settings.modelzoo.available_models.keys())
         self.ml_model.setCurrentIndex(0)
+        self.ml_model.setEnabled(
+            self.settings.config["peak_detection_type"] == "ML-based")
         self.ml_model.currentIndexChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.ml_model)
 
-        self.non_max_supression_button = QCheckBox("Non-Maximum Supression:")
-        self.non_max_supression_button.setChecked(self.settings.config["nms"])
-        self.non_max_supression_button.setEnabled(
-            self.settings.config["select_responses"])
-        self.use_nms = self.settings.config["nms"]
-        self.non_max_supression_button.stateChanged.connect(
-            self.settings_value_changed)
-        response_layout.addWidget(self.non_max_supression_button)
+        probability_layout = QHBoxLayout()
+        self.threshold_slider = QSlider(Qt.Orientation.Horizontal, self)
+        self.threshold_slider.setMinimumWidth(300)
+        self.threshold_slider.setMinimumHeight(40)
+        self.threshold_slider.setValue(settings.config['threshold_slider_ml'])
+        self.threshold_slider.setMinimum(1)
+        self.threshold_slider.setMaximum(100)
+        self.threshold_slider.setTickInterval(10)
+        self.threshold_slider.valueChanged.connect(self.settings_value_changed)
+        self.threshold_slider.setEnabled(
+            self.settings.config["peak_detection_type"] == "ML-based")
 
-        self.compute_ppr = QCheckBox("Compute PPR:")
-        self.compute_ppr.setChecked(self.settings.config["compute_ppr"])
-        self.compute_ppr.stateChanged.connect(self.settings_value_changed)
-        response_layout.addWidget(self.compute_ppr)
+        self.threshold_label = QLabel(
+            "Current Prediction Threshold (ML-based):")
+        self.threshold_label.setEnabled(
+            self.settings.config["peak_detection_type"] == "ML-based")
+
+        self.current_threshold_label = QLabel(
+            f"{self.threshold_slider.value()}%")
+        self.current_threshold_label.setEnabled(
+            self.settings.config["peak_detection_type"] == "ML-based")
+
+        probability_layout.addWidget(self.threshold_label)
+        probability_layout.addWidget(self.threshold_slider)
+        probability_layout.addWidget(self.current_threshold_label)
+
+        probability_layout_wrapper_widget = QWidget()
+        probability_layout_wrapper_widget.setLayout(probability_layout)
+        response_layout.addWidget(probability_layout_wrapper_widget)
+
+        self.add_line_to_layout(response_layout)
 
         tau_desc = QLabel("Time window for tau computation:")
         # tau_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
@@ -167,6 +182,37 @@ class SettingsWindow(QWidget):
         )
         self.frames_for_decay.valueChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.frames_for_decay)
+
+        self.add_line_to_layout(response_layout)
+
+        self.normalized_trace_toggle = QCheckBox("Show normalized trace")
+        self.normalized_trace_toggle.setChecked(
+            self.settings.config["normalized_trace"])
+        self.normalized_trace_toggle.clicked.connect(
+            self.settings_value_changed)
+        response_layout.addWidget(self.normalized_trace_toggle)
+
+        self.activate_response_selection = QCheckBox("Enable response editing")
+        self.activate_response_selection.setChecked(
+            self.settings.config["select_responses"])
+        self.activate_response_selection.stateChanged.connect(
+            self.settings_value_changed)
+        response_layout.addWidget(self.activate_response_selection)
+
+        self.non_max_supression_button = QCheckBox(
+            "Use Non-Maximum Supression")
+        self.non_max_supression_button.setChecked(self.settings.config["nms"])
+        self.non_max_supression_button.setEnabled(
+            self.settings.config["select_responses"])
+        self.use_nms = self.settings.config["nms"]
+        self.non_max_supression_button.stateChanged.connect(
+            self.settings_value_changed)
+        response_layout.addWidget(self.non_max_supression_button)
+
+        self.compute_ppr = QCheckBox("Compute PPR")
+        self.compute_ppr.setChecked(self.settings.config["compute_ppr"])
+        self.compute_ppr.stateChanged.connect(self.settings_value_changed)
+        response_layout.addWidget(self.compute_ppr)
 
         response_layout.addStretch()
 
@@ -193,8 +239,9 @@ class SettingsWindow(QWidget):
             self.settings_value_changed)
         stimulation_layout.addWidget(self.stimframes_input)
 
-        patience_label = QLabel("Patience")
-        stimulation_layout.addWidget(patience_label)
+        self.patience_label = QLabel("Patience")
+        self.patience_label.setEnabled(self.settings.config["stim_used"])
+        stimulation_layout.addWidget(self.patience_label)
 
         self.patience_input = QSpinBox()
         self.patience_input.setValue(
@@ -210,32 +257,6 @@ class SettingsWindow(QWidget):
         stimulation_wrapper_widget = QWidget()
         stimulation_wrapper_widget.setLayout(stimulation_layout)
 
-        # --- export ---
-
-        export_layout = QVBoxLayout()
-
-        self.output_folder_path_label = QLabel(
-            "Output Folder Path: " + self.settings.config["output_filepath"])
-        export_layout.addWidget(self.output_folder_path_label)
-
-        self.button_set_output_path = QPushButton("Set Output Folder Path")
-        self.button_set_output_path.clicked.connect(self.set_output_path)
-        export_layout.addWidget(self.button_set_output_path)
-
-        self.button_reset_output_path = QPushButton("Reset Output Folder Path")
-        self.button_reset_output_path.clicked.connect(self.reset_output_path)
-        export_layout.addWidget(self.button_reset_output_path)
-
-        self.xlsx_export_box = QCheckBox("Export as .xlsx")
-        self.xlsx_export_box.setChecked(self.settings.config["export_xlsx"])
-        self.xlsx_export_box.clicked.connect(self.settings_value_changed)
-        export_layout.addWidget(self.xlsx_export_box)
-
-        export_layout.addStretch()
-
-        export_wrapper_widget = QWidget()
-        export_wrapper_widget.setLayout(export_layout)
-
         # --- buttons ---
 
         button_layout = QHBoxLayout()
@@ -246,15 +267,22 @@ class SettingsWindow(QWidget):
 
         page_layout.addLayout(button_layout)
 
-        tab_widget.addTab(threshold_wrapper_widget, 'Threshold')
+        tab_widget.addTab(general_wrapper_widget, 'General')
         tab_widget.addTab(response_wrapper_widget, 'Detection')
+        tab_widget.addTab(self.threshold_wrapper_widget, 'Threshold Settings')
         tab_widget.addTab(stimulation_wrapper_widget, 'Stimulation')
-        tab_widget.addTab(export_wrapper_widget, 'Export')
 
     def reset_output_path(self):
         self.settings.config["output_filepath"] = ""
         self.settings_value_changed()
         self.update_output_path("")
+
+    def add_line_to_layout(self, layout):
+        # Add a horizontal line
+        line = QFrame(self)
+        line.setFrameShape(QFrame.Shape.HLine)
+        line.setFrameShadow(QFrame.Shadow.Sunken)
+        layout.addWidget(line)
 
     def set_output_path(self):
         self.settings.get_output_folder(self)
@@ -296,11 +324,6 @@ class SettingsWindow(QWidget):
         self.settings.config["threshold_slider_ml"] = self.threshold_slider.value(
         )
 
-        if self.settings.config["peak_detection_type"] == "Thresholding":
-            self.threshold_slider.setEnabled(False)
-        else:
-            self.threshold_slider.setEnabled(True)
-
         self.current_threshold_label.setText(
             f"{self.threshold_slider.value()}%")
 
@@ -313,16 +336,36 @@ class SettingsWindow(QWidget):
             self.stimframes = []
 
         # ------------------------------- toggle logic ------------------------------- #
+        if self.settings.config["peak_detection_type"] == "ML-based":
+            self.ml_model.setEnabled(True)
+            self.ml_model_used.setEnabled(True)
+            self.threshold_label.setEnabled(True)
+            self.current_threshold_label.setEnabled(True)
+            self.threshold_slider.setEnabled(True)
+
+            self.threshold_wrapper_widget.setEnabled(False)
+        else:
+            self.ml_model.setEnabled(False)
+            self.ml_model_used.setEnabled(False)
+            self.threshold_label.setEnabled(False)
+            self.current_threshold_label.setEnabled(False)
+            self.threshold_slider.setEnabled(False)
+
+            self.threshold_wrapper_widget.setEnabled(True)
+
         if self.settings.config["stim_used"]:
             self.stimframes_input.setEnabled(True)
             self.stimframes_label.setEnabled(True)
             self.compute_ppr.setEnabled(True)
+            self.patience_label.setEnabled(True)
             self.patience_input.setEnabled(True)
         else:
             self.stimframes_input.setEnabled(False)
             self.stimframes_label.setEnabled(False)
+            self.patience_label.setEnabled(False)
             self.patience_input.setEnabled(False)
             self.compute_ppr.setEnabled(False)
+
         if self.settings.config["select_responses"]:
             self.compute_ppr.setEnabled(True)
             self.non_max_supression_button.setEnabled(True)
