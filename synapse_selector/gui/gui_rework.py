@@ -52,6 +52,7 @@ class MainWindow(QMainWindow):
 
         # --- function calls ---
         self.setup_gui()
+        self.showFullScreen()
 
     # --- gui ---
 
