@@ -25,7 +25,7 @@ class AddWindow(QMainWindow):
         self.peak_widgets = []
         self.preds = preds
 
-        self.setWindowTitle("Add a peak")
+        self.setWindowTitle("Add response")
 
         main_wrapper_widget = QWidget()
         main_layout = QVBoxLayout()
@@ -34,7 +34,7 @@ class AddWindow(QMainWindow):
         self.setCentralWidget(main_wrapper_widget)
 
         desc_label = QLabel(
-            'Insert the x-coordinate of the peak using the input box or the range slider:')
+            'Insert the x-coordinate of the response using the input box or the range slider:')
         main_layout.addWidget(desc_label)
 
         self.spinner_input = QSpinBox()
@@ -58,7 +58,7 @@ class AddWindow(QMainWindow):
         button_wrapper_widget.setLayout(button_layout)
         main_layout.addWidget(button_wrapper_widget)
 
-        add_button = QPushButton('Add Trace')
+        add_button = QPushButton('Add Response')
         button_layout.addWidget(add_button)
         add_button.clicked.connect(self.__add_trace)
 

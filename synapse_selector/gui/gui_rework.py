@@ -132,10 +132,10 @@ class MainWindow(QMainWindow):
         # settings
         button_settings = QAction(
             QIcon(os.path.join(asset_path, "settings.svg")
-                  ), "Open Settings (S)", self
+                  ), "Open settings (S)", self
         )
         button_settings.setStatusTip(
-            "Make the Synapse Selector Experience your own (S)"
+            "Make the Synapse Selector experience your own by adjusting settings (S)"
         )
         button_settings.triggered.connect(
             lambda: stack_layout.setCurrentIndex(1))
@@ -148,7 +148,7 @@ class MainWindow(QMainWindow):
         # back
         button_back = QAction(
             QIcon(os.path.join(asset_path, "back.svg")),
-            "Go back to previous Sample (B)",
+            "Go back to previous sample (B)",
             self,
         )
         button_back.setStatusTip("Go back to the previous trace (B)")
@@ -159,7 +159,7 @@ class MainWindow(QMainWindow):
         # trash
         button_trash = QAction(
             QIcon(os.path.join(asset_path, "trash.svg")
-                  ), "Trash Sample (Q)", self
+                  ), "Trash sample (Q)", self
         )
         button_trash.setStatusTip("Trash the current trace (Q)")
         button_trash.triggered.connect(self.trash_trace)
@@ -168,7 +168,7 @@ class MainWindow(QMainWindow):
 
         # keep
         button_keep = QAction(
-            QIcon(os.path.join(asset_path, "keep.svg")), "Keep Sample (E)", self
+            QIcon(os.path.join(asset_path, "keep.svg")), "Keep sample (E)", self
         )
         button_keep.setStatusTip("Keep the current trace (E)")
         button_keep.triggered.connect(self.keep_trace)
@@ -177,9 +177,9 @@ class MainWindow(QMainWindow):
 
         # add
         self.button_add = QAction(
-            QIcon(os.path.join(asset_path, "add.svg")), "Add Response (A)", self
+            QIcon(os.path.join(asset_path, "add.svg")), "Add response (A)", self
         )
-        self.button_add.setStatusTip("Add another peak (A)")
+        self.button_add.setStatusTip("Add a response (A)")
         self.set_add_button_functionality()
         self.button_add.setShortcut(QKeySequence("a"))
         self.button_add.triggered.connect(self.open_add_window)

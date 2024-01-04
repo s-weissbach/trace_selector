@@ -111,7 +111,7 @@ class SettingsWindow(QWidget):
             self.settings_value_changed)
         response_layout.addWidget(self.normalized_trace_toggle)
 
-        self.activate_response_selection = QCheckBox("Select Responses:")
+        self.activate_response_selection = QCheckBox("Select responses:")
         self.activate_response_selection.setChecked(
             self.settings.config["select_responses"])
         self.activate_response_selection.stateChanged.connect(
