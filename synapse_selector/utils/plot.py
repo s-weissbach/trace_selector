@@ -27,7 +27,7 @@ class trace_plot:
             {
                 "Time": self.time,
                 "Intensity": self.intensity,
-                "Probability": self.probabilities,
+                "Confidence": self.probabilities,
             }
         )
 
@@ -36,7 +36,7 @@ class trace_plot:
         Creates the basic trace plot with a threshold.
         """
         self.fig = px.line(
-            self.plot_df, x="Time", y="Intensity", hover_data="Probability"
+            self.plot_df, x="Time", y="Intensity", hover_data="Confidence"
         )
         self.fig.update_layout(
             template="plotly_white",
