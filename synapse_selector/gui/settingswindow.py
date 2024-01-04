@@ -39,13 +39,19 @@ class SettingsWindow(QWidget):
             "Output Folder Path: " + self.settings.config["output_filepath"])
         general_layout.addWidget(self.output_folder_path_label)
 
+        set_path_layout = QHBoxLayout()
         self.button_set_output_path = QPushButton("Set Output Folder Path")
         self.button_set_output_path.clicked.connect(self.set_output_path)
-        general_layout.addWidget(self.button_set_output_path)
+        set_path_layout.addStretch()
+        set_path_layout.addWidget(self.button_set_output_path)
+        set_path_layout.addStretch()
 
         self.button_reset_output_path = QPushButton("Reset Output Folder Path")
         self.button_reset_output_path.clicked.connect(self.reset_output_path)
-        general_layout.addWidget(self.button_reset_output_path)
+        set_path_layout.addStretch()
+        set_path_layout.addWidget(self.button_reset_output_path)
+        set_path_layout.addStretch()
+        general_layout.addLayout(set_path_layout)
 
         self.add_line_to_layout(general_layout)
 
@@ -65,6 +71,7 @@ class SettingsWindow(QWidget):
         peak_detection_type_label = QLabel("Select Detection Method:")
         response_layout.addWidget(peak_detection_type_label)
 
+        dropdown_layout = QHBoxLayout()
         self.peak_detection_type = QComboBox()
         self.peak_detection_type.addItems(["Thresholding", "ML-based"])
         if self.settings.config["peak_detection_type"] == "Thresholding":
@@ -74,20 +81,29 @@ class SettingsWindow(QWidget):
         self.peak_detection_type.setCurrentIndex(idx)
         self.peak_detection_type.currentIndexChanged.connect(
             self.settings_value_changed)
-        response_layout.addWidget(self.peak_detection_type)
+        dropdown_layout.addWidget(self.peak_detection_type)
+        dropdown_layout.addStretch()
+        response_layout.addLayout(dropdown_layout)
 
         self.ml_model_used = QLabel("Select Deep Learning Model:")
         self.ml_model_used.setEnabled(
             self.settings.config["peak_detection_type"] == "ML-based")
         response_layout.addWidget(self.ml_model_used)
 
+        model_dropdown_layout = QHBoxLayout()
         self.ml_model = QComboBox()
         self.ml_model.addItems(self.settings.modelzoo.available_models.keys())
         self.ml_model.setCurrentIndex(0)
         self.ml_model.setEnabled(
             self.settings.config["peak_detection_type"] == "ML-based")
         self.ml_model.currentIndexChanged.connect(self.settings_value_changed)
-        response_layout.addWidget(self.ml_model)
+        model_dropdown_layout.addWidget(self.ml_model)
+        model_dropdown_layout.addStretch()
+        response_layout.addLayout(model_dropdown_layout)
+
+        self.threshold_label = QLabel(
+            "Current Prediction Threshold (ML-based):")
+        response_layout.addWidget(self.threshold_label)
 
         probability_layout = QHBoxLayout()
         self.threshold_slider = QSlider(Qt.Orientation.Horizontal, self)
@@ -101,8 +117,6 @@ class SettingsWindow(QWidget):
         self.threshold_slider.setEnabled(
             self.settings.config["peak_detection_type"] == "ML-based")
 
-        self.threshold_label = QLabel(
-            "Current Prediction Threshold (ML-based):")
         self.threshold_label.setEnabled(
             self.settings.config["peak_detection_type"] == "ML-based")
 
@@ -111,13 +125,11 @@ class SettingsWindow(QWidget):
         self.current_threshold_label.setEnabled(
             self.settings.config["peak_detection_type"] == "ML-based")
 
-        probability_layout.addWidget(self.threshold_label)
         probability_layout.addWidget(self.threshold_slider)
         probability_layout.addWidget(self.current_threshold_label)
+        probability_layout.addStretch()
 
-        probability_layout_wrapper_widget = QWidget()
-        probability_layout_wrapper_widget.setLayout(probability_layout)
-        response_layout.addWidget(probability_layout_wrapper_widget)
+        response_layout.addLayout(probability_layout)
 
         self.add_line_to_layout(response_layout)
 
@@ -125,6 +137,7 @@ class SettingsWindow(QWidget):
         # tau_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
         response_layout.addWidget(tau_desc)
 
+        frames_for_decay_layout = QHBoxLayout()
         self.frames_for_decay = QSpinBox()
         self.frames_for_decay.setValue(
             self.settings.config["frames_for_decay"])
@@ -132,7 +145,9 @@ class SettingsWindow(QWidget):
             "In the timeframe from peak to the value set, the program will search for the minimum and compute the decay constant tau."
         )
         self.frames_for_decay.valueChanged.connect(self.settings_value_changed)
-        response_layout.addWidget(self.frames_for_decay)
+        frames_for_decay_layout.addWidget(self.frames_for_decay)
+        frames_for_decay_layout.addStretch()
+        response_layout.addLayout(frames_for_decay_layout)
 
         self.add_line_to_layout(response_layout)
 
@@ -221,7 +236,7 @@ class SettingsWindow(QWidget):
 
         stimulation_layout = QVBoxLayout()
 
-        self.stim_used_box = QCheckBox("Stimulation used")
+        self.stim_used_box = QCheckBox("Enable Stimulation")
         self.stim_used_box.setChecked(self.settings.config["stim_used"])
         self.stim_used_box.stateChanged.connect(self.settings_value_changed)
         stimulation_layout.addWidget(self.stim_used_box)
@@ -230,17 +245,20 @@ class SettingsWindow(QWidget):
         self.stimframes_label.setEnabled(self.settings.config["stim_used"])
         stimulation_layout.addWidget(self.stimframes_label)
 
+        stimframes_input_layout = QHBoxLayout()
         self.stimframes_input = QLineEdit(self.settings.config["stim_frames"])
-        self.stimframes_input.setMaximumWidth(200)
         self.stimframes_input.setEnabled(self.settings.config["stim_used"])
         self.stimframes_input.editingFinished.connect(
             self.settings_value_changed)
-        stimulation_layout.addWidget(self.stimframes_input)
+        stimframes_input_layout.addWidget(self.stimframes_input)
+        stimframes_input_layout.addStretch()
+        stimulation_layout.addLayout(stimframes_input_layout)
 
         self.patience_label = QLabel("Patience")
         self.patience_label.setEnabled(self.settings.config["stim_used"])
         stimulation_layout.addWidget(self.patience_label)
 
+        patience_input_layout = QHBoxLayout()
         self.patience_input = QSpinBox()
         self.patience_input.setValue(
             self.settings.config["stim_frames_patience"])
@@ -248,7 +266,9 @@ class SettingsWindow(QWidget):
         self.patience_input.editingFinished.connect(
             self.settings_value_changed)
         self.patience_input.valueChanged.connect(self.settings_value_changed)
-        stimulation_layout.addWidget(self.patience_input)
+        patience_input_layout.addWidget(self.patience_input)
+        patience_input_layout.addStretch()
+        stimulation_layout.addLayout(patience_input_layout)
 
         stimulation_layout.addStretch()
 
@@ -261,7 +281,9 @@ class SettingsWindow(QWidget):
 
         cancel_btn = QPushButton("Back")
         cancel_btn.clicked.connect(goBackHandler)
+        button_layout.addStretch()
         button_layout.addWidget(cancel_btn)
+        button_layout.addStretch()
 
         page_layout.addLayout(button_layout)
 
