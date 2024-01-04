@@ -25,9 +25,9 @@ class SettingsWindow(QWidget):
         self.settings = settings
 
         page_layout = QVBoxLayout()
-        tab_widget = QTabWidget()
+        self.tab_widget = QTabWidget()
 
-        page_layout.addWidget(tab_widget)
+        page_layout.addWidget(self.tab_widget)
 
         self.setLayout(page_layout)
 
@@ -58,55 +58,6 @@ class SettingsWindow(QWidget):
 
         general_wrapper_widget = QWidget()
         general_wrapper_widget.setLayout(general_layout)
-
-        # --- threshold settings ---
-
-        threshold_layout = QVBoxLayout()
-        threshold_start_desc = QLabel("Baseline start:")
-        # threshold_start_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        threshold_layout.addWidget(threshold_start_desc)
-
-        self.threshold_start_input = QSpinBox()
-        self.threshold_start_input.setToolTip(
-            "Baseline calculation for threshold starts from this frame.")
-        self.threshold_start_input.setValue(
-            self.settings.config["threshold_start"])
-        self.threshold_start_input.valueChanged.connect(
-            self.settings_value_changed)
-        threshold_layout.addWidget(self.threshold_start_input)
-
-        threshold_stop_desc = QLabel("Baseline stop:")
-        # threshold_stop_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
-        threshold_layout.addWidget(threshold_stop_desc)
-
-        self.threshold_stop_input = QSpinBox()
-        self.threshold_stop_input.setToolTip(
-            "Baseline calculation for threshold ends at this frame.")
-        self.threshold_stop_input.setValue(
-            self.settings.config["threshold_stop"])
-        self.threshold_stop_input.valueChanged.connect(
-            self.settings_value_changed)
-        threshold_layout.addWidget(self.threshold_stop_input)
-
-        threshold_desc = QLabel("Threshold multiplier:")
-        # threshold_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
-        threshold_layout.addWidget(threshold_desc)
-
-        self.threshold_input = QDoubleSpinBox()
-        self.threshold_input.setToolTip(
-            "Threshold is calculated based on this multiplier.")
-        self.threshold_input.setSingleStep(
-            self.settings.config["threshold_step"])
-        self.threshold_input.setValue(self.settings.config["threshold_mult"])
-        self.threshold_input.valueChanged.connect(self.settings_value_changed)
-        threshold_layout.addWidget(self.threshold_input)
-
-        self.threshold_wrapper_widget = QWidget()
-        self.threshold_wrapper_widget.setLayout(threshold_layout)
-        self.threshold_wrapper_widget.setEnabled(
-            self.settings.config["peak_detection_type"] == "Thresholding")
-
-        threshold_layout.addStretch()
 
         # --- response settings ---
         response_layout = QVBoxLayout()
@@ -219,6 +170,53 @@ class SettingsWindow(QWidget):
         response_wrapper_widget = QWidget()
         response_wrapper_widget.setLayout(response_layout)
 
+        # --- threshold settings ---
+
+        threshold_layout = QVBoxLayout()
+        threshold_start_desc = QLabel("Baseline start:")
+        # threshold_start_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        threshold_layout.addWidget(threshold_start_desc)
+
+        self.threshold_start_input = QSpinBox()
+        self.threshold_start_input.setToolTip(
+            "Baseline calculation for threshold starts from this frame.")
+        self.threshold_start_input.setValue(
+            self.settings.config["threshold_start"])
+        self.threshold_start_input.valueChanged.connect(
+            self.settings_value_changed)
+        threshold_layout.addWidget(self.threshold_start_input)
+
+        threshold_stop_desc = QLabel("Baseline stop:")
+        # threshold_stop_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
+        threshold_layout.addWidget(threshold_stop_desc)
+
+        self.threshold_stop_input = QSpinBox()
+        self.threshold_stop_input.setToolTip(
+            "Baseline calculation for threshold ends at this frame.")
+        self.threshold_stop_input.setValue(
+            self.settings.config["threshold_stop"])
+        self.threshold_stop_input.valueChanged.connect(
+            self.settings_value_changed)
+        threshold_layout.addWidget(self.threshold_stop_input)
+
+        threshold_desc = QLabel("Threshold multiplier:")
+        # threshold_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
+        threshold_layout.addWidget(threshold_desc)
+
+        self.threshold_input = QDoubleSpinBox()
+        self.threshold_input.setToolTip(
+            "Threshold is calculated based on this multiplier.")
+        self.threshold_input.setSingleStep(
+            self.settings.config["threshold_step"])
+        self.threshold_input.setValue(self.settings.config["threshold_mult"])
+        self.threshold_input.valueChanged.connect(self.settings_value_changed)
+        threshold_layout.addWidget(self.threshold_input)
+
+        self.threshold_wrapper_widget = QWidget()
+        self.threshold_wrapper_widget.setLayout(threshold_layout)
+
+        threshold_layout.addStretch()
+
         # --- stimulation settings ---
 
         stimulation_layout = QVBoxLayout()
@@ -267,10 +265,14 @@ class SettingsWindow(QWidget):
 
         page_layout.addLayout(button_layout)
 
-        tab_widget.addTab(general_wrapper_widget, 'General')
-        tab_widget.addTab(response_wrapper_widget, 'Detection')
-        tab_widget.addTab(self.threshold_wrapper_widget, 'Threshold Settings')
-        tab_widget.addTab(stimulation_wrapper_widget, 'Stimulation')
+        self.tab_widget.addTab(general_wrapper_widget, 'General')
+        self.tab_widget.addTab(response_wrapper_widget, 'Detection')
+        self.tab_widget.addTab(
+            self.threshold_wrapper_widget, 'Threshold Settings')
+        self.tab_widget.addTab(stimulation_wrapper_widget, 'Stimulation')
+
+        self.tab_widget.setTabEnabled(
+            2, self.settings.config["peak_detection_type"] == "Thresholding")
 
     def reset_output_path(self):
         self.settings.config["output_filepath"] = ""
@@ -343,6 +345,7 @@ class SettingsWindow(QWidget):
             self.current_threshold_label.setEnabled(True)
             self.threshold_slider.setEnabled(True)
 
+            self.tab_widget.setTabEnabled(2, False)
             self.threshold_wrapper_widget.setEnabled(False)
         else:
             self.ml_model.setEnabled(False)
@@ -351,6 +354,7 @@ class SettingsWindow(QWidget):
             self.current_threshold_label.setEnabled(False)
             self.threshold_slider.setEnabled(False)
 
+            self.tab_widget.setTabEnabled(2, True)
             self.threshold_wrapper_widget.setEnabled(True)
 
         if self.settings.config["stim_used"]:
