@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
         button_open.setStatusTip(
             "Open a file containing traces using your file system (CTRL + O)"
         )
-        button_open.triggered.connect(self.get_filepath)
+        button_open.triggered.connect(self.open_file)
         button_open.setShortcut(QKeySequence("Ctrl+o"))
         toolbar.addAction(button_open)
 
@@ -323,32 +323,6 @@ class MainWindow(QMainWindow):
         self.add_window.update_length(len(self.synapse_response.intensity))
         self.add_window.load_peaks(peaks)
 
-    def get_filepath(self) -> None:
-        # no directory has been saved
-        if self.directory is not None:
-            self.filepath = QFileDialog.getOpenFileName(
-                caption="Select Input File",
-                directory=self.directory,
-                filter="Table(*.txt *.csv *.xlsx *.xls)",
-            )[0]
-        else:
-            self.filepath = QFileDialog.getOpenFileName(
-                caption="Select Input File",
-                filter="Table(*.txt *.csv *.xlsx *.xls)",
-            )[0]
-
-        if self.filepath == "":
-            warning = QMessageBox(self)
-            warning.setWindowTitle("Warning")
-            warning.setText("No file has been selected")
-            warning.exec()
-            return
-
-        self.filename = os.path.basename(self.filepath)
-        self.directory = os.path.dirname(self.filepath)
-        self.update_file_path_label(self.filepath)
-        self.open_file()
-
     # --- helper functions ---
 
     def set_add_button_functionality(self) -> None:
@@ -376,6 +350,7 @@ class MainWindow(QMainWindow):
         self.update_file_path_label("")
         self.apply_main_stretch()
         self.close_add_window()
+        self.filepath = ''
 
     def open_file(self) -> None:
         """
@@ -384,6 +359,31 @@ class MainWindow(QMainWindow):
         resulting output dataframes and response columns.
         All responses columns will be plotted.
         """
+        # no directory has been saved
+        if not hasattr(self, 'filepath') or self.filepath == '':
+            if self.directory is not None:
+                self.filepath = QFileDialog.getOpenFileName(
+                    caption="Select Input File",
+                    directory=self.directory,
+                    filter="Table(*.txt *.csv *.xlsx *.xls)",
+                )[0]
+            else:
+                self.filepath = QFileDialog.getOpenFileName(
+                    caption="Select Input File",
+                    filter="Table(*.txt *.csv *.xlsx *.xls)",
+                )[0]
+
+        if self.filepath == "":
+            warning = QMessageBox(self)
+            warning.setWindowTitle("Warning")
+            warning.setText("No file has been selected")
+            warning.exec()
+            return
+
+        self.filename = os.path.basename(self.filepath)
+        self.directory = os.path.dirname(self.filepath)
+        self.update_file_path_label(self.filepath)
+
         self.synapse_response.open_file(
             self.filepath, self.filename, self.get_setting("meta_columns")
         )
@@ -503,7 +503,6 @@ class MainWindow(QMainWindow):
             )
             # self.clear_selection_buttons()
             self.reset()
-            self.get_filepath()
             self.open_file()
             return
 
