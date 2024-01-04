@@ -175,17 +175,21 @@ class MainWindow(QMainWindow):
         button_keep.setShortcut(QKeySequence("e"))
         toolbar.addAction(button_keep)
 
+        # add separator between navigation and editing
+        toolbar.addSeparator()
+
         # add
         self.button_add = QAction(
-            QIcon(os.path.join(asset_path, "add.svg")), "Add response (A)", self
+            QIcon(os.path.join(asset_path, "peak.svg")
+                  ), "Edit responses (W)", self
         )
-        self.button_add.setStatusTip("Add a response (A)")
+        self.button_add.setStatusTip(
+            "Edit responses by adding new ones or removing existing ones (W)")
         self.set_add_button_functionality()
-        self.button_add.setShortcut(QKeySequence("a"))
+        self.button_add.setShortcut(QKeySequence("w"))
         self.button_add.triggered.connect(self.open_add_window)
         toolbar.addAction(self.button_add)
 
-        # add separator between file path and rest
         toolbar.addSeparator()
 
         # file path

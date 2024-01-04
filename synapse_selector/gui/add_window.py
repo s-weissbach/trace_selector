@@ -25,7 +25,7 @@ class AddWindow(QMainWindow):
         self.peak_widgets = []
         self.preds = preds
 
-        self.setWindowTitle("Add response")
+        self.setWindowTitle("Edit responses")
 
         main_wrapper_widget = QWidget()
         main_layout = QVBoxLayout()
