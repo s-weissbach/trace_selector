@@ -159,9 +159,9 @@ class MainWindow(QMainWindow):
         # trash
         button_trash = QAction(
             QIcon(os.path.join(asset_path, "trash.svg")
-                  ), "Trash sample (Q)", self
+                  ), "Discard sample (Q)", self
         )
-        button_trash.setStatusTip("Trash the current trace (Q)")
+        button_trash.setStatusTip("Discard the current trace (Q)")
         button_trash.triggered.connect(self.trash_trace)
         button_trash.setShortcut(QKeySequence("q"))
         toolbar.addAction(button_trash)
@@ -495,7 +495,7 @@ class MainWindow(QMainWindow):
                 os.path.join(
                     self.settings.config["output_filepath"], "keep_folder"),
                 os.path.join(
-                    self.settings.config["output_filepath"], "trash_folder"),
+                    self.settings.config["output_filepath"], "discard_folder"),
                 self.settings.config["compute_ppr"],
                 self.stim_frames,
                 self.settings.config["stim_frames_patience"],
