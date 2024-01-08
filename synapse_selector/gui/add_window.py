@@ -12,10 +12,11 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from functools import partial
+import numpy as np
 
 
 class AddWindow(QMainWindow):
-    def __init__(self, add_handler, close_handler, parent=None, maximum_length=0, preds=[]):
+    def __init__(self, add_handler, close_handler, parent=None, maximum_length=0, preds=[], intensities=[]):
         super().__init__(parent)
 
         # variables
@@ -25,6 +26,7 @@ class AddWindow(QMainWindow):
         self.peak_dict = {}
         self.peak_widgets = []
         self.preds = preds
+        self.intensities = intensities
 
         self.setWindowTitle("Edit responses")
 
@@ -59,9 +61,9 @@ class AddWindow(QMainWindow):
         button_wrapper_widget.setLayout(button_layout)
         main_layout.addWidget(button_wrapper_widget)
 
-        add_button = QPushButton('Add Response')
-        button_layout.addWidget(add_button)
-        add_button.clicked.connect(self.__add_trace)
+        self.add_button = QPushButton('Add Response')
+        button_layout.addWidget(self.add_button)
+        self.add_button.clicked.connect(self.__add_trace)
 
         close_button = QPushButton('Close')
         close_button.clicked.connect(close_handler)
@@ -84,6 +86,11 @@ class AddWindow(QMainWindow):
 
         main_layout.addWidget(scroll)
 
+    def __update_button_text(self):
+        val = self.get_input()
+        self.add_button.setText(
+            f'Add Response (Int.: {np.round(self.intensities[val], 2)} | Conf.: {np.round(self.preds[val] * 100, 2)})')
+
     def __add_trace(self):
         # value is already a peak, just return
         if self.get_input() in list(self.peak_dict.keys()):
@@ -102,7 +109,12 @@ class AddWindow(QMainWindow):
         widget_layout_wrapper = QWidget()
         widget_layout_wrapper.setLayout(widget_layout)
         # create widgets
-        label = QLabel(f'[Peak: {peak_value}]')
+        if len(self.preds) > 0:
+            label = QLabel(
+                f'[Frame: {peak_value} | Int.: {np.round(self.intensities[peak_value], 2)} | Conf.: {np.round(self.preds[peak_value] * 100, 2)}]')
+        else:
+            label = QLabel(
+                f'[Frame: {peak_value} | Int.: {np.round(self.intensities[peak_value], 2)}')
         checkbox = QCheckBox()
         checkbox.stateChanged.connect(
             partial(self.__toggle_peak, peak_value=peak_value))
@@ -120,6 +132,7 @@ class AddWindow(QMainWindow):
     def __update_input(self, value):
         self.slider_input.setValue(value)
         self.spinner_input.setValue(value)
+        self.__update_button_text()
 
     def __toggle_peak(self, new_state, peak_value):
         # 2: checked | 0: unchecked
@@ -166,8 +179,9 @@ class AddWindow(QMainWindow):
         self.slider_input.setMaximum(value)
         self.__reset_input()
 
-    def update_preds(self, pred_arr):
+    def update_information(self, pred_arr, intensity_arr):
         self.preds = pred_arr
+        self.intensities = intensity_arr
 
     def load_peaks(self, peak_arr):
         tmp_peak_dict = self.peak_dict.copy()

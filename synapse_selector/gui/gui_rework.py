@@ -477,6 +477,8 @@ class MainWindow(QMainWindow):
         )
 
         self.peak_detection()
+        self.add_window.update_information(
+            self.model.preds if self.settings.config["peak_detection_type"] != "Thresholding" else [], trace)
         self.initialize_add_window(
             self.synapse_response.peaks, new_sample=new_sample)
 
