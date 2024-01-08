@@ -361,6 +361,8 @@ class SettingsWindow(QWidget):
         if self.parent.synapse_response.file_opened:
             self.parent.plot(new_sample=False)
 
+        self.parent.refresh_slider()
+
     def check_patience(self) -> None:
         self.patience_input.setStyleSheet("")
         if not self.compute_ppr.isChecked() or len(self.stimframes) <= 1:
@@ -419,3 +421,8 @@ class SettingsWindow(QWidget):
         else:
             self.compute_ppr.setEnabled(False)
             self.non_max_supression_button.setEnabled(False)
+
+    def update_ml_slider_value(self, value) -> None:
+        self.settings.config["threshold_slider_ml"] = value
+        self.threshold_slider.setValue(value)
+        self.settings_value_changed()

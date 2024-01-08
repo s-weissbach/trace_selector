@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (QMainWindow,
                              QHBoxLayout,
                              QWidget,
                              QFileDialog,
+                             QSlider,
                              QMessageBox,
                              QStackedLayout,
                              )
@@ -76,10 +77,9 @@ class MainWindow(QMainWindow):
         settings_layout = QVBoxLayout()
         settings_wrapper_widget.setLayout(settings_layout)
 
-        settings_layout.addWidget(
-            SettingsWindow(self.settings, self,
-                           lambda: stack_layout.setCurrentIndex(0))
-        )
+        self.settings_window = SettingsWindow(
+            self.settings, self, lambda: stack_layout.setCurrentIndex(0))
+        settings_layout.addWidget(self.settings_window)
 
         # stack layout
         stack_wrapper_widget = QWidget()
@@ -218,6 +218,33 @@ class MainWindow(QMainWindow):
         self.trace_plot = QtWebEngineWidgets.QWebEngineView(self)
         self.trace_plot.hide()
 
+        # detection slider
+        self.threshold_label = QLabel(
+            "Current Prediction Threshold (ML-based):")
+
+        probability_layout = QHBoxLayout()
+        self.threshold_slider = QSlider(Qt.Orientation.Horizontal, self)
+        self.threshold_slider.setMinimumWidth(300)
+        self.threshold_slider.setMinimumHeight(40)
+        self.threshold_slider.setValue(
+            self.settings.config['threshold_slider_ml'])
+        self.threshold_slider.setMinimum(1)
+        self.threshold_slider.setMaximum(100)
+        self.threshold_slider.setTickInterval(10)
+        self.threshold_slider.valueChanged.connect(self.handle_slider_update)
+
+        self.current_threshold_label = QLabel(
+            f"{self.threshold_slider.value()}%")
+
+        probability_layout.addWidget(self.threshold_label)
+        probability_layout.addWidget(self.threshold_slider)
+        probability_layout.addWidget(self.current_threshold_label)
+        probability_layout.addStretch()
+
+        self.probability_layout_wrapper = QWidget()
+        self.probability_layout_wrapper.setLayout(probability_layout)
+        self.probability_layout_wrapper.hide()
+
         # startup label
         self.startup_label = QLabel(
             "Open up a file with traces using the toolbar.")
@@ -235,6 +262,18 @@ class MainWindow(QMainWindow):
             self.plot()
 
     # --- slot functions ---
+
+    def handle_slider_update(self):
+        self.settings_window.update_ml_slider_value(
+            self.threshold_slider.value())
+        self.current_threshold_label.setText(
+            f"{self.threshold_slider.value()}%")
+
+    def refresh_slider(self):
+        self.threshold_slider.setValue(
+            self.settings.config["threshold_slider_ml"])
+        self.current_threshold_label.setText(
+            f"{self.threshold_slider.value()}%")
 
     def add_response(self, peak_value):
         """
@@ -339,20 +378,16 @@ class MainWindow(QMainWindow):
     def apply_main_stretch(self) -> None:
         self.main_layout.setStretch(0, 1)
         self.main_layout.setStretch(1, 10)
+        self.main_layout.setStretch(2, 1)
 
     def get_setting(self, setting_key: str) -> Union[str, int, float]:
         return self.settings.config[setting_key]
 
     def reset(self) -> None:
-        self.main_layout.removeWidget(self.trace_plot)
-        self.trace_plot.hide()
-        self.startup_label.show()
-        self.main_layout.addWidget(self.startup_label)
-        self.set_add_button_functionality()
-        self.update_file_path_label("")
-        self.apply_main_stretch()
+        self.switch_to_start_layout()
         self.close_add_window()
         self.filepath = ''
+        self.update_file_path_label("")
 
     def open_file(self) -> None:
         """
@@ -390,14 +425,37 @@ class MainWindow(QMainWindow):
             self.filepath, self.filename, self.get_setting("meta_columns")
         )
         self.labels = []
-        # remove startup label and add plot
+
+        self.switch_to_main_layout()
+        self.plot()
+
+    def switch_to_main_layout(self):
         self.main_layout.removeWidget(self.startup_label)
         self.startup_label.hide()
+
         self.trace_plot.show()
         self.main_layout.addWidget(self.trace_plot)
+
+        self.probability_layout_wrapper.show()
+        self.main_layout.addWidget(self.probability_layout_wrapper)
+        self.main_layout.setAlignment(
+            self.probability_layout_wrapper, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+
         self.apply_main_stretch()
         self.set_add_button_functionality()
-        self.plot()
+
+    def switch_to_start_layout(self):
+        self.main_layout.removeWidget(self.trace_plot)
+        self.trace_plot.hide()
+
+        self.main_layout.removeWidget(self.probability_layout_wrapper)
+        self.probability_layout_wrapper.hide()
+
+        self.startup_label.show()
+        self.main_layout.addWidget(self.startup_label)
+
+        self.apply_main_stretch()
+        self.set_add_button_functionality()
 
     def plot(self, new_sample=True) -> None:
         """
