@@ -429,6 +429,22 @@ class MainWindow(QMainWindow):
         self.switch_to_main_layout()
         self.plot()
 
+    def add_slider(self):
+        if self.settings.config["peak_detection_type"] != 'Thresholding':
+            self.remove_slider()
+
+            self.probability_layout_wrapper.show()
+            self.main_layout.addWidget(self.probability_layout_wrapper)
+            self.main_layout.setAlignment(
+                self.probability_layout_wrapper, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+
+    def remove_slider(self):
+        try:
+            self.main_layout.removeWidget(self.probability_layout_wrapper)
+            self.probability_layout_wrapper.hide()
+        except Exception as e:
+            None
+
     def switch_to_main_layout(self):
         self.main_layout.removeWidget(self.startup_label)
         self.startup_label.hide()
@@ -436,10 +452,7 @@ class MainWindow(QMainWindow):
         self.trace_plot.show()
         self.main_layout.addWidget(self.trace_plot)
 
-        self.probability_layout_wrapper.show()
-        self.main_layout.addWidget(self.probability_layout_wrapper)
-        self.main_layout.setAlignment(
-            self.probability_layout_wrapper, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        self.add_slider()
 
         self.apply_main_stretch()
         self.set_add_button_functionality()
@@ -448,8 +461,7 @@ class MainWindow(QMainWindow):
         self.main_layout.removeWidget(self.trace_plot)
         self.trace_plot.hide()
 
-        self.main_layout.removeWidget(self.probability_layout_wrapper)
-        self.probability_layout_wrapper.hide()
+        self.remove_slider()
 
         self.startup_label.show()
         self.main_layout.addWidget(self.startup_label)
@@ -514,6 +526,11 @@ class MainWindow(QMainWindow):
             self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
         self.current_state_indicator.setText(
             self.synapse_response.return_state())
+
+        if self.settings.config["peak_detection_type"] == "Thresholding":
+            self.remove_slider()
+        else:
+            self.add_slider()
 
     def next(self):
         """
