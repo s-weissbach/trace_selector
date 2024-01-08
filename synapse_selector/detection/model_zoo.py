@@ -43,11 +43,10 @@ class ModelZoo:
             filename_no_ext = filename.split(".pt")[0]
             self.available_models[filename_no_ext] = {
                 'filepath': os.path.join(self.modelzoo_path, filename),
-                'hash': sha256_hash(os.path.join(self.modelzoo_path,filename))
+                'hash': sha256_hash(os.path.join(self.modelzoo_path, filename))
             }
         self.load_model_info()
 
-    
     def load_model_info(self):
         """
         Loads model information from the 'model.json' file in the GitHub repository.
@@ -75,7 +74,8 @@ class ModelZoo:
             for file_info in github_files:
                 filename = file_info["name"]
                 download_url = file_info["download_url"]
-                if not filename.endswith('.pt'): continue
+                if not filename.endswith('.pt'):
+                    continue
                 if os.path.exists(os.path.join(self.modelzoo_path, filename)):
                     # model exists
                     filename_no_ext = filename.split('.pt')[0]
@@ -86,7 +86,6 @@ class ModelZoo:
                         print(f'Model {filename_no_ext} has new weights.')
                 # in all other cases -> load new model weights
                 self.download_model(download_url, filename)
-                
 
             print("All models are up-to-date.")
 
@@ -114,9 +113,8 @@ class ModelZoo:
                 'filepath': os.path.join(self.modelzoo_path, filename),
                 'hash': sha256_hash(local_path)
             }
-            print(f'Downloaded model: {filename_no_ext} ({self.available_models[filename_no_ext]["hash"]})')
+            print(
+                f'Downloaded model: {filename_no_ext} ({self.available_models[filename_no_ext]["hash"]})')
 
         except requests.RequestException as e:
             print(f"Error downloading model: {e}")
-
-    

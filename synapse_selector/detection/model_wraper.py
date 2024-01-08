@@ -1,18 +1,17 @@
 import torch
 import numpy as np
 
-from synapse_selector.detection.model_implementation import PeakDetectionModel
-
 
 class torch_model:
     def __init__(
         self,
     ) -> None:
-        self.model = PeakDetectionModel()
+        self.model = None
         self.weights_loaded = False
 
     def load_weights(self, model_path: str) -> None:
-        self.model.load_state_dict(torch.load(model_path))
+        print(model_path)
+        self.model = torch.jit.load(model_path)
         self.model.eval()
         self.weights_loaded = True
 
