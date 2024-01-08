@@ -319,8 +319,10 @@ class MainWindow(QMainWindow):
         self.close_add_window()
         self.add_window.show()
 
-    def initialize_add_window(self, peaks) -> None:
+    def initialize_add_window(self, peaks, new_sample) -> None:
         self.add_window.update_length(len(self.synapse_response.intensity))
+        if new_sample:
+            self.add_window.reset()
         self.add_window.load_peaks(peaks)
 
     # --- helper functions ---
@@ -397,7 +399,7 @@ class MainWindow(QMainWindow):
         self.set_add_button_functionality()
         self.plot()
 
-    def plot(self) -> None:
+    def plot(self, new_sample=True) -> None:
         """
         Plots a trace of the response that a specific Synapse gave.
         This is done by creating a instance of trace_plot (plot.py),
@@ -417,7 +419,8 @@ class MainWindow(QMainWindow):
         )
 
         self.peak_detection()
-        self.initialize_add_window(self.synapse_response.peaks)
+        self.initialize_add_window(
+            self.synapse_response.peaks, new_sample=new_sample)
 
         # create plot depending on mode
         if self.settings.config["peak_detection_type"] == "Thresholding":
@@ -443,8 +446,8 @@ class MainWindow(QMainWindow):
                 self.tr_plot.add_stimulation_window(
                     self.stim_frames, self.settings.config["stim_frames_patience"]
                 )
-            self.labels = self.tr_plot.add_peaks(
-                self.add_window.get_peak_dict(), self.settings.config["nms"])
+        self.labels = self.tr_plot.add_peaks(
+            self.add_window.get_peak_dict(), self.settings.config["nms"])
 
         # set plot
         self.trace_plot.setHtml(
@@ -539,4 +542,4 @@ class MainWindow(QMainWindow):
         )
         self.synapse_response.automatic_peaks = []
         self.synapse_response.add_automatic_peaks(automatic_peaks)
-        self.plot()
+        self.plot(new_sample=False)

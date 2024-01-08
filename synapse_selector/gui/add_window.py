@@ -91,7 +91,7 @@ class AddWindow(QMainWindow):
         # get input and append it
         peak_value = self.get_input()
         self.add_handler(peak_value)
-        self.peak_dict[peak_value] = True
+        self.peak_dict[peak_value] = (True, True)
         # use the previous length as the index for the current element
         self.__add_peak_widget(peak_value)
         self.__reset_input()
@@ -107,7 +107,7 @@ class AddWindow(QMainWindow):
         checkbox.stateChanged.connect(
             partial(self.__toggle_peak, peak_value=peak_value))
 
-        checkbox.setChecked(self.peak_dict[peak_value])
+        checkbox.setChecked(self.peak_dict[peak_value][0])
 
         widget_layout.addWidget(checkbox)
         widget_layout.addWidget(label)
@@ -123,20 +123,24 @@ class AddWindow(QMainWindow):
 
     def __toggle_peak(self, new_state, peak_value):
         # 2: checked | 0: unchecked
-        self.peak_dict[peak_value] = True if new_state == 2 else False
+        self.peak_dict[peak_value] = (
+            True if new_state == 2 else False, self.peak_dict[peak_value][1])
         # if nms is activated, reload the plot
         if self.parent.get_setting('nms'):
-            self.parent.plot()
+            self.parent.plot(replot=True)
 
     def get_selected_peaks(self):
         peaks = []
-        for peak, selected in self.peak_dict.items():
-            if selected:
+        for peak, bools in self.peak_dict.items():
+            if bools[0]:
                 peaks.append(peak)
         return peaks
 
     def get_peak_dict(self):
-        return self.peak_dict
+        return_dict = {}
+        for key, item in self.peak_dict.items():
+            return_dict[key] = item[0]
+        return return_dict
 
     def get_input(self):
         return self.spinner_input.value()
@@ -146,12 +150,15 @@ class AddWindow(QMainWindow):
         self.slider_input.setValue(0)
 
     def reset(self):
+        self.reset_peak_widgets()
+        self.__reset_input()
+        self.peak_dict = {}
+
+    def reset_peak_widgets(self):
         for peak_widget in self.peak_widgets:
             self.peak_widget_layout.removeWidget(peak_widget)
             peak_widget.deleteLater()
             peak_widget = None
-        self.__reset_input()
-        self.peak_dict = {}
         self.peak_widgets = []
 
     def update_length(self, value):
@@ -163,10 +170,12 @@ class AddWindow(QMainWindow):
         self.preds = pred_arr
 
     def load_peaks(self, peak_arr):
-        # peak dict is not empty
-        if self.peak_dict:
-            return
+        tmp_peak_dict = self.peak_dict.copy()
         self.reset()
         for idx, peak in enumerate(peak_arr):
-            self.peak_dict[peak] = True
+            self.peak_dict[peak] = (True, False)
             self.__add_peak_widget(peak)
+        for peak, bool_arr in tmp_peak_dict.items():
+            # peak was manually added
+            if bool_arr[1]:
+                self.peak_dict[peak] = (True, False)

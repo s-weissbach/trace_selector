@@ -86,16 +86,12 @@ class SettingsWindow(QWidget):
         response_layout.addLayout(dropdown_layout)
 
         self.ml_model_used = QLabel("Select Deep Learning Model:")
-        self.ml_model_used.setEnabled(
-            self.settings.config["peak_detection_type"] == "ML-based")
         response_layout.addWidget(self.ml_model_used)
 
         model_dropdown_layout = QHBoxLayout()
         self.ml_model = QComboBox()
         self.ml_model.addItems(self.settings.modelzoo.available_models.keys())
         self.ml_model.setCurrentIndex(0)
-        self.ml_model.setEnabled(
-            self.settings.config["peak_detection_type"] == "ML-based")
         self.ml_model.currentIndexChanged.connect(self.settings_value_changed)
         model_dropdown_layout.addWidget(self.ml_model)
         model_dropdown_layout.addStretch()
@@ -114,16 +110,9 @@ class SettingsWindow(QWidget):
         self.threshold_slider.setMaximum(100)
         self.threshold_slider.setTickInterval(10)
         self.threshold_slider.valueChanged.connect(self.settings_value_changed)
-        self.threshold_slider.setEnabled(
-            self.settings.config["peak_detection_type"] == "ML-based")
-
-        self.threshold_label.setEnabled(
-            self.settings.config["peak_detection_type"] == "ML-based")
 
         self.current_threshold_label = QLabel(
             f"{self.threshold_slider.value()}%")
-        self.current_threshold_label.setEnabled(
-            self.settings.config["peak_detection_type"] == "ML-based")
 
         probability_layout.addWidget(self.threshold_slider)
         probability_layout.addWidget(self.current_threshold_label)
@@ -168,8 +157,6 @@ class SettingsWindow(QWidget):
         self.non_max_supression_button = QCheckBox(
             "Use Non-Maximum Supression")
         self.non_max_supression_button.setChecked(self.settings.config["nms"])
-        self.non_max_supression_button.setEnabled(
-            self.settings.config["select_responses"])
         self.use_nms = self.settings.config["nms"]
         self.non_max_supression_button.stateChanged.connect(
             self.settings_value_changed)
@@ -242,12 +229,10 @@ class SettingsWindow(QWidget):
         stimulation_layout.addWidget(self.stim_used_box)
 
         self.stimframes_label = QLabel("Stimulation Frames")
-        self.stimframes_label.setEnabled(self.settings.config["stim_used"])
         stimulation_layout.addWidget(self.stimframes_label)
 
         stimframes_input_layout = QHBoxLayout()
         self.stimframes_input = QLineEdit(self.settings.config["stim_frames"])
-        self.stimframes_input.setEnabled(self.settings.config["stim_used"])
         self.stimframes_input.editingFinished.connect(
             self.settings_value_changed)
         stimframes_input_layout.addWidget(self.stimframes_input)
@@ -255,14 +240,12 @@ class SettingsWindow(QWidget):
         stimulation_layout.addLayout(stimframes_input_layout)
 
         self.patience_label = QLabel("Patience")
-        self.patience_label.setEnabled(self.settings.config["stim_used"])
         stimulation_layout.addWidget(self.patience_label)
 
         patience_input_layout = QHBoxLayout()
         self.patience_input = QSpinBox()
         self.patience_input.setValue(
             self.settings.config["stim_frames_patience"])
-        self.patience_input.setEnabled(self.settings.config["stim_used"])
         self.patience_input.editingFinished.connect(
             self.settings_value_changed)
         self.patience_input.valueChanged.connect(self.settings_value_changed)
@@ -359,7 +342,39 @@ class SettingsWindow(QWidget):
         else:
             self.stimframes = []
 
-        # ------------------------------- toggle logic ------------------------------- #
+        self.handle_settings_toggle()
+        self.check_patience()
+
+        # update settings
+        self.parent.settings = self.settings
+        self.settings.write_settings()
+        self.parent.stimframes = self.stimframes
+
+        if (
+            self.settings.config["peak_detection_type"] == "ML-based"
+            and self.settings.config["model_path"] == ""
+        ):
+            warnings.warn("No model selected. Will switch to thresholding.")
+            self.settings.config["peak_detection_type"] = "Thresholding"
+
+        # replot whenever any setting is changed
+        if self.parent.synapse_response.file_opened:
+            self.parent.plot(new_sample=False)
+
+    def check_patience(self) -> None:
+        self.patience_input.setStyleSheet("")
+        if not self.compute_ppr.isChecked() or len(self.stimframes) <= 1:
+            return
+        min_distance = self.stimframes[1] - self.stimframes[0]
+        for i in range(len(self.stimframes) - 1):
+            if self.stimframes[i + 1] - self.stimframes[i] < min_distance:
+                min_distance = self.stimframes[i + 1] - self.stimframes[i]
+        if min_distance < self.settings.config["stim_frames_patience"]:
+            self.patience_input.setStyleSheet(
+                "QSpinBox" "{" "background : #ff5959;" "}"
+            )
+
+    def handle_settings_toggle(self) -> None:
         if self.settings.config["peak_detection_type"] == "ML-based":
             self.ml_model.setEnabled(True)
             self.ml_model_used.setEnabled(True)
@@ -392,66 +407,15 @@ class SettingsWindow(QWidget):
             self.patience_input.setEnabled(False)
             self.compute_ppr.setEnabled(False)
 
-        if self.settings.config["select_responses"]:
-            self.compute_ppr.setEnabled(True)
-            self.non_max_supression_button.setEnabled(True)
-        else:
-            self.compute_ppr.setEnabled(False)
-            self.non_max_supression_button.setEnabled(False)
-        self.check_patience()
-
-        # update settings
-        self.parent.settings = self.settings
-        self.settings.write_settings()
-        self.parent.stimframes = self.stimframes
-
-        if (
-            self.settings.config["peak_detection_type"] == "ML-based"
-            and self.settings.config["model_path"] == ""
-        ):
-            warnings.warn("No model selected. Will switch to thresholding.")
-            self.settings.config["peak_detection_type"] = "Thresholding"
-
         # activate add response button depending on setting
         if self.settings.config["select_responses"]:
             self.parent.button_add.setEnabled(True)
         else:
             self.parent.button_add.setDisabled(True)
 
-        # replot whenever any setting is changed
-        if self.parent.synapse_response.file_opened:
-            self.parent.plot()
-
-    def check_patience(self) -> None:
-        self.patience_input.setStyleSheet("")
-        if not self.compute_ppr.isChecked() or len(self.stimframes) <= 1:
-            return
-        min_distance = self.stimframes[1] - self.stimframes[0]
-        for i in range(len(self.stimframes) - 1):
-            if self.stimframes[i + 1] - self.stimframes[i] < min_distance:
-                min_distance = self.stimframes[i + 1] - self.stimframes[i]
-        if min_distance < self.settings.config["stim_frames_patience"]:
-            self.patience_input.setStyleSheet(
-                "QSpinBox" "{" "background : #ff5959;" "}"
-            )
-
-    def save_and_close(self) -> None:
-        self.parent.settings = self.settings
-        self.parent.stimframes = self.stimframes
-        # self.settings.config["model_path"]
-        if (
-            self.settings.config["peak_detection_type"] == "ML-based"
-            and self.settings.config["model_path"] == ""
-        ):
-            warnings.warn("No model selected. Will switch to thresholding.")
-            self.settings.config["peak_detection_type"] = "Thresholding"
-        self.settings.write_settings()
         if self.settings.config["select_responses"]:
-            self.parent.button_add.setEnabled(True)
+            self.compute_ppr.setEnabled(True)
+            self.non_max_supression_button.setEnabled(True)
         else:
-            self.parent.button_add.setDisabled(True)
-        self.parent.plot()
-        self.close()
-
-    def close_(self) -> None:
-        self.close()
+            self.compute_ppr.setEnabled(False)
+            self.non_max_supression_button.setEnabled(False)
