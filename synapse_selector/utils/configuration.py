@@ -11,7 +11,7 @@ class gui_settings:
 
         # setup paths
         file_path = os.path.dirname(__file__)
-        settings_path = '/'.join(file_path.split('/')[0:-1]) + '/settings'
+        settings_path = os.path.join(os.path.dirname(file_path), '/settings')
         self.default_config_path = os.path.join(settings_path, 'default_settings.json')
         self.user_config_path = os.path.join(settings_path, 'settings.json')
 
