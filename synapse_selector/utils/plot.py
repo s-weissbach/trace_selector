@@ -10,7 +10,7 @@ class trace_plot:
         time: np.ndarray,
         intensity: np.ndarray,
         threshold: float,
-        peak_detection_type='Thresholding',
+        peak_detection_type="Thresholding",
         probabilities=[],
     ):
         self.time = time
@@ -21,8 +21,7 @@ class trace_plot:
         if len(probabilities) == 0:
             self.probabilities = [0 for _ in range(len(time))]
         else:
-            self.probabilities = [
-                f"{np.round(p*100,2)}%" for p in probabilities]
+            self.probabilities = [f"{np.round(p*100,2)}%" for p in probabilities]
         self.plot_df = pd.DataFrame(
             {
                 "Time": self.time,
@@ -43,9 +42,8 @@ class trace_plot:
             xaxis=dict(rangeslider=dict(visible=True), type="linear"),
         )
 
-        if self.peak_detection_type == 'Thresholding':
-            self.fig.add_hline(
-                y=self.threshold, line_color="red", line_dash="dash")
+        if self.peak_detection_type == "Thresholding":
+            self.fig.add_hline(y=self.threshold, line_color="red", line_dash="dash")
 
     def add_stimulation_window(self, frames: list[int], patience: int) -> None:
         """
@@ -63,14 +61,16 @@ class trace_plot:
 
     def add_peaks(
         self,
-        peak_dict: dict[str: bool],
+        peak_dict: dict[str:bool],
         use_nms: bool,
     ) -> list:
-        """ Adds all peaks for selection to the plot.
-        """
+        """Adds all peaks for selection to the plot."""
         res = []
-        peaks = [peak for peak, selected in peak_dict.items() if (
-            selected if use_nms else True)]
+        peaks = [
+            peak
+            for peak, selected in peak_dict.items()
+            if (selected if use_nms else True)
+        ]
         for peak in peaks:
             self.add_annotation(peak)
             res.append(peak)

@@ -16,7 +16,15 @@ import numpy as np
 
 
 class AddWindow(QMainWindow):
-    def __init__(self, add_handler, close_handler, parent=None, maximum_length=0, preds=[], intensities=[]):
+    def __init__(
+        self,
+        add_handler,
+        close_handler,
+        parent=None,
+        maximum_length=0,
+        preds=[],
+        intensities=[],
+    ):
         super().__init__(parent)
 
         # variables
@@ -37,7 +45,8 @@ class AddWindow(QMainWindow):
         self.setCentralWidget(main_wrapper_widget)
 
         desc_label = QLabel(
-            'Insert the x-coordinate of the response using the input box or the range slider:')
+            "Insert the x-coordinate of the response using the input box or the range slider:"
+        )
         main_layout.addWidget(desc_label)
 
         self.spinner_input = QSpinBox()
@@ -61,11 +70,11 @@ class AddWindow(QMainWindow):
         button_wrapper_widget.setLayout(button_layout)
         main_layout.addWidget(button_wrapper_widget)
 
-        self.add_button = QPushButton('Add Response')
+        self.add_button = QPushButton("Add Response")
         button_layout.addWidget(self.add_button)
         self.add_button.clicked.connect(self.__add_trace)
 
-        close_button = QPushButton('Close')
+        close_button = QPushButton("Close")
         close_button.clicked.connect(close_handler)
         button_layout.addWidget(close_button)
 
@@ -77,10 +86,8 @@ class AddWindow(QMainWindow):
         peak_widget_wrapper_widget = QWidget()
         peak_widget_wrapper_widget.setLayout(self.peak_widget_layout)
 
-        scroll.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        scroll.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setWidgetResizable(True)
         scroll.setWidget(peak_widget_wrapper_widget)
 
@@ -89,7 +96,8 @@ class AddWindow(QMainWindow):
     def __update_button_text(self):
         val = self.get_input()
         self.add_button.setText(
-            f'Add Response (Int.: {np.round(self.intensities[val], 2)} | Conf.: {np.round(self.preds[val] * 100, 2)})')
+            f"Add Response (Int.: {np.round(self.intensities[val], 2)} | Conf.: {np.round(self.preds[val] * 100, 2)})"
+        )
 
     def __add_trace(self):
         # value is already a peak, just return
@@ -111,13 +119,16 @@ class AddWindow(QMainWindow):
         # create widgets
         if len(self.preds) > 0:
             label = QLabel(
-                f'[Frame: {peak_value} | Int.: {np.round(self.intensities[peak_value], 2)} | Conf.: {np.round(self.preds[peak_value] * 100, 2)}]')
+                f"[Frame: {peak_value} | Int.: {np.round(self.intensities[peak_value], 2)} | Conf.: {np.round(self.preds[peak_value] * 100, 2)}]"
+            )
         else:
             label = QLabel(
-                f'[Frame: {peak_value} | Int.: {np.round(self.intensities[peak_value], 2)}')
+                f"[Frame: {peak_value} | Int.: {np.round(self.intensities[peak_value], 2)}"
+            )
         checkbox = QCheckBox()
         checkbox.stateChanged.connect(
-            partial(self.__toggle_peak, peak_value=peak_value))
+            partial(self.__toggle_peak, peak_value=peak_value)
+        )
 
         checkbox.setChecked(self.peak_dict[peak_value][0])
 
@@ -137,9 +148,11 @@ class AddWindow(QMainWindow):
     def __toggle_peak(self, new_state, peak_value):
         # 2: checked | 0: unchecked
         self.peak_dict[peak_value] = (
-            True if new_state == 2 else False, self.peak_dict[peak_value][1])
+            True if new_state == 2 else False,
+            self.peak_dict[peak_value][1],
+        )
         # if nms is activated, reload the plot
-        if self.parent.get_setting('nms'):
+        if self.parent.get_setting("nms"):
             self.parent.plot(replot=True)
 
     def get_selected_peaks(self):

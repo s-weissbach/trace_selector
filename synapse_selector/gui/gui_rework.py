@@ -1,15 +1,16 @@
-from PyQt6.QtWidgets import (QMainWindow,
-                             QLabel,
-                             QToolBar,
-                             QStatusBar,
-                             QVBoxLayout,
-                             QHBoxLayout,
-                             QWidget,
-                             QFileDialog,
-                             QSlider,
-                             QMessageBox,
-                             QStackedLayout,
-                             )
+from PyQt6.QtWidgets import (
+    QMainWindow,
+    QLabel,
+    QToolBar,
+    QStatusBar,
+    QVBoxLayout,
+    QHBoxLayout,
+    QWidget,
+    QFileDialog,
+    QSlider,
+    QMessageBox,
+    QStackedLayout,
+)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QFont
 from PyQt6 import QtWebEngineWidgets
@@ -78,7 +79,8 @@ class MainWindow(QMainWindow):
         settings_wrapper_widget.setLayout(settings_layout)
 
         self.settings_window = SettingsWindow(
-            self.settings, self, lambda: stack_layout.setCurrentIndex(0))
+            self.settings, self, lambda: stack_layout.setCurrentIndex(0)
+        )
         settings_layout.addWidget(self.settings_window)
 
         # stack layout
@@ -107,8 +109,7 @@ class MainWindow(QMainWindow):
 
         # open
         button_open = QAction(
-            QIcon(os.path.join(asset_path, "open.svg")
-                  ), "Open file (CTRL + O)", self
+            QIcon(os.path.join(asset_path, "open.svg")), "Open file (CTRL + O)", self
         )
         button_open.setStatusTip(
             "Open a file containing traces using your file system (CTRL + O)"
@@ -132,14 +133,12 @@ class MainWindow(QMainWindow):
 
         # settings
         button_settings = QAction(
-            QIcon(os.path.join(asset_path, "settings.svg")
-                  ), "Open settings (S)", self
+            QIcon(os.path.join(asset_path, "settings.svg")), "Open settings (S)", self
         )
         button_settings.setStatusTip(
             "Make the Synapse Selector experience your own by adjusting settings (S)"
         )
-        button_settings.triggered.connect(
-            lambda: stack_layout.setCurrentIndex(1))
+        button_settings.triggered.connect(lambda: stack_layout.setCurrentIndex(1))
         button_settings.setShortcut(QKeySequence("s"))
         toolbar.addAction(button_settings)
 
@@ -159,8 +158,7 @@ class MainWindow(QMainWindow):
 
         # trash
         button_trash = QAction(
-            QIcon(os.path.join(asset_path, "trash.svg")
-                  ), "Discard sample (Q)", self
+            QIcon(os.path.join(asset_path, "trash.svg")), "Discard sample (Q)", self
         )
         button_trash.setStatusTip("Discard the current trace (Q)")
         button_trash.triggered.connect(self.trash_trace)
@@ -181,11 +179,11 @@ class MainWindow(QMainWindow):
 
         # add
         self.button_add = QAction(
-            QIcon(os.path.join(asset_path, "peak.svg")
-                  ), "Edit responses (W)", self
+            QIcon(os.path.join(asset_path, "peak.svg")), "Edit responses (W)", self
         )
         self.button_add.setStatusTip(
-            "Edit responses by adding new ones or removing existing ones (W)")
+            "Edit responses by adding new ones or removing existing ones (W)"
+        )
         self.set_add_button_functionality()
         self.button_add.setShortcut(QKeySequence("w"))
         self.button_add.triggered.connect(self.open_add_window)
@@ -219,22 +217,19 @@ class MainWindow(QMainWindow):
         self.trace_plot.hide()
 
         # detection slider
-        self.threshold_label = QLabel(
-            "Current Prediction Threshold (ML-based):")
+        self.threshold_label = QLabel("Current Prediction Threshold (ML-based):")
 
         probability_layout = QHBoxLayout()
         self.threshold_slider = QSlider(Qt.Orientation.Horizontal, self)
         self.threshold_slider.setMinimumWidth(300)
         self.threshold_slider.setMinimumHeight(40)
-        self.threshold_slider.setValue(
-            self.settings.config['threshold_slider_ml'])
+        self.threshold_slider.setValue(self.settings.config["threshold_slider_ml"])
         self.threshold_slider.setMinimum(1)
         self.threshold_slider.setMaximum(100)
         self.threshold_slider.setTickInterval(10)
         self.threshold_slider.valueChanged.connect(self.handle_slider_update)
 
-        self.current_threshold_label = QLabel(
-            f"{self.threshold_slider.value()}%")
+        self.current_threshold_label = QLabel(f"{self.threshold_slider.value()}%")
 
         probability_layout.addWidget(self.threshold_label)
         probability_layout.addWidget(self.threshold_slider)
@@ -246,8 +241,7 @@ class MainWindow(QMainWindow):
         self.probability_layout_wrapper.hide()
 
         # startup label
-        self.startup_label = QLabel(
-            "Open up a file with traces using the toolbar.")
+        self.startup_label = QLabel("Open up a file with traces using the toolbar.")
         self.startup_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font.setBold(True)
         self.startup_label.setFont(font)
@@ -256,7 +250,10 @@ class MainWindow(QMainWindow):
         self.apply_main_stretch()
 
         self.add_window = AddWindow(
-            add_handler=self.add_response, parent=self, close_handler=self.close_add_window)
+            add_handler=self.add_response,
+            parent=self,
+            close_handler=self.close_add_window,
+        )
 
         if self.synapse_response.file_opened:
             self.plot()
@@ -264,16 +261,12 @@ class MainWindow(QMainWindow):
     # --- slot functions ---
 
     def handle_slider_update(self):
-        self.settings_window.update_ml_slider_value(
-            self.threshold_slider.value())
-        self.current_threshold_label.setText(
-            f"{self.threshold_slider.value()}%")
+        self.settings_window.update_ml_slider_value(self.threshold_slider.value())
+        self.current_threshold_label.setText(f"{self.threshold_slider.value()}%")
 
     def refresh_slider(self):
-        self.threshold_slider.setValue(
-            self.settings.config["threshold_slider_ml"])
-        self.current_threshold_label.setText(
-            f"{self.threshold_slider.value()}%")
+        self.threshold_slider.setValue(self.settings.config["threshold_slider_ml"])
+        self.current_threshold_label.setText(f"{self.threshold_slider.value()}%")
 
     def add_response(self, peak_value):
         """
@@ -293,8 +286,7 @@ class MainWindow(QMainWindow):
 
         if changed:
             self.tr_plot.reload_plot()
-            self.trace_plot.setHtml(
-                self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
+            self.trace_plot.setHtml(self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
 
     def back(self):
         """
@@ -369,11 +361,11 @@ class MainWindow(QMainWindow):
     def set_add_button_functionality(self) -> None:
         self.button_add.setEnabled(
             self.settings.config["select_responses"]
-            and self.synapse_response.file_opened)
+            and self.synapse_response.file_opened
+        )
 
     def update_file_path_label(self, filepath: str) -> None:
-        self.file_path_label.setText(
-            "Current open file: " + filepath.split("/")[-1])
+        self.file_path_label.setText("Current open file: " + filepath.split("/")[-1])
 
     def apply_main_stretch(self) -> None:
         self.main_layout.setStretch(0, 1)
@@ -386,7 +378,7 @@ class MainWindow(QMainWindow):
     def reset(self) -> None:
         self.switch_to_start_layout()
         self.close_add_window()
-        self.filepath = ''
+        self.filepath = ""
         self.update_file_path_label("")
 
     def open_file(self) -> None:
@@ -397,7 +389,7 @@ class MainWindow(QMainWindow):
         All responses columns will be plotted.
         """
         # no directory has been saved
-        if not hasattr(self, 'filepath') or self.filepath == '':
+        if not hasattr(self, "filepath") or self.filepath == "":
             if self.directory is not None:
                 self.filepath = QFileDialog.getOpenFileName(
                     caption="Select Input File",
@@ -430,13 +422,15 @@ class MainWindow(QMainWindow):
         self.plot()
 
     def add_slider(self):
-        if self.settings.config["peak_detection_type"] != 'Thresholding':
+        if self.settings.config["peak_detection_type"] != "Thresholding":
             self.remove_slider()
 
             self.probability_layout_wrapper.show()
             self.main_layout.addWidget(self.probability_layout_wrapper)
             self.main_layout.setAlignment(
-                self.probability_layout_wrapper, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+                self.probability_layout_wrapper,
+                Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter,
+            )
 
     def remove_slider(self):
         try:
@@ -477,8 +471,11 @@ class MainWindow(QMainWindow):
         """
 
         # check to load normalized or unnormalized trace
-        trace = self.synapse_response.norm_intensity if self.get_setting(
-            'normalized_trace') else self.synapse_response.intensity
+        trace = (
+            self.synapse_response.norm_intensity
+            if self.get_setting("normalized_trace")
+            else self.synapse_response.intensity
+        )
 
         self.threshold = compute_threshold(
             self.get_setting("stim_used"),
@@ -490,9 +487,12 @@ class MainWindow(QMainWindow):
 
         self.peak_detection()
         self.add_window.update_information(
-            self.model.preds if self.settings.config["peak_detection_type"] != "Thresholding" else [], trace)
-        self.initialize_add_window(
-            self.synapse_response.peaks, new_sample=new_sample)
+            self.model.preds
+            if self.settings.config["peak_detection_type"] != "Thresholding"
+            else [],
+            trace,
+        )
+        self.initialize_add_window(self.synapse_response.peaks, new_sample=new_sample)
 
         # create plot depending on mode
         if self.settings.config["peak_detection_type"] == "Thresholding":
@@ -500,7 +500,7 @@ class MainWindow(QMainWindow):
                 time=self.synapse_response.time,
                 intensity=trace,
                 threshold=self.threshold,
-                peak_detection_type=self.get_setting('peak_detection_type')
+                peak_detection_type=self.get_setting("peak_detection_type"),
             )
         else:
             self.tr_plot = trace_plot(
@@ -508,7 +508,7 @@ class MainWindow(QMainWindow):
                 intensity=trace,
                 threshold=self.threshold,
                 probabilities=self.model.preds,
-                peak_detection_type=self.get_setting('peak_detection_type')
+                peak_detection_type=self.get_setting("peak_detection_type"),
             )
         self.tr_plot.create_plot()
 
@@ -519,13 +519,12 @@ class MainWindow(QMainWindow):
                     self.stim_frames, self.settings.config["stim_frames_patience"]
                 )
         self.labels = self.tr_plot.add_peaks(
-            self.add_window.get_peak_dict(), self.settings.config["nms"])
+            self.add_window.get_peak_dict(), self.settings.config["nms"]
+        )
 
         # set plot
-        self.trace_plot.setHtml(
-            self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
-        self.current_state_indicator.setText(
-            self.synapse_response.return_state())
+        self.trace_plot.setHtml(self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
+        self.current_state_indicator.setText(self.synapse_response.return_state())
 
         if self.settings.config["peak_detection_type"] == "Thresholding":
             self.remove_slider()
@@ -573,10 +572,8 @@ class MainWindow(QMainWindow):
             msg.exec()
             self.synapse_response.save(
                 self.settings.config["export_xlsx"],
-                os.path.join(
-                    self.settings.config["output_filepath"], "keep_folder"),
-                os.path.join(
-                    self.settings.config["output_filepath"], "discard_folder"),
+                os.path.join(self.settings.config["output_filepath"], "keep_folder"),
+                os.path.join(self.settings.config["output_filepath"], "discard_folder"),
                 self.settings.config["compute_ppr"],
                 self.stim_frames,
                 self.settings.config["stim_frames_patience"],

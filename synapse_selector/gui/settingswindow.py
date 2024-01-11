@@ -36,7 +36,8 @@ class SettingsWindow(QWidget):
         general_layout = QVBoxLayout()
 
         self.output_folder_path_label = QLabel(
-            "Output Folder Path: " + self.settings.config["output_filepath"])
+            "Output Folder Path: " + self.settings.config["output_filepath"]
+        )
         general_layout.addWidget(self.output_folder_path_label)
 
         set_path_layout = QHBoxLayout()
@@ -80,7 +81,8 @@ class SettingsWindow(QWidget):
             idx = 1
         self.peak_detection_type.setCurrentIndex(idx)
         self.peak_detection_type.currentIndexChanged.connect(
-            self.settings_value_changed)
+            self.settings_value_changed
+        )
         dropdown_layout.addWidget(self.peak_detection_type)
         dropdown_layout.addStretch()
         response_layout.addLayout(dropdown_layout)
@@ -97,22 +99,20 @@ class SettingsWindow(QWidget):
         model_dropdown_layout.addStretch()
         response_layout.addLayout(model_dropdown_layout)
 
-        self.threshold_label = QLabel(
-            "Current Prediction Threshold (ML-based):")
+        self.threshold_label = QLabel("Current Prediction Threshold (ML-based):")
         response_layout.addWidget(self.threshold_label)
 
         probability_layout = QHBoxLayout()
         self.threshold_slider = QSlider(Qt.Orientation.Horizontal, self)
         self.threshold_slider.setMinimumWidth(300)
         self.threshold_slider.setMinimumHeight(40)
-        self.threshold_slider.setValue(settings.config['threshold_slider_ml'])
+        self.threshold_slider.setValue(settings.config["threshold_slider_ml"])
         self.threshold_slider.setMinimum(1)
         self.threshold_slider.setMaximum(100)
         self.threshold_slider.setTickInterval(10)
         self.threshold_slider.valueChanged.connect(self.settings_value_changed)
 
-        self.current_threshold_label = QLabel(
-            f"{self.threshold_slider.value()}%")
+        self.current_threshold_label = QLabel(f"{self.threshold_slider.value()}%")
 
         probability_layout.addWidget(self.threshold_slider)
         probability_layout.addWidget(self.current_threshold_label)
@@ -128,8 +128,7 @@ class SettingsWindow(QWidget):
 
         frames_for_decay_layout = QHBoxLayout()
         self.frames_for_decay = QSpinBox()
-        self.frames_for_decay.setValue(
-            self.settings.config["frames_for_decay"])
+        self.frames_for_decay.setValue(self.settings.config["frames_for_decay"])
         self.frames_for_decay.setToolTip(
             "In the timeframe from peak to the value set, the program will search for the minimum and compute the decay constant tau."
         )
@@ -142,24 +141,24 @@ class SettingsWindow(QWidget):
 
         self.normalized_trace_toggle = QCheckBox("Show normalized trace")
         self.normalized_trace_toggle.setChecked(
-            self.settings.config["normalized_trace"])
-        self.normalized_trace_toggle.clicked.connect(
-            self.settings_value_changed)
+            self.settings.config["normalized_trace"]
+        )
+        self.normalized_trace_toggle.clicked.connect(self.settings_value_changed)
         response_layout.addWidget(self.normalized_trace_toggle)
 
         self.activate_response_selection = QCheckBox("Enable response editing")
         self.activate_response_selection.setChecked(
-            self.settings.config["select_responses"])
+            self.settings.config["select_responses"]
+        )
         self.activate_response_selection.stateChanged.connect(
-            self.settings_value_changed)
+            self.settings_value_changed
+        )
         response_layout.addWidget(self.activate_response_selection)
 
-        self.non_max_supression_button = QCheckBox(
-            "Use Non-Maximum Supression")
+        self.non_max_supression_button = QCheckBox("Use Non-Maximum Supression")
         self.non_max_supression_button.setChecked(self.settings.config["nms"])
         self.use_nms = self.settings.config["nms"]
-        self.non_max_supression_button.stateChanged.connect(
-            self.settings_value_changed)
+        self.non_max_supression_button.stateChanged.connect(self.settings_value_changed)
         response_layout.addWidget(self.non_max_supression_button)
 
         self.compute_ppr = QCheckBox("Compute PPR")
@@ -181,11 +180,10 @@ class SettingsWindow(QWidget):
 
         self.threshold_start_input = QSpinBox()
         self.threshold_start_input.setToolTip(
-            "Baseline calculation for threshold starts from this frame.")
-        self.threshold_start_input.setValue(
-            self.settings.config["threshold_start"])
-        self.threshold_start_input.valueChanged.connect(
-            self.settings_value_changed)
+            "Baseline calculation for threshold starts from this frame."
+        )
+        self.threshold_start_input.setValue(self.settings.config["threshold_start"])
+        self.threshold_start_input.valueChanged.connect(self.settings_value_changed)
         threshold_layout.addWidget(self.threshold_start_input)
 
         threshold_stop_desc = QLabel("Baseline stop:")
@@ -194,11 +192,10 @@ class SettingsWindow(QWidget):
 
         self.threshold_stop_input = QSpinBox()
         self.threshold_stop_input.setToolTip(
-            "Baseline calculation for threshold ends at this frame.")
-        self.threshold_stop_input.setValue(
-            self.settings.config["threshold_stop"])
-        self.threshold_stop_input.valueChanged.connect(
-            self.settings_value_changed)
+            "Baseline calculation for threshold ends at this frame."
+        )
+        self.threshold_stop_input.setValue(self.settings.config["threshold_stop"])
+        self.threshold_stop_input.valueChanged.connect(self.settings_value_changed)
         threshold_layout.addWidget(self.threshold_stop_input)
 
         threshold_desc = QLabel("Threshold multiplier:")
@@ -207,9 +204,9 @@ class SettingsWindow(QWidget):
 
         self.threshold_input = QDoubleSpinBox()
         self.threshold_input.setToolTip(
-            "Threshold is calculated based on this multiplier.")
-        self.threshold_input.setSingleStep(
-            self.settings.config["threshold_step"])
+            "Threshold is calculated based on this multiplier."
+        )
+        self.threshold_input.setSingleStep(self.settings.config["threshold_step"])
         self.threshold_input.setValue(self.settings.config["threshold_mult"])
         self.threshold_input.valueChanged.connect(self.settings_value_changed)
         threshold_layout.addWidget(self.threshold_input)
@@ -233,8 +230,7 @@ class SettingsWindow(QWidget):
 
         stimframes_input_layout = QHBoxLayout()
         self.stimframes_input = QLineEdit(self.settings.config["stim_frames"])
-        self.stimframes_input.editingFinished.connect(
-            self.settings_value_changed)
+        self.stimframes_input.editingFinished.connect(self.settings_value_changed)
         stimframes_input_layout.addWidget(self.stimframes_input)
         stimframes_input_layout.addStretch()
         stimulation_layout.addLayout(stimframes_input_layout)
@@ -244,10 +240,8 @@ class SettingsWindow(QWidget):
 
         patience_input_layout = QHBoxLayout()
         self.patience_input = QSpinBox()
-        self.patience_input.setValue(
-            self.settings.config["stim_frames_patience"])
-        self.patience_input.editingFinished.connect(
-            self.settings_value_changed)
+        self.patience_input.setValue(self.settings.config["stim_frames_patience"])
+        self.patience_input.editingFinished.connect(self.settings_value_changed)
         self.patience_input.valueChanged.connect(self.settings_value_changed)
         patience_input_layout.addWidget(self.patience_input)
         patience_input_layout.addStretch()
@@ -270,14 +264,14 @@ class SettingsWindow(QWidget):
 
         page_layout.addLayout(button_layout)
 
-        self.tab_widget.addTab(general_wrapper_widget, 'General')
-        self.tab_widget.addTab(response_wrapper_widget, 'Detection')
-        self.tab_widget.addTab(
-            self.threshold_wrapper_widget, 'Threshold Settings')
-        self.tab_widget.addTab(stimulation_wrapper_widget, 'Stimulation')
+        self.tab_widget.addTab(general_wrapper_widget, "General")
+        self.tab_widget.addTab(response_wrapper_widget, "Detection")
+        self.tab_widget.addTab(self.threshold_wrapper_widget, "Threshold Settings")
+        self.tab_widget.addTab(stimulation_wrapper_widget, "Stimulation")
 
         self.tab_widget.setTabEnabled(
-            2, self.settings.config["peak_detection_type"] == "Thresholding")
+            2, self.settings.config["peak_detection_type"] == "Thresholding"
+        )
 
     def reset_output_path(self):
         self.settings.config["output_filepath"] = ""
@@ -307,32 +301,31 @@ class SettingsWindow(QWidget):
         """
         # update all values that might have been changed
         self.settings.config["threshold_mult"] = self.threshold_input.value()
-        self.settings.config["threshold_start"] = self.threshold_start_input.value(
-        )
-        self.settings.config["threshold_stop"] = self.threshold_stop_input.value(
-        )
-        self.settings.config["stim_frames_patience"] = self.patience_input.value(
-        )
+        self.settings.config["threshold_start"] = self.threshold_start_input.value()
+        self.settings.config["threshold_stop"] = self.threshold_stop_input.value()
+        self.settings.config["stim_frames_patience"] = self.patience_input.value()
         self.settings.config["frames_for_decay"] = self.frames_for_decay.value()
         self.settings.config["stim_frames"] = self.stimframes_input.text()
-        self.settings.config["peak_detection_type"] = self.peak_detection_type.currentText(
-        )
-        model_path = self.settings.modelzoo.available_models[self.ml_model.currentText(
-        )]['filepath']
+        self.settings.config[
+            "peak_detection_type"
+        ] = self.peak_detection_type.currentText()
+        model_path = self.settings.modelzoo.available_models[
+            self.ml_model.currentText()
+        ]["filepath"]
         self.settings.config["model_path"] = model_path
         self.settings.config["nms"] = self.non_max_supression_button.isChecked()
         self.settings.config["stim_used"] = self.stim_used_box.isChecked()
-        self.settings.config["select_responses"] = self.activate_response_selection.isChecked(
-        )
+        self.settings.config[
+            "select_responses"
+        ] = self.activate_response_selection.isChecked()
         self.settings.config["compute_ppr"] = self.compute_ppr.isChecked()
         self.settings.config["export_xlsx"] = self.xlsx_export_box.isChecked()
-        self.settings.config["normalized_trace"] = self.normalized_trace_toggle.isChecked(
-        )
-        self.settings.config["threshold_slider_ml"] = self.threshold_slider.value(
-        )
+        self.settings.config[
+            "normalized_trace"
+        ] = self.normalized_trace_toggle.isChecked()
+        self.settings.config["threshold_slider_ml"] = self.threshold_slider.value()
 
-        self.current_threshold_label.setText(
-            f"{self.threshold_slider.value()}%")
+        self.current_threshold_label.setText(f"{self.threshold_slider.value()}%")
 
         if len(self.settings.config["stim_frames"]) > 0:
             self.stimframes = [
@@ -345,11 +338,6 @@ class SettingsWindow(QWidget):
         self.handle_settings_toggle()
         self.check_patience()
 
-        # update settings
-        self.parent.settings = self.settings
-        self.settings.write_settings()
-        self.parent.stimframes = self.stimframes
-
         if (
             self.settings.config["peak_detection_type"] == "ML-based"
             and self.settings.config["model_path"] == ""
@@ -357,10 +345,16 @@ class SettingsWindow(QWidget):
             warnings.warn("No model selected. Will switch to thresholding.")
             self.settings.config["peak_detection_type"] = "Thresholding"
 
+        # update settings
+        self.parent.settings = self.settings
+        self.settings.write_settings()
+        self.parent.stimframes = self.stimframes
+
         # replot whenever any setting is changed
         if self.parent.synapse_response.file_opened:
             self.parent.plot(new_sample=False)
 
+        # update threshold slider in main window
         self.parent.refresh_slider()
 
     def check_patience(self) -> None:
@@ -412,16 +406,14 @@ class SettingsWindow(QWidget):
         # activate add response button depending on setting
         if self.settings.config["select_responses"]:
             self.parent.button_add.setEnabled(True)
-        else:
-            self.parent.button_add.setDisabled(True)
-
-        if self.settings.config["select_responses"]:
             self.compute_ppr.setEnabled(True)
             self.non_max_supression_button.setEnabled(True)
         else:
+            self.parent.button_add.setDisabled(True)
             self.compute_ppr.setEnabled(False)
             self.non_max_supression_button.setEnabled(False)
 
+    # this is being called by the parent to synchronise the threshold slider value
     def update_ml_slider_value(self, value) -> None:
         self.settings.config["threshold_slider_ml"] = value
         self.threshold_slider.setValue(value)

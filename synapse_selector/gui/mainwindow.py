@@ -358,7 +358,9 @@ class UiWindow(QWidget):
         open next file.
         """
         response = QMessageBox.question(
-            self, "Skip Rest", "Do you wish skip the remaining traces and save your current results?"
+            self,
+            "Skip Rest",
+            "Do you wish skip the remaining traces and save your current results?",
         )
         if response == QMessageBox.StandardButton.No:
             return

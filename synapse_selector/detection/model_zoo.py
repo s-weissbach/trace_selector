@@ -42,8 +42,8 @@ class ModelZoo:
                 continue
             filename_no_ext = filename.split(".pt")[0]
             self.available_models[filename_no_ext] = {
-                'filepath': os.path.join(self.modelzoo_path, filename),
-                'hash': sha256_hash(os.path.join(self.modelzoo_path, filename))
+                "filepath": os.path.join(self.modelzoo_path, filename),
+                "hash": sha256_hash(os.path.join(self.modelzoo_path, filename)),
             }
         self.load_model_info()
 
@@ -74,16 +74,19 @@ class ModelZoo:
             for file_info in github_files:
                 filename = file_info["name"]
                 download_url = file_info["download_url"]
-                if not filename.endswith('.pt'):
+                if not filename.endswith(".pt"):
                     continue
                 if os.path.exists(os.path.join(self.modelzoo_path, filename)):
                     # model exists
-                    filename_no_ext = filename.split('.pt')[0]
+                    filename_no_ext = filename.split(".pt")[0]
                     if filename_no_ext in self.model_info.keys():
-                        if self.model_info[filename_no_ext] == self.available_models[filename_no_ext]['hash']:
+                        if (
+                            self.model_info[filename_no_ext]
+                            == self.available_models[filename_no_ext]["hash"]
+                        ):
                             # weights are unchanged, otherwise reload model
                             continue
-                        print(f'Model {filename_no_ext} has new weights.')
+                        print(f"Model {filename_no_ext} has new weights.")
                 # in all other cases -> load new model weights
                 self.download_model(download_url, filename)
 
@@ -110,11 +113,12 @@ class ModelZoo:
                 file.write(response.content)
             filename_no_ext = filename.split(".pt")[0]
             self.available_models[filename_no_ext] = {
-                'filepath': os.path.join(self.modelzoo_path, filename),
-                'hash': sha256_hash(local_path)
+                "filepath": os.path.join(self.modelzoo_path, filename),
+                "hash": sha256_hash(local_path),
             }
             print(
-                f'Downloaded model: {filename_no_ext} ({self.available_models[filename_no_ext]["hash"]})')
+                f'Downloaded model: {filename_no_ext} ({self.available_models[filename_no_ext]["hash"]})'
+            )
 
         except requests.RequestException as e:
             print(f"Error downloading model: {e}")

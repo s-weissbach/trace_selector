@@ -1,4 +1,4 @@
 - Trace normalization in trace_data.py needs to be connected with settings_
-    - currently hard-coded 
+    - currently hard-coded
         -> window_len: 50
         -> median as normalization method

@@ -11,9 +11,9 @@ class gui_settings:
 
         # setup paths
         file_path = os.path.dirname(__file__)
-        settings_path = os.path.join(os.path.dirname(file_path), '/settings')
-        self.default_config_path = os.path.join(settings_path, 'default_settings.json')
-        self.user_config_path = os.path.join(settings_path, 'settings.json')
+        settings_path = os.path.join(os.path.dirname(file_path), "/settings")
+        self.default_config_path = os.path.join(settings_path, "default_settings.json")
+        self.user_config_path = os.path.join(settings_path, "settings.json")
 
         self.parse_settings()
 
@@ -24,7 +24,9 @@ class gui_settings:
         settings from the previous run are loaded.
         """
         # user settings exist
-        if os.path.exists(self.user_config_path) and os.path.isfile(self.user_config_path):
+        if os.path.exists(self.user_config_path) and os.path.isfile(
+            self.user_config_path
+        ):
             config_path = self.user_config_path
 
             with open(config_path, "r") as in_json:
@@ -47,7 +49,9 @@ class gui_settings:
             json.dump(self.config, out_json)
 
     def get_output_folder(self, parent) -> None:
-        self.config["output_filepath"] = str(QFileDialog.getExistingDirectory(parent, "Select output directory"))
+        self.config["output_filepath"] = str(
+            QFileDialog.getExistingDirectory(parent, "Select output directory")
+        )
         keep_path = os.path.join(self.config["output_filepath"], "keep_folder")
         trash_path = os.path.join(self.config["output_filepath"], "trash_folder")
         if not os.path.exists(keep_path):
