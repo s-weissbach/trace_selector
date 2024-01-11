@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QComboBox,
     QTabWidget,
+    QListWidget,
 )
 from PyQt6.QtCore import Qt
 import warnings
@@ -63,6 +64,39 @@ class SettingsWindow(QWidget):
         self.xlsx_export_box = QCheckBox("Export as .xlsx")
         self.xlsx_export_box.clicked.connect(self.handle_settings_toggle)
         general_layout.addWidget(self.xlsx_export_box)
+
+        column_list_layout = QVBoxLayout(self)
+        column_label = QLabel("Add or remove meta columns for your data:")
+        column_list_layout.addWidget(column_label)
+        self.column_list = QListWidget(self)
+        column_list_layout.addWidget(self.column_list)
+
+        column_input_layout = QHBoxLayout()
+        self.input_line_edit = QLineEdit(self)
+        column_input_layout.addWidget(self.input_line_edit)
+        add_column_button = QPushButton("Add", self)
+        add_column_button.clicked.connect(
+            lambda: self.add_column_item(self.input_line_edit.text())
+        )
+        column_input_layout.addWidget(add_column_button)
+        remove_column_button = QPushButton("Remove", self)
+        remove_column_button.clicked.connect(self.remove_column_item)
+        column_input_layout.addWidget(remove_column_button)
+
+        column_list_layout.addLayout(column_input_layout)
+
+        general_layout.addLayout(column_list_layout)
+
+        self.add_line_to_layout(general_layout)
+
+        reset_button_layout = QHBoxLayout()
+        self.reset_button = QPushButton("Reset Settings")
+        self.reset_button.clicked.connect(self.reset_settings)
+        reset_button_layout.addStretch()
+        reset_button_layout.addWidget(self.reset_button)
+        reset_button_layout.addStretch()
+
+        general_layout.addLayout(reset_button_layout)
 
         general_layout.addStretch()
 
@@ -160,6 +194,11 @@ class SettingsWindow(QWidget):
         # --- threshold settings ---
 
         threshold_layout = QVBoxLayout()
+
+        self.show_threshold = QCheckBox("Always show Threshold")
+        self.show_threshold.stateChanged.connect(self.handle_settings_toggle)
+        threshold_layout.addWidget(self.show_threshold)
+
         threshold_start_desc = QLabel("Baseline start:")
         # threshold_start_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
         threshold_layout.addWidget(threshold_start_desc)
@@ -254,11 +293,22 @@ class SettingsWindow(QWidget):
         self.tab_widget.addTab(self.threshold_wrapper_widget, "Threshold Settings")
         self.tab_widget.addTab(stimulation_wrapper_widget, "Stimulation")
 
-        self.tab_widget.setTabEnabled(
-            2, self.settings.config["peak_detection_type"] == "Thresholding"
-        )
-
         self.initialize_widget_values()
+
+    def reset_settings(self):
+        self.settings.remove_user_settings()
+        self.settings.parse_settings()
+        self.initialize_widget_values()
+
+    def add_column_item(self, new_column):
+        if new_column:
+            self.column_list.addItem(new_column)
+            self.input_line_edit.clear()
+
+    def remove_column_item(self):
+        current_row = self.column_list.currentRow()
+        if current_row >= 0:
+            self.column_list.takeItem(current_row)
 
     def initialize_widget_values(self):
         self.patience_input.setValue(self.settings.config["stim_frames_patience"])
@@ -286,6 +336,13 @@ class SettingsWindow(QWidget):
         self.threshold_start_input.setValue(self.settings.config["threshold_start"])
         self.threshold_stop_input.setValue(self.settings.config["threshold_stop"])
         self.threshold_input.setSingleStep(self.settings.config["threshold_step"])
+        self.show_threshold.setChecked(self.settings.config["always_show_threshold"])
+
+        # remove all meta columns to reset list widget
+        self.column_list.clear()
+        # add existing meta columns
+        for column in self.settings.config["meta_columns"]:
+            self.add_column_item(column)
 
     def handle_save_button(self):
         self.update_settings()
@@ -347,6 +404,15 @@ class SettingsWindow(QWidget):
             "normalized_trace"
         ] = self.normalized_trace_toggle.isChecked()
         self.settings.config["threshold_slider_ml"] = self.threshold_slider.value()
+        self.settings.config["always_show_threshold"] = self.show_threshold.isChecked()
+
+        new_meta_columns = []
+        for index in range(self.column_list.count()):
+            item = self.column_list.item(index)
+            if item is not None:
+                new_meta_columns.append(item.text())
+
+        self.settings.config["meta_columns"] = new_meta_columns
 
         self.parse_stim_frames()
         self.handle_settings_toggle()
@@ -403,17 +469,12 @@ class SettingsWindow(QWidget):
             self.current_threshold_label.setEnabled(True)
             self.threshold_slider.setEnabled(True)
 
-            self.tab_widget.setTabEnabled(2, False)
-            self.threshold_wrapper_widget.setEnabled(False)
         else:
             self.ml_model.setEnabled(False)
             self.ml_model_used.setEnabled(False)
             self.threshold_label.setEnabled(False)
             self.current_threshold_label.setEnabled(False)
             self.threshold_slider.setEnabled(False)
-
-            self.tab_widget.setTabEnabled(2, True)
-            self.threshold_wrapper_widget.setEnabled(True)
 
         if self.stim_used_box.isChecked():
             self.stimframes_input.setEnabled(True)

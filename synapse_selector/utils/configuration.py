@@ -18,6 +18,13 @@ class gui_settings:
 
         self.parse_settings()
 
+    def remove_user_settings(self):
+        # user settings exist
+        if os.path.exists(self.user_config_path) and os.path.isfile(
+            self.user_config_path
+        ):
+            os.remove(self.user_config_path)
+
     def parse_settings(self):
         """
         Parses the config file from a json file. If the programm is run for the

@@ -490,6 +490,7 @@ class MainWindow(QMainWindow):
                 intensity=trace,
                 threshold=self.threshold,
                 peak_detection_type=self.get_setting("peak_detection_type"),
+                always_show_threshold=self.get_setting("always_show_threshold"),
             )
         else:
             self.tr_plot = trace_plot(
@@ -498,6 +499,7 @@ class MainWindow(QMainWindow):
                 threshold=self.threshold,
                 probabilities=self.model.preds,
                 peak_detection_type=self.get_setting("peak_detection_type"),
+                always_show_threshold=self.get_setting("always_show_threshold"),
             )
         self.tr_plot.create_plot()
 
