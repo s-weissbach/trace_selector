@@ -79,11 +79,6 @@ class MainWindow(QMainWindow):
         settings_layout = QVBoxLayout()
         settings_wrapper_widget.setLayout(settings_layout)
 
-        self.settings_window = SettingsWindow(
-            self.settings, self, lambda: stack_layout.setCurrentIndex(0)
-        )
-        settings_layout.addWidget(self.settings_window)
-
         # stack layout
         stack_wrapper_widget = QWidget()
         stack_layout = QStackedLayout()
@@ -95,18 +90,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(stack_wrapper_widget)
 
         # toolbar buttons
-
-        # home
-        button_home = QAction(
-            QIcon(os.path.join(asset_path, "home.svg")), "Home (H)", self
-        )
-        button_home.setStatusTip("Go back to the main menu (H)")
-        button_home.triggered.connect(lambda: stack_layout.setCurrentIndex(0))
-        button_home.setShortcut(QKeySequence("h"))
-        toolbar.addAction(button_home)
-
-        # spacing between main options and home button
-        toolbar.addSeparator()
 
         # open
         button_open = QAction(
@@ -255,6 +238,11 @@ class MainWindow(QMainWindow):
             parent=self,
             close_handler=self.close_add_window,
         )
+
+        self.settings_window = SettingsWindow(
+            self.settings, self, lambda: stack_layout.setCurrentIndex(0)
+        )
+        settings_layout.addWidget(self.settings_window)
 
         if self.synapse_response.file_opened:
             self.plot()
@@ -515,6 +503,7 @@ class MainWindow(QMainWindow):
 
         # add responses
         if self.settings.config["select_responses"]:
+            self.stim_frames = self.settings_window.stimframes
             if self.settings.config["stim_used"]:
                 self.tr_plot.add_stimulation_window(
                     self.stim_frames, self.settings.config["stim_frames_patience"]
