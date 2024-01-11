@@ -245,15 +245,27 @@ class SettingsWindow(QWidget):
         self.stim_used_box.stateChanged.connect(self.handle_settings_toggle)
         stimulation_layout.addWidget(self.stim_used_box)
 
-        self.stimframes_label = QLabel("Stimulation Frames")
-        stimulation_layout.addWidget(self.stimframes_label)
+        self.start_stimulation_label = QLabel("Startframe for Stimulation")
+        stimulation_layout.addWidget(self.start_stimulation_label)
 
-        stimframes_input_layout = QHBoxLayout()
-        self.stimframes_input = QLineEdit()
-        self.stimframes_input.editingFinished.connect(self.handle_settings_toggle)
-        stimframes_input_layout.addWidget(self.stimframes_input)
-        stimframes_input_layout.addStretch()
-        stimulation_layout.addLayout(stimframes_input_layout)
+        start_simulation_layout = QHBoxLayout()
+        self.start_stimulation_input = QSpinBox()
+        self.start_stimulation_input.editingFinished.connect(
+            self.handle_settings_toggle
+        )
+        start_simulation_layout.addWidget(self.start_stimulation_input)
+        start_simulation_layout.addStretch()
+        stimulation_layout.addLayout(start_simulation_layout)
+
+        self.step_stimulation_label = QLabel("Step Size for Stimulation")
+        stimulation_layout.addWidget(self.step_stimulation_label)
+
+        step_simulation_layout = QHBoxLayout()
+        self.step_stimulation_input = QSpinBox()
+        self.step_stimulation_input.editingFinished.connect(self.handle_settings_toggle)
+        step_simulation_layout.addWidget(self.step_stimulation_input)
+        step_simulation_layout.addStretch()
+        stimulation_layout.addLayout(step_simulation_layout)
 
         self.patience_label = QLabel("Patience")
         stimulation_layout.addWidget(self.patience_label)
@@ -264,6 +276,24 @@ class SettingsWindow(QWidget):
         patience_input_layout.addWidget(self.patience_input)
         patience_input_layout.addStretch()
         stimulation_layout.addLayout(patience_input_layout)
+
+        self.add_line_to_layout(stimulation_layout)
+
+        self.manual_stim_frames = QCheckBox("Use manual stim frames")
+        self.manual_stim_frames.stateChanged.connect(self.handle_settings_toggle)
+        stimulation_layout.addWidget(self.manual_stim_frames)
+
+        self.stimframes_label = QLabel(
+            "Manual Input of Stimulation Frames (Work in Progress)"
+        )
+        stimulation_layout.addWidget(self.stimframes_label)
+
+        stimframes_input_layout = QHBoxLayout()
+        self.stimframes_input = QLineEdit()
+        self.stimframes_input.editingFinished.connect(self.handle_settings_toggle)
+        stimframes_input_layout.addWidget(self.stimframes_input)
+        stimframes_input_layout.addStretch()
+        stimulation_layout.addLayout(stimframes_input_layout)
 
         stimulation_layout.addStretch()
 
@@ -337,6 +367,11 @@ class SettingsWindow(QWidget):
         self.threshold_stop_input.setValue(self.settings.config["threshold_stop"])
         self.threshold_input.setSingleStep(self.settings.config["threshold_step"])
         self.show_threshold.setChecked(self.settings.config["always_show_threshold"])
+        self.start_stimulation_input.setValue(self.settings.config["stim_frames_start"])
+        self.step_stimulation_input.setValue(self.settings.config["stim_frames_step"])
+        self.manual_stim_frames.setChecked(
+            self.settings.config["use_manual_stim_frames"]
+        )
 
         # remove all meta columns to reset list widget
         self.column_list.clear()
@@ -405,6 +440,11 @@ class SettingsWindow(QWidget):
         ] = self.normalized_trace_toggle.isChecked()
         self.settings.config["threshold_slider_ml"] = self.threshold_slider.value()
         self.settings.config["always_show_threshold"] = self.show_threshold.isChecked()
+        self.settings.config["stim_frames_start"] = self.start_stimulation_input.value()
+        self.settings.config["stim_frames_step"] = self.step_stimulation_input.value()
+        self.settings.config[
+            "use_manual_stim_frames"
+        ] = self.manual_stim_frames.isChecked()
 
         new_meta_columns = []
         for index in range(self.column_list.count()):

@@ -47,15 +47,35 @@ class trace_plot:
         if self.peak_detection_type == "Thresholding" or self.always_show_threshold:
             self.fig.add_hline(y=self.threshold, line_color="red", line_dash="dash")
 
-    def add_stimulation_window(self, frames: list[int], patience: int) -> None:
+    def add_stimulation_window(
+        self, frames: list[int], patience: int, start: int = 0, step: int = 30
+    ) -> None:
         """
         Adds the stimulation window in yellow after each stimulation for the time
         the user selected in patience.
         """
-        for frame in frames:
+        # if frames is not empty
+        if frames:
+            for frame in frames:
+                self.fig.add_vrect(
+                    x0=frame,
+                    x1=frame + patience,
+                    fillcolor="yellow",
+                    opacity=0.25,
+                    line_width=0,
+                )
+            return
+        length = len(self.time)
+        print(length)
+        num_steps = (length // step) + 1
+        print(num_steps)
+        steps = np.arange(0, num_steps) * step + start
+        print(steps)
+
+        for step in steps:
             self.fig.add_vrect(
-                x0=frame,
-                x1=frame + patience,
+                x0=step,
+                x1=step + patience if step + patience < length else length - 1,
                 fillcolor="yellow",
                 opacity=0.25,
                 line_width=0,

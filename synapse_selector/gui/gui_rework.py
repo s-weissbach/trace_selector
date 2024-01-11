@@ -507,9 +507,21 @@ class MainWindow(QMainWindow):
         if self.settings.config["select_responses"]:
             self.stim_frames = self.settings_window.stimframes
             if self.settings.config["stim_used"]:
-                self.tr_plot.add_stimulation_window(
-                    self.stim_frames, self.settings.config["stim_frames_patience"]
-                )
+                if (
+                    self.settings.config["use_manual_stim_frames"]
+                    and self.get_setting("stim_frames") != ""
+                ):
+                    self.tr_plot.add_stimulation_window(
+                        self.stim_frames, self.settings.config["stim_frames_patience"]
+                    )
+                else:
+                    self.tr_plot.add_stimulation_window(
+                        [],
+                        self.settings.config["stim_frames_patience"],
+                        self.get_setting("stim_frames_start"),
+                        self.get_setting("stim_frames_step"),
+                    )
+
         self.labels = self.tr_plot.add_peaks(
             self.add_window.get_peak_dict(), self.settings.config["nms"]
         )
