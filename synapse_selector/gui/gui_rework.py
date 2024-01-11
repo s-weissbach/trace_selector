@@ -26,8 +26,9 @@ from synapse_selector.gui.add_window import AddWindow
 import os
 from typing import Union
 
-file_path = os.path.dirname(__file__)
-asset_path = "/".join(file_path.split("/")[0:-1]) + "/assets"
+current_directory = os.path.dirname(os.path.abspath(__file__))
+parent_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
+asset_path = os.path.join(parent_directory, "assets")
 
 
 class MainWindow(QMainWindow):
