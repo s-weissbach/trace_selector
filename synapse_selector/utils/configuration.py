@@ -10,8 +10,9 @@ class gui_settings:
         self.modelzoo = modelzoo
 
         # setup paths
-        file_path = os.path.dirname(__file__)
-        settings_path = os.path.join(os.path.dirname(file_path), "/settings")
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+        parent_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
+        settings_path = os.path.join(parent_directory, "settings")
         self.default_config_path = os.path.join(settings_path, "default_settings.json")
         self.user_config_path = os.path.join(settings_path, "settings.json")
 
