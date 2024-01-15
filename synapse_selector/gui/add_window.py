@@ -95,9 +95,14 @@ class AddWindow(QMainWindow):
 
     def __update_button_text(self):
         val = self.get_input()
-        self.add_button.setText(
-            f"Add Response (Int.: {np.round(self.intensities[val], 2)} | Conf.: {np.round(self.preds[val] * 100, 2)})"
-        )
+        if self.parent.settings.config["peak_detection_type"] != "Thresholding":
+            self.add_button.setText(
+                f"Add Response (Int.: {np.round(self.intensities[val], 2)} | Conf.: {np.round(self.preds[val] * 100, 2)})"
+            )
+        else:
+            self.add_button.setText(
+                f"Add Response (Int.: {np.round(self.intensities[val], 2)})"
+            )
 
     def __add_trace(self):
         # value is already a peak, just return
@@ -117,7 +122,7 @@ class AddWindow(QMainWindow):
         widget_layout_wrapper = QWidget()
         widget_layout_wrapper.setLayout(widget_layout)
         # create widgets
-        if len(self.preds) > 0:
+        if self.parent.settings.config["peak_detection_type"] != "Thresholding":
             label = QLabel(
                 f"[Frame: {peak_value} | Int.: {np.round(self.intensities[peak_value], 2)} | Conf.: {np.round(self.preds[peak_value] * 100, 2)}]"
             )
