@@ -272,6 +272,7 @@ class SettingsWindow(QWidget):
 
         patience_input_layout = QHBoxLayout()
         self.patience_input = QSpinBox()
+        self.patience_input.setMaximum(100_000)
         self.patience_input.editingFinished.connect(self.handle_settings_toggle)
         patience_input_layout.addWidget(self.patience_input)
         patience_input_layout.addStretch()
