@@ -254,6 +254,7 @@ class SettingsWindow(QWidget):
         start_simulation_layout = QHBoxLayout()
         self.start_stimulation_input = QSpinBox()
         self.start_stimulation_input.setMinimumWidth(100)
+        self.start_stimulation_input.setMaximum(100_000)
         self.start_stimulation_input.editingFinished.connect(
             self.handle_settings_toggle
         )
@@ -267,6 +268,7 @@ class SettingsWindow(QWidget):
         step_simulation_layout = QHBoxLayout()
         self.step_stimulation_input = QSpinBox()
         self.step_stimulation_input.setMinimumWidth(100)
+        self.step_stimulation_input.setMaximum(100_000)
         self.step_stimulation_input.editingFinished.connect(self.handle_settings_toggle)
         step_simulation_layout.addWidget(self.step_stimulation_input)
         step_simulation_layout.addStretch()
@@ -278,6 +280,7 @@ class SettingsWindow(QWidget):
 
         patience_input_layout = QHBoxLayout()
         self.patience_input = QSpinBox()
+        self.patience_input.setMaximum(100_000)
         self.patience_input.editingFinished.connect(self.handle_settings_toggle)
         patience_input_layout.addWidget(self.patience_input)
         patience_input_layout.addStretch()
