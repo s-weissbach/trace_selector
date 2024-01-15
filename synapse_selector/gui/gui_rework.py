@@ -211,7 +211,8 @@ class MainWindow(QMainWindow):
         self.threshold_slider.setMinimum(1)
         self.threshold_slider.setMaximum(100)
         self.threshold_slider.setTickInterval(10)
-        self.threshold_slider.valueChanged.connect(self.handle_slider_update)
+        self.threshold_slider.sliderReleased.connect(self.handle_slider_update)
+        # self.threshold_slider.valueChanged.connect()
 
         self.current_threshold_label = QLabel(f"{self.threshold_slider.value()}%")
 
