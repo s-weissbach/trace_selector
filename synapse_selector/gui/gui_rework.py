@@ -25,6 +25,7 @@ from synapse_selector.gui.add_window import AddWindow
 
 import os
 from typing import Union
+import numpy as np
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 parent_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
@@ -55,7 +56,7 @@ class MainWindow(QMainWindow):
 
         # --- function calls ---
         self.setup_gui()
-        self.showFullScreen()
+        self.showMaximized()
 
     # --- gui ---
 
@@ -186,11 +187,15 @@ class MainWindow(QMainWindow):
         self.current_state_indicator = QLabel("")
         self.current_state_indicator.setFont(font)
 
+        # current ROI
+        self.current_roi_label = QLabel("Current ROI:")
+
         # bar above plot
         bar_layout = QHBoxLayout()
         bar_layout.addWidget(self.file_path_label)
         bar_layout.addWidget(self.current_state_indicator)
         bar_layout.addStretch()
+        bar_layout.addWidget(self.current_roi_label)
 
         self.bar_layout_widget_wrapper = QWidget()
         self.bar_layout_widget_wrapper.setLayout(bar_layout)
@@ -362,7 +367,7 @@ class MainWindow(QMainWindow):
         self.main_layout.setStretch(1, 10)
         self.main_layout.setStretch(2, 1)
 
-    def get_setting(self, setting_key: str) -> Union[str, int, float]:
+    def get_setting(self, setting_key: str) -> Union[str, int, float, bool]:
         return self.settings.config[setting_key]
 
     def reset(self) -> None:
@@ -410,6 +415,9 @@ class MainWindow(QMainWindow):
 
         self.switch_to_main_layout()
         self.plot()
+        self.current_roi_label.setText(
+            f"Current ROI: {self.synapse_response.columns[self.synapse_response.idx]}"
+        )
 
     def add_slider(self):
         if self.settings.config["peak_detection_type"] != "Thresholding":
@@ -522,6 +530,17 @@ class MainWindow(QMainWindow):
                         self.get_setting("stim_frames_start"),
                         self.get_setting("stim_frames_step"),
                     )
+                    length = len(self.synapse_response.time)
+                    num_steps = length // self.get_setting("stim_frames_step")
+                    # if automaticly detected stim frames - update stim frames
+                    # for later analysis
+                    step_size = self.get_setting("stim_frames_step")
+                    stimulation_start = self.get_setting("stim_frames_start")
+                    self.stim_frames = [
+                        step * step_size + stimulation_start
+                        for step in range(num_steps)
+                        if step * step_size + 2 * stimulation_start <= length
+                    ]
 
         self.labels = self.tr_plot.add_peaks(
             self.add_window.get_peak_dict(), self.settings.config["nms"]
@@ -591,6 +610,10 @@ class MainWindow(QMainWindow):
         # advance to next trace if file isn't at eof
         self.synapse_response.next()
         self.plot()
+        self.current_roi_label.setText(
+            f"Current ROI: {self.synapse_response.columns[self.synapse_response.idx]}"
+        )
+        # = QLabel("Current ROI:")
         # self.clear_selection_buttons()
 
     def peak_detection(self):
