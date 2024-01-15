@@ -111,6 +111,8 @@ class SynapseResponseData:
                     "Frame",
                     "abs. Amplitude",
                     "rel. Amplitude",
+                    "abs. norm. Amplitude",
+                    "rel. norm. Amplitude",
                     "evoked",
                     "automatic detected peak",
                     "decay constant (tau)",
@@ -215,7 +217,7 @@ class SynapseResponseData:
         self,
         select_responses: bool,
         frames_for_decay: int,
-        peak_dict: dict[str:bool],
+        peak_dict: dict,
         stimulation: list[int],
         patience: int,
     ) -> None:
@@ -232,6 +234,11 @@ class SynapseResponseData:
             amplitude = self.intensity[peak_tp]
             baseline = np.median(self.intensity[max(0, peak_tp - 15) : peak_tp])
             relative_height = amplitude - baseline
+            norm_amplitude = self.norm_intensity[peak_tp]
+            norm_baseline = np.median(
+                self.norm_intensity[max(0, peak_tp - 15) : peak_tp]
+            )
+            norm_rel_amplitude = norm_amplitude - norm_baseline
             pos_after_peak = min(peak_tp + frames_for_decay, len(self.intensity - 1))
             inv_tau, tau = compute_tau(self.intensity[peak_tp:pos_after_peak])
             automatic_detected = True if peak_tp in self.automatic_peaks else False
@@ -249,6 +256,8 @@ class SynapseResponseData:
                     peak_tp,
                     amplitude,
                     relative_height,
+                    norm_amplitude,
+                    norm_rel_amplitude,
                     evoked,
                     automatic_detected,
                     tau,
