@@ -66,12 +66,9 @@ class trace_plot:
                 )
             return
         length = len(self.time)
-        print(length)
-        num_steps = (length // step) + 1
-        print(num_steps)
+        num_steps = length // step
         steps = np.arange(0, num_steps) * step + start
-        print(steps)
-
+        steps = [i * step + start for i in range(num_steps)]
         for step in steps:
             self.fig.add_vrect(
                 x0=step,
