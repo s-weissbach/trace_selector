@@ -204,6 +204,7 @@ class SettingsWindow(QWidget):
         threshold_layout.addWidget(threshold_start_desc)
 
         self.threshold_start_input = QSpinBox()
+        self.threshold_start_input.setMinimumWidth(100)
         self.threshold_start_input.setToolTip(
             "Baseline calculation for threshold starts from this frame."
         )
@@ -215,6 +216,8 @@ class SettingsWindow(QWidget):
         threshold_layout.addWidget(threshold_stop_desc)
 
         self.threshold_stop_input = QSpinBox()
+        self.threshold_stop_input.setMinimumWidth(100)
+        self.threshold_stop_input.setMaximum(100_000)
         self.threshold_stop_input.setToolTip(
             "Baseline calculation for threshold ends at this frame."
         )
@@ -250,6 +253,7 @@ class SettingsWindow(QWidget):
 
         start_simulation_layout = QHBoxLayout()
         self.start_stimulation_input = QSpinBox()
+        self.start_stimulation_input.setMinimumWidth(100)
         self.start_stimulation_input.editingFinished.connect(
             self.handle_settings_toggle
         )
@@ -262,17 +266,18 @@ class SettingsWindow(QWidget):
 
         step_simulation_layout = QHBoxLayout()
         self.step_stimulation_input = QSpinBox()
+        self.step_stimulation_input.setMinimumWidth(100)
         self.step_stimulation_input.editingFinished.connect(self.handle_settings_toggle)
         step_simulation_layout.addWidget(self.step_stimulation_input)
         step_simulation_layout.addStretch()
         stimulation_layout.addLayout(step_simulation_layout)
 
         self.patience_label = QLabel("Patience")
+        self.patience_label.setMinimumWidth(100)
         stimulation_layout.addWidget(self.patience_label)
 
         patience_input_layout = QHBoxLayout()
         self.patience_input = QSpinBox()
-        self.patience_input.setMaximum(100_000)
         self.patience_input.editingFinished.connect(self.handle_settings_toggle)
         patience_input_layout.addWidget(self.patience_input)
         patience_input_layout.addStretch()
