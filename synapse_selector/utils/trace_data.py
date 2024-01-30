@@ -43,7 +43,7 @@ class SynapseResponseData:
             for col in self.df.columns
             if col in meta_columns or is_string_dtype(self.df[col])
         ]
-        self.columns = [col for col in self.df.columns if col not in self.meta_columns]
+        self.columns = [str(col) for col in self.df.columns if col not in self.meta_columns]
         self.keep_data = []
         self.trash_data = []
         self.idx = 0
