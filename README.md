@@ -9,7 +9,7 @@
   - [Detection](#Detection)
   - [Threshold Settings](#Threshold-Settings)
   - [Stimulation](#Stimulation)
-- [Useage](#Useage)
+- [Usage](#Usage)
   - [Shortcuts and brief overview](#Shortcuts-and-brief-overview)
   - [Detailed Explanation](#Detailed-Explanation)
 - [Train a custom Model](#Train-a-custom-Model)
@@ -113,7 +113,7 @@ Configure the detection settings according to your analysis preferences:
 > [!IMPORTANT]
 > When entering stimulation frames manually, separate the frames by commas **without spaces**.
 
-## Useage
+## Usage
 ### Shortcuts and brief overview
 | Command          | Button                                                            | Shortcut | Description                                           |
 | ---------------- | ----------------------------------------------------------------- | -------- | ----------------------------------------------------- |
