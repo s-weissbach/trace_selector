@@ -25,7 +25,7 @@ Lorem ipsum
       conda activate synapse_selector
    ```
 2. **Install synapse selector**:
-   
+
    ```bash
       pip install synapse_selector
    ```
@@ -62,7 +62,7 @@ To run Synapse Selector, follow these steps:
    ```
 
 ### Adapt the Settings
-To access the settings, press the settings symbol <img src="synapse_selector/assets/settings.svg" "raw" width="20"> in the top icon bar. The settings are organized in the Tabs `General`, `Detection`, `Threshold Settings`, and `Stimulation`.
+To access the settings, press the settings symbol <img src="/synapse_selector/assets/settings.svg" "raw" width="20"> in the top icon bar. The settings are organized in the Tabs `General`, `Detection`, `Threshold Settings`, and `Stimulation`.
 
 #### General
 In the general settings section, you can configure the following options:
@@ -85,17 +85,17 @@ Configure the detection settings according to your analysis preferences:
 - **Time Window for Tau Computation:**
   Set the time window for tau computation, which determines the decay estimate.
 - **Show Normalized Trace (Toggle):**
-  Toggle this option to display z-normalized traces in the output. 
+  Toggle this option to display z-normalized traces in the output.
 - **Compute PPR (Toggle):**
   If stimulation was used, enable this option to compute the paired pulse ratio (PPR).
 
 #### Threshold Settings
 - **Baseline Start:** Specify the start point of the baseline for threshold calculation.
 - **Baseline Stop:** Define the stop point of the baseline for threshold calculation.
-- **Threshold Multiplier:** Set the multiplier used in the 
+- **Threshold Multiplier:** Set the multiplier used in the
 
 > [!NOTE]
-> Threshold is calculated witht the formula: 
+> Threshold is calculated witht the formula:
 > $$threshold = (multiplier * std_{baseline}) + mean_{baseline}$$
 
 #### Stimulation
@@ -147,6 +147,6 @@ Configure the detection settings according to your analysis preferences:
 5. **Save and skip rest**: press the save button  <img src="synapse_selector/assets/save.svg" "raw" width="20"> in the top bar. All remaining traces of the file will be discarded.
 
 ## Train a custom Model
-See the[ Synapse Selector Detect](https://github.com/s-weissbach/synapse_selector_detect/tree/main) for detailed tutorial on how to train a custom model. 
+See the[ Synapse Selector Detect](https://github.com/s-weissbach/synapse_selector_detect/tree/main) for detailed tutorial on how to train a custom model.
 > [!Tip]
 > You can share your model with the community - submit it to [Synapse Selector Modelzoo](https://github.com/s-weissbach/synapse_selector_modelzoo/tree/main).[GitHub - s-weissbach/synapse_selector_modelzoo](https://github.com/s-weissbach/synapse_selector_modelzoo/tree/main).
