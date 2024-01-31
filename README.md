@@ -68,6 +68,11 @@ Test:
 ![Settings](/synapse_selector/assets/settings.svg)
 ![Settings](synapse_selector/assets/settings.svg)
 
+<p align="center">
+  <img src="./synapse_selector/assets/settings.svg" alt="Settings" width="200" height="200">
+</p>
+
+
 #### General
 In the general settings section, you can configure the following options:
 - **Set Output Path:**
