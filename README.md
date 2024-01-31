@@ -62,11 +62,15 @@ To run Synapse Selector, follow these steps:
    ```
 
 ### Adapt the Settings
-To access the settings, press the settings symbol <img src="/synapse_selector/assets/settings.svg" "raw" width="20"> in the top icon bar. The settings are organized in the Tabs `General`, `Detection`, `Threshold Settings`, and `Stimulation`.
+To access the settings, press the settings symbol <img src="./synapse_selector/assets/settings.svg" width="20"> in the top icon bar. The settings are organized in the Tabs `General`, `Detection`, `Threshold Settings`, and `Stimulation`.
 
 Test:
 ![Settings](/synapse_selector/assets/settings.svg)
 ![Settings](synapse_selector/assets/settings.svg)
+
+<p align="center">
+  <img src="synapse_selector/assets/settings.svg" alt="Settings" width="200" height="200">
+</p>
 
 <p align="center">
   <img src="./synapse_selector/assets/settings.svg" alt="Settings" width="200" height="200">
