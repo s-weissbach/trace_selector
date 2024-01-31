@@ -96,7 +96,7 @@ Configure the detection settings according to your analysis preferences:
 
 > [!NOTE]
 > Threshold is calculated witht the formula:
-> $$threshold = (multiplier * std_{baseline}) + mean_{baseline}$$
+> $$\text{threshold} = (\text{multiplier} * std_{baseline}) + mean_{baseline}$$
 
 #### Stimulation
 - **Enable Stimulation (Toggle):**
