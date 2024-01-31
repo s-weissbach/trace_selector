@@ -64,19 +64,6 @@ To run Synapse Selector, follow these steps:
 ### Adapt the Settings
 To access the settings, press the settings symbol <img src="./synapse_selector/assets/settings.svg" width="20"> in the top icon bar. The settings are organized in the Tabs `General`, `Detection`, `Threshold Settings`, and `Stimulation`.
 
-Test:
-![Settings](/synapse_selector/assets/settings.svg)
-![Settings](synapse_selector/assets/settings.svg)
-
-<p align="center">
-  <img src="synapse_selector/assets/settings.svg" alt="Settings" width="200" height="200">
-</p>
-
-<p align="center">
-  <img src="./synapse_selector/assets/settings.svg" alt="Settings" width="200" height="200">
-</p>
-
-
 #### General
 In the general settings section, you can configure the following options:
 - **Set Output Path:**
@@ -130,13 +117,13 @@ Configure the detection settings according to your analysis preferences:
 ### Shortcuts and brief overview
 | Command          | Button                                                            | Shortcut | Description                                           |
 | ---------------- | ----------------------------------------------------------------- | -------- | ----------------------------------------------------- |
-| Open File        | <img src="synapse_selector/assets/open.svg" "raw" width="20">     | Ctrl + O | Open a file                                           |
-| Save File        | <img src="synapse_selector/assets/save.svg" "raw" width="20">     | Ctrl + S | Save all traces up to this point and discard the rest |
-| Settings         | <img src="synapse_selector/assets/settings.svg" "raw" width="20"> | S        | Open the settings                                     |
-| Back             | <img src="synapse_selector/assets/back.svg" "raw" width="20">     | B        | Go one trace back                                     |
-| Discard          | <img src="synapse_selector/assets/trash.svg" "raw" width="20">    | Q        | Discard trace from analysis                           |
-| Accept           | <img src="synapse_selector/assets/keep.svg" "raw" width="20">     | E        | Accept trace and keep for analysis                    |
-| Modify Responses | <img src="synapse_selector/assets/peak.svg" "raw" width="20">     | W        | Add or remove responses                               |
+| Open File        | <img src="synapse_selector/assets/open.svg" width="20">     | Ctrl + O | Open a file                                           |
+| Save File        | <img src="synapse_selector/assets/save.svg"  width="20">     | Ctrl + S | Save all traces up to this point and discard the rest |
+| Settings         | <img src="synapse_selector/assets/settings.svg"  width="20"> | S        | Open the settings                                     |
+| Back             | <img src="synapse_selector/assets/back.svg" width="20">     | B        | Go one trace back                                     |
+| Discard          | <img src="synapse_selector/assets/trash.svg" width="20">    | Q        | Discard trace from analysis                           |
+| Accept           | <img src="synapse_selector/assets/keep.svg" width="20">     | E        | Accept trace and keep for analysis                    |
+| Modify Responses | <img src="synapse_selector/assets/peak.svg" width="20">     | W        | Add or remove responses                               |
 
 ### Detailed explanation
 
