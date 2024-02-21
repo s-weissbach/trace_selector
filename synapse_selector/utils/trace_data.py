@@ -3,14 +3,10 @@ from pandas.api.types import is_string_dtype
 import numpy as np
 import os
 
-from synapse_selector.utils.post_selection.fraction_respond_first_pulse import (
-    compute_fraction_first_pulse,
-)
-from synapse_selector.utils.post_selection.ppr_calculation import paired_pulse_ratio
 from synapse_selector.utils.post_selection.decay_compute import compute_tau
 from synapse_selector.utils.post_selection.failure_rate import failure_rate
 from synapse_selector.utils.normalization import sliding_window_normalization
-from synapse_selector.utils.export import create_stimulation_df
+from synapse_selector.utils.export import create_stimulation_df, create_peak_df, create_ppr_df, create_fraction_first_pulse_df, create_settings_df, write_excel_output
 
 
 class SynapseResponseData:
@@ -20,7 +16,7 @@ class SynapseResponseData:
         self.meta_columns = []
         self.columns = []
         self.keep_data = []
-        self.trash_data = []
+        self.discard_data = []
         self.idx = 0
         self.last = []
         self.peaks = []
@@ -45,7 +41,7 @@ class SynapseResponseData:
         ]
         self.columns = [col for col in self.df.columns if col not in self.meta_columns]
         self.keep_data = []
-        self.trash_data = []
+        self.discard_data = []
         self.idx = 0
         self.last = []
         self.peaks = []
@@ -75,21 +71,24 @@ class SynapseResponseData:
 
     def save(
         self,
-        export_xlsx: bool,
-        keep_path: str,
-        trash_path: str,
-        ppr: bool,
         stimulation_timepoints: list[int],
-        patience: int,
+        settings: dict
     ) -> None:
         """
-        Save the sorted trace to the respective keep and trash file and if peak
+        Save the sorted trace to the respective keep and discard file and if peak
         detection was used also save the result table for the keep responses.
         """
+        keep_path = os.path.join(settings["output_filepath"], "keep_folder")
+        print(keep_path)
+        discard_path = os.path.join(settings["output_filepath"], "discard_folder")
+        export_xlsx = settings["export_xlsx"]
+        ppr = settings["compute_ppr"]
+        patience = settings["stim_frames_patience"]
         os.makedirs(keep_path, exist_ok=True)
-        os.makedirs(trash_path, exist_ok=True)
+        os.makedirs(discard_path, exist_ok=True)
         keep_df = self.df[self.meta_columns + self.keep_data]
-        trash_df = self.df[self.meta_columns + self.trash_data]
+        discard_df = self.df[self.meta_columns + self.discard_data]
+        
         if (
             export_xlsx
             or self.filename.endswith(".xlsx")
@@ -97,86 +96,47 @@ class SynapseResponseData:
         ):
             output_name = f"{'.'.join(self.filename.split('.')[:-1])}.xlsx"
             keep_df.to_excel(os.path.join(keep_path, output_name), index=False)
-            trash_df.to_excel(os.path.join(trash_path, output_name), index=False)
+            discard_df.to_excel(os.path.join(discard_path, output_name), index=False)
         else:
             output_name = f"{'.'.join(self.filename.split('.')[:-1])}.csv"
             keep_df.to_csv(os.path.join(keep_path, output_name), index=False)
-            trash_df.to_csv(os.path.join(trash_path, output_name), index=False)
+            discard_df.to_csv(os.path.join(discard_path, output_name), index=False)
+        analysis_dfs = []
+        analysis_names = []
+        settings_df = create_settings_df(settings)
+        analysis_dfs.append(settings_df)
+        analysis_names.append('parameters')
         if len(self.selected_peaks) > 0:
-            peak_df = pd.DataFrame(
-                self.selected_peaks,
-                columns=[
-                    "Filename",
-                    "ROI#",
-                    "Frame",
-                    "abs. Amplitude",
-                    "rel. Amplitude",
-                    "abs. norm. Amplitude",
-                    "rel. norm. Amplitude",
-                    "evoked",
-                    "automatic detected peak",
-                    "decay constant (tau)",
-                    "inv. decay constant (invtau)",
-                ],
-            )
+            peak_df = create_peak_df(self.selected_peaks)
+            analysis_dfs.append(peak_df)
+            analysis_names.append('responses')
             stimulation_df = create_stimulation_df(
                 stimulation_timepoints, patience, peak_df
             )
-            if export_xlsx:
-                output_name = (
-                    f"{'.'.join(self.filename.split('.')[:-1])}_responses.xlsx"
-                )
-                peak_df.to_excel(os.path.join(keep_path, output_name), index=False)
-                output_name = (
-                    f"{'.'.join(self.filename.split('.')[:-1])}_stimulations.xlsx"
-                )
-                stimulation_df.to_excel(
-                    os.path.join(keep_path, output_name), index=False
-                )
-            else:
-                output_name = f"{'.'.join(self.filename.split('.')[:-1])}_responses.csv"
-                peak_df.to_csv(os.path.join(keep_path, output_name), index=False)
-                output_name = (
-                    f"{'.'.join(self.filename.split('.')[:-1])}_stimulations.csv"
-                )
-                stimulation_df.to_csv(os.path.join(keep_path, output_name), index=False)
+            analysis_dfs.append(stimulation_df)
+            analysis_names.append('stimulations')
             if ppr:
-                ppr_df = paired_pulse_ratio(peak_df, stimulation_timepoints, patience)
-                if export_xlsx:
-                    output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.xlsx"
-                    ppr_df.to_excel(os.path.join(keep_path, output_name), index=False)
-                else:
-                    output_name = f"{'.'.join(self.filename.split('.')[:-1])}_ppr.csv"
-                    ppr_df.to_csv(os.path.join(keep_path, output_name), index=False)
+                ppr_df = create_ppr_df(peak_df, stimulation_timepoints, patience)
+                analysis_dfs.append(ppr_df)
+                analysis_names.append('PPR')
             if len(stimulation_timepoints) > 0:
                 # failure rate on a synaptic level
                 failure_df = failure_rate(peak_df, stimulation_timepoints, patience)
-                if export_xlsx:
-                    output_name = (
-                        f"{'.'.join(self.filename.split('.')[:-1])}_failurerate.xlsx"
-                    )
-                    failure_df.to_excel(
-                        os.path.join(keep_path, output_name), index=False
-                    )
-                else:
-                    output_name = (
-                        f"{'.'.join(self.filename.split('.')[:-1])}_failurerate.csv"
-                    )
-                    failure_df.to_csv(os.path.join(keep_path, output_name), index=False)
+                analysis_dfs.append(failure_df)
+                analysis_names.append('failure_analysis')
                 # fraction responding to the first pulse
-                responses_first_pulse = compute_fraction_first_pulse(
+                responses_first_pulse_df = create_fraction_first_pulse_df(
                     peak_df, stimulation_timepoints, patience
                 )
-                if export_xlsx:
-                    output_name = f"{'.'.join(self.filename.split('.')[:-1])}_fraction_respond_first_pulse.xlsx"
-                    responses_first_pulse.to_excel(
-                        os.path.join(keep_path, output_name), index=False
-                    )
-                else:
-                    output_name = f"{'.'.join(self.filename.split('.')[:-1])}_fraction_respond_first_pulse.csv"
-                    responses_first_pulse.to_csv(
-                        os.path.join(keep_path, output_name), index=False
-                    )
+                analysis_dfs.append(responses_first_pulse_df)
+                analysis_names.append('responses_first_pulse')
+        output_name = (
+            f"{'.'.join(self.filename.split('.')[:-1])}_analysis.xlsx"
+        )
+        analysis_outputpath = os.path.join(keep_path, output_name)
+        if len(analysis_dfs) > 0:
+            write_excel_output(analysis_dfs,analysis_names,analysis_outputpath)
+            
 
     def next(self) -> None:
         """
@@ -202,7 +162,7 @@ class SynapseResponseData:
             _ = self.keep_data.pop()
             _ = self.last.pop()
         else:
-            _ = self.trash_data.pop()
+            _ = self.discard_data.pop()
             _ = self.last.pop()
         selected_peaks_copy = self.selected_peaks.copy()
         self.selected_peaks = []
@@ -265,18 +225,18 @@ class SynapseResponseData:
                 ]
             )
 
-    def trash(self) -> None:
+    def discard(self) -> None:
         """
-        Puts currently viewed trace to trash.
+        Discards currently viewed trace.
         """
-        self.trash_data.append(self.columns[self.idx])
+        self.discard_data.append(self.columns[self.idx])
         self.last.append("trash")
 
-    def trash_rest(self) -> None:
+    def discard_rest(self) -> None:
         """
-        Puts all remaining not seen traces to the trash df.
+        Discards all remaining not seen traces.
         """
-        self.trash_data += [self.columns[i] for i in range(self.idx, len(self.columns))]
+        self.discard_data += [self.columns[i] for i in range(self.idx, len(self.columns))]
         self.idx = len(self.columns) - 1
 
     def end_of_file(self) -> bool:

@@ -1,6 +1,54 @@
 import pandas as pd
 import numpy as np
 
+def create_peak_df(
+        selected_peaks: list
+) -> pd.DataFrame:
+    peak_df = pd.DataFrame(
+                selected_peaks,
+                columns=[
+                    "Filename",
+                    "ROI#",
+                    "Frame",
+                    "abs. Amplitude",
+                    "rel. Amplitude",
+                    "abs. norm. Amplitude",
+                    "rel. norm. Amplitude",
+                    "evoked",
+                    "automatic detected peak",
+                    "decay constant (tau)",
+                    "inv. decay constant (invtau)",
+                ],
+            )
+    return peak_df
+
+
+def create_fraction_first_pulse_df(
+    peaks: pd.DataFrame, stimulation_timepoints: list[int], patience: int
+) -> pd.DataFrame:
+    responses = 0
+    total_synapses = 0
+    for roi in peaks["ROI#"].unique():
+        if (
+            peaks[
+                (peaks["Frame"] >= stimulation_timepoints[0])
+                & (peaks["Frame"] <= stimulation_timepoints[0] + patience)
+                & (peaks["ROI#"] == roi)
+            ].shape[0]
+            > 0
+        ):
+            responses += 1
+        total_synapses += 1
+    return pd.DataFrame(
+        {
+            "No. responses first pulse": [responses],
+            "total detected synapses": [total_synapses],
+            "fraction responding": [responses / total_synapses],
+            "stimulation frame": [stimulation_timepoints[0]],
+            "patience for response": [patience],
+        }
+    )
+
 
 def create_stimulation_df(
     stimulations: list[int], patience: int, responses: pd.DataFrame
@@ -57,3 +105,70 @@ def create_stimulation_df(
         ],
     )
     return stimulation_df
+
+
+def create_ppr_df(
+    peaks: pd.DataFrame, stimulation_timepoints: list[int], patience: int
+) -> pd.DataFrame:
+    result = []
+    for roi in peaks["ROI#"].unique():
+        roi_response = []
+        response_for_each_pulse = True
+        first_pulse_response = np.nan
+        for i, stimulation in enumerate(stimulation_timepoints):
+            if (
+                peaks[
+                    (peaks["Frame"] >= stimulation)
+                    & (peaks["Frame"] <= stimulation + patience)
+                    & (peaks["ROI#"] == roi)
+                ].shape[0]
+                == 0
+            ):
+                response_for_each_pulse = False
+                roi_response.append([f"Pulse {i+1}", roi, np.nan, np.nan, np.nan])
+                continue
+            max_response_rel = peaks[
+                (peaks["Frame"] >= stimulation)
+                & (peaks["Frame"] <= stimulation + patience)
+                & (peaks["ROI#"] == roi)
+            ]["rel. Amplitude"].max()
+            max_response_abs = peaks[
+                (peaks["Frame"] >= stimulation)
+                & (peaks["Frame"] <= stimulation + patience)
+                & (peaks["ROI#"] == roi)
+            ]["abs. Amplitude"].max()
+            if np.isnan(first_pulse_response):
+                first_pulse_response = max_response_abs
+            ppr_tmp = max_response_abs / first_pulse_response
+            roi_response.append(
+                [f"Pulse {i+1}", roi, max_response_rel, max_response_abs, ppr_tmp]
+            )
+        for i in range(len(roi_response)):
+            roi_response[i].append(response_for_each_pulse)
+        result += roi_response
+    return pd.DataFrame(
+        result,
+        columns=[
+            "Pulse",
+            "ROI",
+            "rel. Amplitute",
+            "max. Amplitute",
+            "PPR",
+            "responded to all pulses",
+        ],
+    )
+
+def create_settings_df(settings_dict: dict) -> pd.DataFrame:
+    tmp = []
+    for key,val in settings_dict.items():
+        tmp.append([key,val])
+    return pd.DataFrame(tmp,columns=['Option','Set Value'])
+
+
+def write_excel_output(
+        dataframes: list[pd.DataFrame],
+        df_names: list[str],
+        export_path: str) -> None:
+     with pd.ExcelWriter(export_path) as writer:
+        for df, sheet_name in zip(dataframes,df_names):
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
