@@ -1,6 +1,5 @@
 import os
 import json
-import platform
 from PyQt6.QtWidgets import QFileDialog
 from synapse_selector.detection.model_zoo import ModelZoo
 

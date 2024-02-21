@@ -156,9 +156,6 @@ class AddWindow(QMainWindow):
             True if new_state == 2 else False,
             self.peak_dict[peak_value][1],
         )
-        # if nms is activated, reload the plot
-        if self.parent.get_setting("nms"):
-            self.parent.plot()
 
     def get_selected_peaks(self):
         peaks = []
