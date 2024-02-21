@@ -2,6 +2,7 @@ import pandas as pd
 from pandas.api.types import is_string_dtype
 import numpy as np
 import os
+from PyQt6.QtWidgets import QMessageBox
 
 from synapse_selector.utils.post_selection.decay_compute import compute_tau
 from synapse_selector.utils.post_selection.failure_rate import failure_rate
@@ -72,14 +73,14 @@ class SynapseResponseData:
     def save(
         self,
         stimulation_timepoints: list[int],
-        settings: dict
+        settings: dict,
+        parent
     ) -> None:
         """
         Save the sorted trace to the respective keep and discard file and if peak
         detection was used also save the result table for the keep responses.
         """
         keep_path = os.path.join(settings["output_filepath"], "keep_folder")
-        print(keep_path)
         discard_path = os.path.join(settings["output_filepath"], "discard_folder")
         export_xlsx = settings["export_xlsx"]
         ppr = settings["compute_ppr"]
@@ -88,18 +89,52 @@ class SynapseResponseData:
         os.makedirs(discard_path, exist_ok=True)
         keep_df = self.df[self.meta_columns + self.keep_data]
         discard_df = self.df[self.meta_columns + self.discard_data]
-        
+        file_prefix = '.'.join(self.filename.split('.')[:-1])
         if (
             export_xlsx
             or self.filename.endswith(".xlsx")
             or self.filename.endswith(".xls")
         ):
-            output_name = f"{'.'.join(self.filename.split('.')[:-1])}.xlsx"
-            keep_df.to_excel(os.path.join(keep_path, output_name), index=False)
+            output_name = f"{file_prefix}.xlsx"
+            output_path = os.path.join(keep_path, output_name)
+            if os.path.exists(output_path):
+                i = 1
+                original_output_name = output_name
+                while os.path.exists(output_path):
+                    tmp_file_prefix = f'{file_prefix}({i})'
+                    output_name = f"{tmp_file_prefix}.xlsx"
+                    output_path = os.path.join(keep_path, output_name)
+                    i += 1
+                file_prefix = tmp_file_prefix
+                msg = QMessageBox(parent)
+                msg.setIcon(QMessageBox.Icon.Warning)
+                msg.setWindowTitle("Warning")
+                msg.setText(
+                    f"The file {original_output_name} alreads exists in {keep_path}. Saved as {output_name}"
+                )
+                msg.exec()
+                keep_df.to_excel(output_name, index=False)
             discard_df.to_excel(os.path.join(discard_path, output_name), index=False)
         else:
-            output_name = f"{'.'.join(self.filename.split('.')[:-1])}.csv"
-            keep_df.to_csv(os.path.join(keep_path, output_name), index=False)
+            output_name = f"{file_prefix}.csv"
+            output_path = os.path.join(keep_path, output_name)
+            if os.path.exists(output_path):
+                i = 1
+                original_output_name = output_name
+                while os.path.exists(output_path):
+                    tmp_file_prefix = f'{file_prefix}({i})'
+                    output_name = f"{tmp_file_prefix}.csv"
+                    output_path = os.path.join(keep_path, output_name)
+                    i += 1
+                file_prefix = tmp_file_prefix
+                msg = QMessageBox(parent)
+                msg.setIcon(QMessageBox.Icon.Warning)
+                msg.setWindowTitle("Warning")
+                msg.setText(
+                    f"The file {original_output_name} alreads exists in {keep_path}. Saved as {output_name}"
+                )
+                msg.exec()
+            keep_df.to_csv(output_path, index=False)
             discard_df.to_csv(os.path.join(discard_path, output_name), index=False)
         analysis_dfs = []
         analysis_names = []
@@ -131,7 +166,7 @@ class SynapseResponseData:
                 analysis_dfs.append(responses_first_pulse_df)
                 analysis_names.append('responses_first_pulse')
         output_name = (
-            f"{'.'.join(self.filename.split('.')[:-1])}_analysis.xlsx"
+            f"{file_prefix}_analysis.xlsx"
         )
         analysis_outputpath = os.path.join(keep_path, output_name)
         if len(analysis_dfs) > 0:

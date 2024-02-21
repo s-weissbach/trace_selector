@@ -596,7 +596,8 @@ class MainWindow(QMainWindow):
             msg.exec()
             self.synapse_response.save(
                 self.stim_frames,
-                self.settings.config
+                self.settings.config,
+                self
             )
             # self.clear_selection_buttons()
             self.reset()
