@@ -626,7 +626,6 @@ class MainWindow(QMainWindow):
                 self.settings.config["threshold_slider_ml"] / 100,
             )
         unique_peaks = list(set(peaks))
-        print(unique_peaks)
         self.synapse_response.add_automatic_peaks(unique_peaks)
 
     def update_probability_label(self) -> None:
