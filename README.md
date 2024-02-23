@@ -127,24 +127,24 @@ Configure the detection settings according to your analysis preferences:
 
 ### Detailed explanation
 
-1. **Open a File** pressing the open button <img src="synapse_selector/assets/open.svg" "raw" width="20"> in the top bar.
+1. **Open a File** pressing the open button <img src="synapse_selector/assets/open.svg" width="20"> in the top bar.
    - Synapse Selector will visualize the first column of the file that is not a meta column.
    - All detected responses will be annotated.
    - If specified in the settings, a horizontal, red dashed line will be shown
 
-2. **Modify responses** pressing the modify response button <img src="synapse_selector/assets/peak.svg" "raw" width="20"> in the top bar
+2. **Modify responses** pressing the modify response button <img src="synapse_selector/assets/peak.svg" width="20"> in the top bar
    - A window with all detected responses will be opened
    - Deselect false-positive responses
    - Add false-negative responses
 
 3. **Accept or Discard a trace**
-   - To **accept** a trace and subsequently include it in the analysis: <img src="synapse_selector/assets/keep.svg" "raw" width="20">
-   - To **discard** a trace from analysis: <img src="synapse_selector/assets/trash.svg" "raw" width="20">
+   - To **accept** a trace and subsequently include it in the analysis: <img src="synapse_selector/assets/keep.svg" width="20">
+   - To **discard** a trace from analysis: <img src="synapse_selector/assets/trash.svg" width="20">
 
 4. **Change certantiy threshold** (only when using ML-based detection):
    - Use the slider at the bottom to adjust the certantiy threshold used in the model. A lower threshold will lead to more detections, possibly, to more false-positives.
 
-5. **Save and skip rest**: press the save button  <img src="synapse_selector/assets/save.svg" "raw" width="20"> in the top bar. All remaining traces of the file will be discarded.
+5. **Save and skip rest**: press the save button  <img src="synapse_selector/assets/save.svg" width="20"> in the top bar. All remaining traces of the file will be discarded.
 
 ## Train a custom Model
 See the[ Synapse Selector Detect](https://github.com/s-weissbach/synapse_selector_detect/tree/main) for detailed tutorial on how to train a custom model.
