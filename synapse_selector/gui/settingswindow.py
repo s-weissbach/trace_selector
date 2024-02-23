@@ -176,6 +176,23 @@ class SettingsWindow(QWidget):
 
         self.add_line_to_layout(response_layout)
 
+        self.non_max_supression_button = QCheckBox("Use Non-Maximum Supression")
+        self.non_max_supression_button.stateChanged.connect(self.handle_settings_toggle)
+        response_layout.addWidget(self.non_max_supression_button)
+
+        nms_desc = QLabel("Window for Non-Maximum Supression")
+        response_layout.addWidget(nms_desc)
+
+        nms_window_layout = QHBoxLayout()
+        self.nms_window = QSpinBox()
+        self.nms_window.setToolTip("Window to be used for non-maximum supression")
+        self.nms_window.valueChanged.connect(self.handle_settings_toggle)
+        nms_window_layout.addWidget(self.nms_window)
+        nms_window_layout.addStretch()
+        response_layout.addLayout(nms_window_layout)
+
+        self.add_line_to_layout(response_layout)
+
         self.normalized_trace_toggle = QCheckBox("Show normalized trace")
         self.normalized_trace_toggle.clicked.connect(self.handle_settings_toggle)
         response_layout.addWidget(self.normalized_trace_toggle)
@@ -185,10 +202,6 @@ class SettingsWindow(QWidget):
             self.handle_settings_toggle
         )
         response_layout.addWidget(self.activate_response_selection)
-
-        self.non_max_supression_button = QCheckBox("Use Non-Maximum Supression")
-        self.non_max_supression_button.stateChanged.connect(self.handle_settings_toggle)
-        response_layout.addWidget(self.non_max_supression_button)
 
         self.compute_ppr = QCheckBox("Compute PPR")
         self.compute_ppr.stateChanged.connect(self.handle_settings_toggle)
@@ -380,6 +393,7 @@ class SettingsWindow(QWidget):
             self.settings.config["select_responses"]
         )
         self.non_max_supression_button.setChecked(self.settings.config["nms"])
+        self.nms_window.setValue(self.settings.config["nms_window"])
         self.use_nms = self.settings.config["nms"]
         self.compute_ppr.setChecked(self.settings.config["compute_ppr"])
         self.threshold_start_input.setValue(self.settings.config["threshold_start"])
@@ -447,6 +461,7 @@ class SettingsWindow(QWidget):
         ]["filepath"]
         self.settings.config["model_path"] = model_path
         self.settings.config["nms"] = self.non_max_supression_button.isChecked()
+        self.settings.config["nms_window"] = self.nms_window.value()
         self.settings.config["stim_used"] = self.stim_used_box.isChecked()
         self.settings.config[
             "select_responses"
@@ -546,6 +561,11 @@ class SettingsWindow(QWidget):
             self.patience_label.setEnabled(False)
             self.patience_input.setEnabled(False)
             self.compute_ppr.setEnabled(False)
+
+        if self.non_max_supression_button.isChecked():
+            self.nms_window.setEnabled(True)
+        else:
+            self.nms_window.setEnabled(False)
 
         # activate add response button depending on setting
         if self.activate_response_selection.isChecked():

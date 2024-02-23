@@ -12,6 +12,7 @@
     "stim_used": false,
     "compute_ppr": false,
     "nms": false,
+    "nms_window": 10,
     "output_filepath": "",
     "meta_columns": [
         "file name",
