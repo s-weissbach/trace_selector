@@ -106,18 +106,26 @@ class SettingsWindow(QWidget):
         # --- response settings ---
         response_layout = QVBoxLayout()
 
-        peak_detection_type_label = QLabel("Select Detection Method:")
-        response_layout.addWidget(peak_detection_type_label)
+        # peak_detection_type_label = QLabel("Select Detection Method:")
+        # response_layout.addWidget(peak_detection_type_label)
 
-        dropdown_layout = QHBoxLayout()
-        self.peak_detection_type = QComboBox()
-        self.peak_detection_type.addItems(["Thresholding", "ML-based"])
-        self.peak_detection_type.currentIndexChanged.connect(
-            self.handle_settings_toggle
-        )
-        dropdown_layout.addWidget(self.peak_detection_type)
-        dropdown_layout.addStretch()
-        response_layout.addLayout(dropdown_layout)
+        self.th_detection_toggle = QCheckBox("Activate Thresholding Detection")
+        self.th_detection_toggle.clicked.connect(self.handle_settings_toggle)
+        response_layout.addWidget(self.th_detection_toggle)
+
+        self.ml_detection_toggle = QCheckBox("Activate ML-Based Detection")
+        self.ml_detection_toggle.clicked.connect(self.handle_settings_toggle)
+        response_layout.addWidget(self.ml_detection_toggle)
+
+        # dropdown_layout = QHBoxLayout()
+        # self.peak_detection_type = QComboBox()
+        # self.peak_detection_type.addItems(["Thresholding", "ML-based"])
+        # self.peak_detection_type.currentIndexChanged.connect(
+        #     self.handle_settings_toggle
+        # )
+        # dropdown_layout.addWidget(self.peak_detection_type)
+        # dropdown_layout.addStretch()
+        # response_layout.addLayout(dropdown_layout)
 
         self.ml_model_used = QLabel("Select Deep Learning Model:")
         response_layout.addWidget(self.ml_model_used)
@@ -355,11 +363,13 @@ class SettingsWindow(QWidget):
         self.stim_used_box.setChecked(self.settings.config["stim_used"])
         self.threshold_input.setValue(self.settings.config["threshold_mult"])
         self.xlsx_export_box.setChecked(self.settings.config["export_xlsx"])
-        if self.settings.config["peak_detection_type"] == "Thresholding":
-            idx = 0
-        else:
-            idx = 1
-        self.peak_detection_type.setCurrentIndex(idx)
+        # if self.settings.config["peak_detection_type"] == "Thresholding":
+        #     idx = 0
+        # else:
+        #     idx = 1
+        # self.peak_detection_type.setCurrentIndex(idx)
+        self.ml_detection_toggle.setChecked(self.settings.config["ml_detection"])
+        self.th_detection_toggle.setChecked(self.settings.config["th_detection"])
         self.ml_model.setCurrentIndex(0)
         self.threshold_slider.setValue(self.settings.config["threshold_slider_ml"])
         self.frames_for_decay.setValue(self.settings.config["frames_for_decay"])
@@ -430,9 +440,8 @@ class SettingsWindow(QWidget):
         self.settings.config["stim_frames_patience"] = self.patience_input.value()
         self.settings.config["frames_for_decay"] = self.frames_for_decay.value()
         self.settings.config["stim_frames"] = self.stimframes_input.text()
-        self.settings.config[
-            "peak_detection_type"
-        ] = self.peak_detection_type.currentText()
+        self.settings.config["th_detection"] = self.th_detection_toggle.isChecked()
+        self.settings.config["ml_detection"] = self.ml_detection_toggle.isChecked()
         model_path = self.settings.modelzoo.available_models[
             self.ml_model.currentText()
         ]["filepath"]
@@ -468,11 +477,12 @@ class SettingsWindow(QWidget):
         self.check_patience()
 
         if (
-            self.settings.config["peak_detection_type"] == "ML-based"
+            self.settings.config["ml_detection"]
+            and not self.settings.config["th_detection"]
             and self.settings.config["model_path"] == ""
         ):
-            warnings.warn("No model selected. Will switch to thresholding.")
-            self.settings.config["peak_detection_type"] = "Thresholding"
+            warnings.warn("No model selected. Will activate thresholding")
+            self.settings.config["th_detection"] = True
 
         # update settings
         self.parent.settings = self.settings
@@ -511,13 +521,12 @@ class SettingsWindow(QWidget):
     def handle_settings_toggle(self) -> None:
         self.current_threshold_label.setText(f"{self.threshold_slider.value()}%")
 
-        if self.peak_detection_type.currentText() == "ML-based":
+        if self.ml_detection_toggle.isChecked():
             self.ml_model.setEnabled(True)
             self.ml_model_used.setEnabled(True)
             self.threshold_label.setEnabled(True)
             self.current_threshold_label.setEnabled(True)
             self.threshold_slider.setEnabled(True)
-
         else:
             self.ml_model.setEnabled(False)
             self.ml_model_used.setEnabled(False)

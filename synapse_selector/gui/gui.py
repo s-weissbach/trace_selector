@@ -44,7 +44,7 @@ class MainWindow(QMainWindow):
 
         self.model = torch_model()
         # load weights for CNN
-        if self.get_setting("peak_detection_type") == "ML-based":
+        if self.is_ml_detection_activated():
             self.model.load_weights(self.get_setting("model_path"))
 
         stim_frames = self.get_setting("stim_frames")
@@ -370,6 +370,12 @@ class MainWindow(QMainWindow):
     def get_setting(self, setting_key: str) -> Union[str, int, float, bool]:
         return self.settings.config[setting_key]
 
+    def is_ml_detection_activated(self):
+        return self.get_setting("ml_detection")
+
+    def is_th_detection_activated(self):
+        return self.get_setting("th_detection")
+
     def reset(self) -> None:
         self.switch_to_start_layout()
         self.close_add_window()
@@ -420,7 +426,7 @@ class MainWindow(QMainWindow):
         )
 
     def add_slider(self):
-        if self.settings.config["peak_detection_type"] != "Thresholding":
+        if self.is_ml_detection_activated():
             self.remove_slider()
 
             self.probability_layout_wrapper.show()
@@ -485,31 +491,20 @@ class MainWindow(QMainWindow):
 
         self.peak_detection()
         self.add_window.update_information(
-            self.model.preds
-            if self.settings.config["peak_detection_type"] != "Thresholding"
-            else [],
+            self.model.preds if self.is_ml_detection_activated() else [],
             trace,
         )
         self.initialize_add_window(self.synapse_response.peaks, new_sample=new_sample)
 
         # create plot depending on mode
-        if self.settings.config["peak_detection_type"] == "Thresholding":
-            self.tr_plot = trace_plot(
-                time=self.synapse_response.time,
-                intensity=trace,
-                threshold=self.threshold,
-                peak_detection_type=self.get_setting("peak_detection_type"),
-                always_show_threshold=self.get_setting("always_show_threshold"),
-            )
-        else:
-            self.tr_plot = trace_plot(
-                time=self.synapse_response.time,
-                intensity=trace,
-                threshold=self.threshold,
-                probabilities=self.model.preds,
-                peak_detection_type=self.get_setting("peak_detection_type"),
-                always_show_threshold=self.get_setting("always_show_threshold"),
-            )
+        self.tr_plot = trace_plot(
+            time=self.synapse_response.time,
+            intensity=trace,
+            threshold=self.threshold,
+            threshold_detection_activated=self.is_th_detection_activated(),
+            probabilities=self.model.preds if self.is_ml_detection_activated() else [],
+            always_show_threshold=self.get_setting("always_show_threshold"),
+        )
         self.tr_plot.create_plot()
 
         # add responses
@@ -550,7 +545,7 @@ class MainWindow(QMainWindow):
         self.trace_plot.setHtml(self.tr_plot.fig.to_html(include_plotlyjs="cdn"))
         self.current_state_indicator.setText(self.synapse_response.return_state())
 
-        if self.settings.config["peak_detection_type"] == "Thresholding":
+        if not self.is_ml_detection_activated():
             self.remove_slider()
         else:
             self.add_slider()
@@ -594,11 +589,7 @@ class MainWindow(QMainWindow):
                 "You reached the end of the file. Your data will be saved at the set output path"
             )
             msg.exec()
-            self.synapse_response.save(
-                self.stim_frames,
-                self.settings.config,
-                self
-            )
+            self.synapse_response.save(self.stim_frames, self.settings.config, self)
             # self.clear_selection_buttons()
             self.reset()
             self.open_file()
@@ -617,22 +608,26 @@ class MainWindow(QMainWindow):
         """
         Runs peak detection and hands peaks to synapse_response data class.
         """
-        if self.settings.config["peak_detection_type"] == "Thresholding":
-            automatic_peaks = peak_detection_scipy(
+        peaks = []
+        if self.is_th_detection_activated():
+            peaks += peak_detection_scipy(
                 self.synapse_response.norm_intensity,
                 self.threshold,
                 self.settings.config["stim_used"],
                 self.stim_frames,
                 self.settings.config["stim_frames_patience"],
             )
-        else:
+
+        if self.is_ml_detection_activated():
             if not self.model.weights_loaded:
                 self.model.load_weights(self.settings.config["model_path"])
-            automatic_peaks = self.model.predict(
+            peaks += self.model.predict(
                 self.synapse_response.norm_intensity,
                 self.settings.config["threshold_slider_ml"] / 100,
             )
-        self.synapse_response.add_automatic_peaks(automatic_peaks)
+        unique_peaks = list(set(peaks))
+        print(unique_peaks)
+        self.synapse_response.add_automatic_peaks(unique_peaks)
 
     def update_probability_label(self) -> None:
         # self.current_threshold.setText(f"{self.threshold_slider.value()}%")

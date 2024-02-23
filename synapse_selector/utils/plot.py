@@ -10,14 +10,14 @@ class trace_plot:
         time: np.ndarray,
         intensity: np.ndarray,
         threshold: float,
-        peak_detection_type="Thresholding",
+        threshold_detection_activated: bool,
         probabilities=[],
         always_show_threshold=False,
     ):
         self.time = time
         self.intensity = intensity
         self.threshold = threshold
-        self.peak_detection_type = peak_detection_type
+        self.threshold_detection_activated = threshold_detection_activated
         self.always_show_threshold = always_show_threshold
 
         if len(probabilities) == 0:
@@ -44,7 +44,7 @@ class trace_plot:
             xaxis=dict(rangeslider=dict(visible=True), type="linear"),
         )
 
-        if self.peak_detection_type == "Thresholding" or self.always_show_threshold:
+        if self.threshold_detection_activated or self.always_show_threshold:
             self.fig.add_hline(y=self.threshold, line_color="red", line_dash="dash")
 
     def add_stimulation_window(

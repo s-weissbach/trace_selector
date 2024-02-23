@@ -95,7 +95,7 @@ class AddWindow(QMainWindow):
 
     def __update_button_text(self):
         val = self.get_input()
-        if self.parent.settings.config["peak_detection_type"] != "Thresholding":
+        if self.parent.is_ml_detection_activated():
             self.add_button.setText(
                 f"Add Response (Int.: {np.round(self.intensities[val], 2)} | Conf.: {np.round(self.preds[val] * 100, 2)})"
             )
@@ -122,7 +122,7 @@ class AddWindow(QMainWindow):
         widget_layout_wrapper = QWidget()
         widget_layout_wrapper.setLayout(widget_layout)
         # create widgets
-        if self.parent.settings.config["peak_detection_type"] != "Thresholding":
+        if self.parent.is_ml_detection_activated():
             label = QLabel(
                 f"[Frame: {peak_value} | Int.: {np.round(self.intensities[peak_value], 2)} | Conf.: {np.round(self.preds[peak_value] * 100, 2)}]"
             )
