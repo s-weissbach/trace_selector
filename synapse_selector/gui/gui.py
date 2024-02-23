@@ -625,7 +625,42 @@ class MainWindow(QMainWindow):
                 self.synapse_response.norm_intensity,
                 self.settings.config["threshold_slider_ml"] / 100,
             )
+
         unique_peaks = list(set(peaks))
+        unique_peaks.sort()
+
+        # nms
+        if self.get_setting("nms"):
+            result_arr = []
+            processed_peaks = []
+            window_size = self.get_setting("nms_window")
+
+            # iterate over all peaks
+            for idx, peak in enumerate(unique_peaks):
+                if peak in processed_peaks:
+                    continue
+                # get all peaks within the nms window
+                # as we are starting from the front we only have to look half the window size towards the front
+                tmp_arr = []
+                for inner_idx in range(idx, len(unique_peaks)):
+                    if unique_peaks[inner_idx] <= peak + (window_size // 2):
+                        tmp_arr.append(unique_peaks[inner_idx])
+
+                # element itself is always tmp_arr
+                max_idx = tmp_arr[0]
+
+                for peak_idx in tmp_arr:
+                    if (
+                        self.synapse_response.norm_intensity[peak_idx]
+                        >= self.synapse_response.norm_intensity[max_idx]
+                    ):
+                        max_idx = peak_idx
+                    processed_peaks.append(peak_idx)
+
+                result_arr.append(max_idx)
+
+            unique_peaks = result_arr
+
         self.synapse_response.add_automatic_peaks(unique_peaks)
 
     def update_probability_label(self) -> None:
