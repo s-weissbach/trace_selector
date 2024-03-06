@@ -416,7 +416,7 @@ class MainWindow(QMainWindow):
 
         self.synapse_response.open_file(
             self.filepath, self.filename, self.get_setting("meta_columns"),
-            self.get_setting("normalization_use_median"),self.get_setting("normalization_sliding_window")
+            self.get_setting("normalization_use_median"),self.get_setting("normalization_sliding_window_size")
         )
         self.labels = []
 
@@ -597,7 +597,7 @@ class MainWindow(QMainWindow):
             return
 
         # advance to next trace if file isn't at eof
-        self.synapse_response.next(self.get_setting("normalization_use_median"),self.get_setting("normalization_sliding_window"))
+        self.synapse_response.next(self.get_setting("normalization_use_median"),self.get_setting("normalization_sliding_window_size"))
         self.plot()
         self.current_roi_label.setText(
             f"Current ROI: {self.synapse_response.columns[self.synapse_response.idx]}"

@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import QMessageBox
 from synapse_selector.utils.post_selection.decay_compute import compute_tau
 from synapse_selector.utils.post_selection.failure_rate import failure_rate
 from synapse_selector.utils.normalization import sliding_window_normalization
-from synapse_selector.utils.export import create_stimulation_df, create_peak_df, create_ppr_df, create_fraction_first_pulse_df, create_settings_df, write_excel_output
+from synapse_selector.utils.export import create_stimulation_df, create_peak_df, create_ppr_df, create_fraction_first_pulse_df, create_settings_df, write_excel_output, normalized_trace_df
 
 
 class SynapseResponseData:
@@ -91,6 +91,11 @@ class SynapseResponseData:
         keep_df = self.df[self.meta_columns + self.keep_data]
         discard_df = self.df[self.meta_columns + self.discard_data]
         file_prefix = '.'.join(self.filename.split('.')[:-1])
+        if settings["export_normalized_traces"]:
+            normalized_keep_df = normalized_trace_df(keep_df[self.keep_data],settings["normalization_use_median"],settings["normalization_sliding_window_size"])
+            # instert meta_columns
+            for i,col in enumerate(self.meta_columns):
+                normalized_keep_df.insert(i,col,self.df[col])
         if (
             export_xlsx
             or self.filename.endswith(".xlsx")
@@ -114,8 +119,9 @@ class SynapseResponseData:
                     f"The file {original_output_name} alreads exists in {keep_path}. Saved as {output_name}"
                 )
                 msg.exec()
-                keep_df.to_excel(output_name, index=False)
-
+            keep_df.to_excel(output_path, index=False)
+            if settings["export_normalized_traces"]:
+                normalized_keep_df.to_excel(os.path.join(keep_path, f"{file_prefix}_normalized.xlsx"), index=False)
             discard_df.to_excel(os.path.join(discard_path, output_name), index=False)
         else:
             output_name = f"{file_prefix}.csv"
@@ -137,6 +143,8 @@ class SynapseResponseData:
                 )
                 msg.exec()
             keep_df.to_csv(output_path, index=False)
+            if settings["export_normalized_traces"]:
+                normalized_keep_df.to_excel(os.path.join(keep_path, f"{file_prefix}_normalized.csv"), index=False)
             discard_df.to_csv(os.path.join(discard_path, output_name), index=False)
         analysis_dfs = []
         analysis_names = []

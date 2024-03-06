@@ -1,5 +1,18 @@
 import pandas as pd
 import numpy as np
+from synapse_selector.utils.normalization import sliding_window_normalization
+
+
+def normalized_trace_df(
+        trace_df: pd.DataFrame,
+        normalization_use_median: bool,
+        normalization_sliding_window_size: int
+) -> pd.DataFrame:
+    norm_trace_df = pd.DataFrame()
+    for col in trace_df.columns:
+        norm_trace_df[col] = sliding_window_normalization(trace_df[col].to_numpy(), normalization_use_median, normalization_sliding_window_size)
+    return norm_trace_df
+
 
 def create_peak_df(
         selected_peaks: list
