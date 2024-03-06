@@ -29,9 +29,12 @@
         "average Z"
     ],
     "export_xlsx": false,
+    "export_normalized_traces": true,
     "frames_for_decay": 6,
     "model_path": "",
     "normalized_trace": true,
+    "normalization_use_median": true,
+    "normalization_sliding_window_size": 50,
     "threshold_slider_ml": 50,
     "always_show_threshold": false,
     "th_detection": true,

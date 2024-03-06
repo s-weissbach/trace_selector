@@ -415,7 +415,8 @@ class MainWindow(QMainWindow):
         self.update_file_path_label(self.filepath)
 
         self.synapse_response.open_file(
-            self.filepath, self.filename, self.get_setting("meta_columns")
+            self.filepath, self.filename, self.get_setting("meta_columns"),
+            self.get_setting("normalization_use_median"),self.get_setting("normalization_sliding_window")
         )
         self.labels = []
 
@@ -596,7 +597,7 @@ class MainWindow(QMainWindow):
             return
 
         # advance to next trace if file isn't at eof
-        self.synapse_response.next()
+        self.synapse_response.next(self.get_setting("normalization_use_median"),self.get_setting("normalization_sliding_window"))
         self.plot()
         self.current_roi_label.setText(
             f"Current ROI: {self.synapse_response.columns[self.synapse_response.idx]}"

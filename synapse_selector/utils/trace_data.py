@@ -29,7 +29,7 @@ class SynapseResponseData:
         self.automatic_peaks = []
         self.file_opened = False
 
-    def open_file(self, filepath: str, filename: str, meta_columns: list[str]):
+    def open_file(self, filepath: str, filename: str, meta_columns: list[str], normalization_use_median: bool, normalization_sliding_window: int):
         self.filename = filename
         if filepath.endswith(".txt") or filepath.endswith(".csv"):
             self.df = pd.read_csv(filepath, sep=",")
@@ -50,7 +50,8 @@ class SynapseResponseData:
         self.selected_peaks = []
         self.intensity = self.df[self.columns[self.idx]].to_numpy(dtype=np.float64)
         self.norm_intensity = sliding_window_normalization(
-            self.df[self.columns[self.idx]].to_numpy()
+            self.df[self.columns[self.idx]].to_numpy(),
+            normalization_use_median, normalization_sliding_window
         )
         self.time = np.arange(len(self.intensity))
         self.automatic_peaks = []
@@ -114,6 +115,7 @@ class SynapseResponseData:
                 )
                 msg.exec()
                 keep_df.to_excel(output_name, index=False)
+
             discard_df.to_excel(os.path.join(discard_path, output_name), index=False)
         else:
             output_name = f"{file_prefix}.csv"
@@ -173,7 +175,7 @@ class SynapseResponseData:
             write_excel_output(analysis_dfs,analysis_names,analysis_outputpath)
             
 
-    def next(self) -> None:
+    def next(self, normalization_use_median: bool, normalization_sliding_window: int) -> None:
         """
         Go to next trace and load the data
         """
@@ -182,7 +184,8 @@ class SynapseResponseData:
         self.manual_peaks = []
         self.intensity = self.df[self.columns[self.idx]].to_numpy()
         self.norm_intensity = sliding_window_normalization(
-            self.df[self.columns[self.idx]].to_numpy()
+            self.df[self.columns[self.idx]].to_numpy(),
+            normalization_use_median, normalization_sliding_window
         )
         self.time = np.arange(len(self.intensity))
 
