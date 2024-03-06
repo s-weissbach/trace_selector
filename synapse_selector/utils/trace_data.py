@@ -35,12 +35,15 @@ class SynapseResponseData:
             self.df = pd.read_csv(filepath, sep=",")
         else:
             self.df = pd.read_excel(filepath)
+        all_columns = [str(col) for col in self.df.columns]
         self.meta_columns = [
             col
-            for col in self.df.columns
+            for col in all_columns
             if col in meta_columns or is_string_dtype(self.df[col])
         ]
-        self.columns = [str(col) for col in self.df.columns if col not in self.meta_columns]
+        self.columns = [col for col in all_columns if col not in self.meta_columns]
+        # format all columns to str
+        self.df.columns = all_columns
         self.keep_data = []
         self.discard_data = []
         self.idx = 0
