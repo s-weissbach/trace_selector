@@ -7,7 +7,15 @@ from PyQt6.QtWidgets import QMessageBox
 from synapse_selector.utils.post_selection.decay_compute import compute_tau
 from synapse_selector.utils.post_selection.failure_rate import failure_rate
 from synapse_selector.utils.normalization import sliding_window_normalization
-from synapse_selector.utils.export import create_stimulation_df, create_peak_df, create_ppr_df, create_fraction_first_pulse_df, create_settings_df, write_excel_output, normalized_trace_df
+from synapse_selector.utils.export import (
+    create_stimulation_df,
+    create_peak_df,
+    create_ppr_df,
+    create_fraction_first_pulse_df,
+    create_settings_df,
+    write_excel_output,
+    normalized_trace_df,
+)
 
 
 class SynapseResponseData:
@@ -29,21 +37,29 @@ class SynapseResponseData:
         self.automatic_peaks = []
         self.file_opened = False
 
-    def open_file(self, filepath: str, filename: str, meta_columns: list[str], normalization_use_median: bool, normalization_sliding_window: int):
+    def open_file(
+        self,
+        filepath: str,
+        filename: str,
+        meta_columns: list[str],
+        normalization_use_median: bool,
+        normalization_sliding_window: int,
+    ):
         self.filename = filename
         if filepath.endswith(".txt") or filepath.endswith(".csv"):
             self.df = pd.read_csv(filepath, sep=",")
         else:
             self.df = pd.read_excel(filepath)
+        # format all columns to str
         all_columns = [str(col) for col in self.df.columns]
+        self.df.columns = all_columns
         self.meta_columns = [
             col
             for col in all_columns
             if col in meta_columns or is_string_dtype(self.df[col])
         ]
         self.columns = [col for col in all_columns if col not in self.meta_columns]
-        # format all columns to str
-        self.df.columns = all_columns
+
         self.keep_data = []
         self.discard_data = []
         self.idx = 0
@@ -54,7 +70,8 @@ class SynapseResponseData:
         self.intensity = self.df[self.columns[self.idx]].to_numpy(dtype=np.float64)
         self.norm_intensity = sliding_window_normalization(
             self.df[self.columns[self.idx]].to_numpy(),
-            normalization_use_median, normalization_sliding_window
+            normalization_use_median,
+            normalization_sliding_window,
         )
         self.time = np.arange(len(self.intensity))
         self.automatic_peaks = []
@@ -74,12 +91,7 @@ class SynapseResponseData:
         percentage = np.round(((self.idx + 1) / len(self)) * 100, 2)
         return f"{self.idx+1}/{len(self)} ({np.round(percentage,2)}%)"
 
-    def save(
-        self,
-        stimulation_timepoints: list[int],
-        settings: dict,
-        parent
-    ) -> None:
+    def save(self, stimulation_timepoints: list[int], settings: dict, parent) -> None:
         """
         Save the sorted trace to the respective keep and discard file and if peak
         detection was used also save the result table for the keep responses.
@@ -93,12 +105,16 @@ class SynapseResponseData:
         os.makedirs(discard_path, exist_ok=True)
         keep_df = self.df[self.meta_columns + self.keep_data]
         discard_df = self.df[self.meta_columns + self.discard_data]
-        file_prefix = '.'.join(self.filename.split('.')[:-1])
+        file_prefix = ".".join(self.filename.split(".")[:-1])
         if settings["export_normalized_traces"]:
-            normalized_keep_df = normalized_trace_df(keep_df[self.keep_data],settings["normalization_use_median"],settings["normalization_sliding_window_size"])
+            normalized_keep_df = normalized_trace_df(
+                keep_df[self.keep_data],
+                settings["normalization_use_median"],
+                settings["normalization_sliding_window_size"],
+            )
             # instert meta_columns
-            for i,col in enumerate(self.meta_columns):
-                normalized_keep_df.insert(i,col,self.df[col])
+            for i, col in enumerate(self.meta_columns):
+                normalized_keep_df.insert(i, col, self.df[col])
         if (
             export_xlsx
             or self.filename.endswith(".xlsx")
@@ -110,7 +126,7 @@ class SynapseResponseData:
                 i = 1
                 original_output_name = output_name
                 while os.path.exists(output_path):
-                    tmp_file_prefix = f'{file_prefix}({i})'
+                    tmp_file_prefix = f"{file_prefix}({i})"
                     output_name = f"{tmp_file_prefix}.xlsx"
                     output_path = os.path.join(keep_path, output_name)
                     i += 1
@@ -124,7 +140,10 @@ class SynapseResponseData:
                 msg.exec()
             keep_df.to_excel(output_path, index=False)
             if settings["export_normalized_traces"]:
-                normalized_keep_df.to_excel(os.path.join(keep_path, f"{file_prefix}_normalized.xlsx"), index=False)
+                normalized_keep_df.to_excel(
+                    os.path.join(keep_path, f"{file_prefix}_normalized.xlsx"),
+                    index=False,
+                )
             discard_df.to_excel(os.path.join(discard_path, output_name), index=False)
         else:
             output_name = f"{file_prefix}.csv"
@@ -133,7 +152,7 @@ class SynapseResponseData:
                 i = 1
                 original_output_name = output_name
                 while os.path.exists(output_path):
-                    tmp_file_prefix = f'{file_prefix}({i})'
+                    tmp_file_prefix = f"{file_prefix}({i})"
                     output_name = f"{tmp_file_prefix}.csv"
                     output_path = os.path.join(keep_path, output_name)
                     i += 1
@@ -147,46 +166,48 @@ class SynapseResponseData:
                 msg.exec()
             keep_df.to_csv(output_path, index=False)
             if settings["export_normalized_traces"]:
-                normalized_keep_df.to_excel(os.path.join(keep_path, f"{file_prefix}_normalized.csv"), index=False)
+                normalized_keep_df.to_csv(
+                    os.path.join(keep_path, f"{file_prefix}_normalized.csv"),
+                    index=False,
+                )
             discard_df.to_csv(os.path.join(discard_path, output_name), index=False)
         analysis_dfs = []
         analysis_names = []
         settings_df = create_settings_df(settings)
         analysis_dfs.append(settings_df)
-        analysis_names.append('parameters')
+        analysis_names.append("parameters")
         if len(self.selected_peaks) > 0:
             peak_df = create_peak_df(self.selected_peaks)
             analysis_dfs.append(peak_df)
-            analysis_names.append('responses')
+            analysis_names.append("responses")
             stimulation_df = create_stimulation_df(
                 stimulation_timepoints, patience, peak_df
             )
             analysis_dfs.append(stimulation_df)
-            analysis_names.append('stimulations')
+            analysis_names.append("stimulations")
             if ppr:
                 ppr_df = create_ppr_df(peak_df, stimulation_timepoints, patience)
                 analysis_dfs.append(ppr_df)
-                analysis_names.append('PPR')
+                analysis_names.append("PPR")
             if len(stimulation_timepoints) > 0:
                 # failure rate on a synaptic level
                 failure_df = failure_rate(peak_df, stimulation_timepoints, patience)
                 analysis_dfs.append(failure_df)
-                analysis_names.append('failure_analysis')
+                analysis_names.append("failure_analysis")
                 # fraction responding to the first pulse
                 responses_first_pulse_df = create_fraction_first_pulse_df(
                     peak_df, stimulation_timepoints, patience
                 )
                 analysis_dfs.append(responses_first_pulse_df)
-                analysis_names.append('responses_first_pulse')
-        output_name = (
-            f"{file_prefix}_analysis.xlsx"
-        )
+                analysis_names.append("responses_first_pulse")
+        output_name = f"{file_prefix}_analysis.xlsx"
         analysis_outputpath = os.path.join(keep_path, output_name)
         if len(analysis_dfs) > 0:
-            write_excel_output(analysis_dfs,analysis_names,analysis_outputpath)
-            
+            write_excel_output(analysis_dfs, analysis_names, analysis_outputpath)
 
-    def next(self, normalization_use_median: bool, normalization_sliding_window: int) -> None:
+    def next(
+        self, normalization_use_median: bool, normalization_sliding_window: int
+    ) -> None:
         """
         Go to next trace and load the data
         """
@@ -196,7 +217,8 @@ class SynapseResponseData:
         self.intensity = self.df[self.columns[self.idx]].to_numpy()
         self.norm_intensity = sliding_window_normalization(
             self.df[self.columns[self.idx]].to_numpy(),
-            normalization_use_median, normalization_sliding_window
+            normalization_use_median,
+            normalization_sliding_window,
         )
         self.time = np.arange(len(self.intensity))
 
@@ -285,7 +307,9 @@ class SynapseResponseData:
         """
         Discards all remaining not seen traces.
         """
-        self.discard_data += [self.columns[i] for i in range(self.idx, len(self.columns))]
+        self.discard_data += [
+            self.columns[i] for i in range(self.idx, len(self.columns))
+        ]
         self.idx = len(self.columns) - 1
 
     def end_of_file(self) -> bool:
