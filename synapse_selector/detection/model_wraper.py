@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import os
 
 
 class torch_model:
@@ -9,11 +10,13 @@ class torch_model:
         self.model = None
         self.weights_loaded = False
 
-    def load_weights(self, model_path: str) -> None:
-        print(model_path)
+    def load_weights(self, model_path: str) -> bool:
+        if not os.path.exists(model_path):
+            return False
         self.model = torch.jit.load(model_path)
         self.model.eval()
         self.weights_loaded = True
+        return True
 
     def predict(
         self,
