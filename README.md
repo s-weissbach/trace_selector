@@ -59,7 +59,7 @@ To run Synapse Selector, follow these steps:
    ```
 2. Launch the Synapse Selector using the following command:
    ```bash
-   python -m synapse_selector.main
+   python -m synapse_selector
    ```
 
 ### Adapt the Settings
