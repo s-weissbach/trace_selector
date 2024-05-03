@@ -19,6 +19,7 @@
 Lorem ipsum
 
 ## Installation
+You will need [Anaconda](https://www.anaconda.com/download) to be installed. If Anaconda is installed, open the "Anaconda Prompt" (Windows) or a terminal (Linux + Mac).
 1. **Create a conda enviorment**:
    ```bash
       conda create -n synapse_selector python=3.10 pip
