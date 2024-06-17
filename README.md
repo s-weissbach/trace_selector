@@ -19,6 +19,7 @@
 A small GUI programm to ease the post-selection of average traces of functional recordings. The user can edit automatically detected response events (thresholding, ML-detecition, or both). `Trace Selector` will automatically compute various commonly used metrics (e.g. failure rate, paired-pulse ratio) 
 
 ## Installation
+You will need [Anaconda](https://www.anaconda.com/download) to be installed. If Anaconda is installed, open the "Anaconda Prompt" (Windows) or a terminal (Linux + Mac).
 1. **Create a conda enviorment**:
    ```bash
       conda create -n trace_selector python=3.10 pip

@@ -191,7 +191,7 @@ class SynapseResponseData:
                 analysis_names.append("PPR")
             if len(stimulation_timepoints) > 0:
                 # failure rate on a synaptic level
-                failure_df = failure_rate(peak_df, stimulation_timepoints, patience)
+                failure_df = failure_rate(peak_df, stimulation_timepoints, patience, self.columns)
                 analysis_dfs.append(failure_df)
                 analysis_names.append("failure_analysis")
                 # fraction responding to the first pulse
