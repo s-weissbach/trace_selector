@@ -1,7 +1,6 @@
 # Trace Selector
 [![DOI](https://zenodo.org/badge/638173235.svg)](https://zenodo.org/doi/10.5281/zenodo.11949062) 
-![PyPI](https://img.shields.io/pypi/v/PACKAGE?label=pypi%20package)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/trace_selector)
+[![PyPI version](https://badge.fury.io/py/trace_selector.svg)](https://badge.fury.io/py/trace_selector)
 [![python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org)
 ![CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)
 
