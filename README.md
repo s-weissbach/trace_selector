@@ -1,4 +1,10 @@
 # Trace Selector
+[![DOI](https://zenodo.org/badge/638173235.svg)](https://zenodo.org/doi/10.5281/zenodo.11949062) 
+![PyPI](https://img.shields.io/pypi/v/PACKAGE?label=pypi%20package)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/trace_selector)
+[![python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org)
+![CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)
+
 
 ## Table of Contents
 
@@ -153,3 +159,10 @@ Configure the detection settings according to your analysis preferences:
 See the[ Synapse Selector Detect](https://github.com/s-weissbach/trace_selector/tree/main) for detailed tutorial on how to train a custom model.
 > [!Tip]
 > You can share your model with the community - submit it to [Trace Selector Modelzoo](https://github.com/s-weissbach/synapse_selector_modelzoo/tree/main).[GitHub - s-weissbach/synapse_selector_modelzoo](https://github.com/s-weissbach/synapse_selector_modelzoo/tree/main).
+
+# How to Cite
+If you use this software, please cite it as below:
+
+Weißbach, S. (2024). trace_selector (Version 0.2.13) [Software]. Zenodo. https://doi.org/10.5281/zenodo.1234
+
+
