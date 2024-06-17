@@ -3,8 +3,10 @@ message: "If you use this software, please cite it as below."
 authors:
 - family-names: Weißbach
   given-names: Stephan
+- family-names: Milkovits
+  given-names: Jonas
 title: "trace_selector"
-version: 1.0.0
-doi: 10.5281/zenodo.1234
+version: 0.2.13
+doi: 10.5281/zenodo.11949062
 date-released: 2024-06-17
 url: "https://github.com/s-weissbach/trace_selector"
