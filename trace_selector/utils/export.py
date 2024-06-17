@@ -1,38 +1,40 @@
 import pandas as pd
 import numpy as np
-from synapse_selector.utils.normalization import sliding_window_normalization
+from trace_selector.utils.normalization import sliding_window_normalization
 
 
 def normalized_trace_df(
-        trace_df: pd.DataFrame,
-        normalization_use_median: bool,
-        normalization_sliding_window_size: int
+    trace_df: pd.DataFrame,
+    normalization_use_median: bool,
+    normalization_sliding_window_size: int,
 ) -> pd.DataFrame:
     norm_trace_df = pd.DataFrame()
     for col in trace_df.columns:
-        norm_trace_df[col] = sliding_window_normalization(trace_df[col].to_numpy(), normalization_use_median, normalization_sliding_window_size)
+        norm_trace_df[col] = sliding_window_normalization(
+            trace_df[col].to_numpy(),
+            normalization_use_median,
+            normalization_sliding_window_size,
+        )
     return norm_trace_df
 
 
-def create_peak_df(
-        selected_peaks: list
-) -> pd.DataFrame:
+def create_peak_df(selected_peaks: list) -> pd.DataFrame:
     peak_df = pd.DataFrame(
-                selected_peaks,
-                columns=[
-                    "Filename",
-                    "ROI#",
-                    "Frame",
-                    "abs. Amplitude",
-                    "rel. Amplitude",
-                    "abs. norm. Amplitude",
-                    "rel. norm. Amplitude",
-                    "evoked",
-                    "automatic detected peak",
-                    "decay constant (tau)",
-                    "inv. decay constant (invtau)",
-                ],
-            )
+        selected_peaks,
+        columns=[
+            "Filename",
+            "ROI#",
+            "Frame",
+            "abs. Amplitude",
+            "rel. Amplitude",
+            "abs. norm. Amplitude",
+            "rel. norm. Amplitude",
+            "evoked",
+            "automatic detected peak",
+            "decay constant (tau)",
+            "inv. decay constant (invtau)",
+        ],
+    )
     return peak_df
 
 
@@ -171,17 +173,17 @@ def create_ppr_df(
         ],
     )
 
+
 def create_settings_df(settings_dict: dict) -> pd.DataFrame:
     tmp = []
-    for key,val in settings_dict.items():
-        tmp.append([key,val])
-    return pd.DataFrame(tmp,columns=['Option','Set Value'])
+    for key, val in settings_dict.items():
+        tmp.append([key, val])
+    return pd.DataFrame(tmp, columns=["Option", "Set Value"])
 
 
 def write_excel_output(
-        dataframes: list[pd.DataFrame],
-        df_names: list[str],
-        export_path: str) -> None:
-     with pd.ExcelWriter(export_path) as writer:
-        for df, sheet_name in zip(dataframes,df_names):
+    dataframes: list[pd.DataFrame], df_names: list[str], export_path: str
+) -> None:
+    with pd.ExcelWriter(export_path) as writer:
+        for df, sheet_name in zip(dataframes, df_names):
             df.to_excel(writer, sheet_name=sheet_name, index=False)

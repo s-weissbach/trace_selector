@@ -1,4 +1,4 @@
-# Synapse Selector
+# Trace Selector
 
 ## Table of Contents
 
@@ -16,23 +16,25 @@
 
 ## Overview
 
-Lorem ipsum
+A small GUI programm to ease the post-selection of average traces of functional recordings. The user can edit automatically detected response events (thresholding, ML-detecition, or both). `Trace Selector` will automatically compute various commonly used metrics (e.g. failure rate, paired-pulse ratio) 
 
 ## Installation
 1. **Create a conda enviorment**:
    ```bash
-      conda create -n synapse_selector python=3.10 pip
-      conda activate synapse_selector
+      conda create -n trace_selector python=3.10 pip
+      conda activate trace_selector
    ```
-2. **Install synapse selector**:
+2. **Install trace selector**:
 
    ```bash
-      pip install synapse_selector
+      pip install trace_selector
    ```
+
+### Build from source
 Alternatively, you can also clone this repository and install it from there
 ```bash
-   git clone https://github.com/s-weissbach/synapse_selector.git
-   cd synapse_selector
+   git clone https://github.com/s-weissbach/trace_selector.git
+   cd trace_selector
    pip install -e .
 ```
 
@@ -51,18 +53,18 @@ The mean traces should be stored in a `.csv` or an excel file `.xls`, `.xlsx`. E
 > [!Tip]
 > Meta columns won't be included for analysis, but will be carried over to the output files.
 
-### Run Synapse Selector
-To run Synapse Selector, follow these steps:
+### Run Trace Selector
+To run Trace Selector, follow these steps:
 1. ```bash
-   conda activate synapse_selector
+   conda activate trace_selector
    ```
-2. Launch the Synapse Selector using the following command:
+2. Launch the Trace Selector using the following command:
    ```bash
-   python -m synapse_selector.main
+   python -m trace_selector
    ```
 
 ### Adapt the Settings
-To access the settings, press the settings symbol <img src="./synapse_selector/assets/settings.svg" width="20"> in the top icon bar. The settings are organized in the Tabs `General`, `Detection`, `Threshold Settings`, and `Stimulation`.
+To access the settings, press the settings symbol <img src="./trace_selector/assets/settings.svg" width="20"> in the top icon bar. The settings are organized in the Tabs `General`, `Detection`, `Threshold Settings`, and `Stimulation`.
 
 #### General
 In the general settings section, you can configure the following options:
@@ -117,36 +119,36 @@ Configure the detection settings according to your analysis preferences:
 ### Shortcuts and brief overview
 | Command          | Button                                                            | Shortcut | Description                                           |
 | ---------------- | ----------------------------------------------------------------- | -------- | ----------------------------------------------------- |
-| Open File        | <img src="synapse_selector/assets/open.svg" width="20">     | Ctrl + O | Open a file                                           |
-| Save File        | <img src="synapse_selector/assets/save.svg"  width="20">     | Ctrl + S | Save all traces up to this point and discard the rest |
-| Settings         | <img src="synapse_selector/assets/settings.svg"  width="20"> | S        | Open the settings                                     |
-| Back             | <img src="synapse_selector/assets/back.svg" width="20">     | B        | Go one trace back                                     |
-| Discard          | <img src="synapse_selector/assets/trash.svg" width="20">    | Q        | Discard trace from analysis                           |
-| Accept           | <img src="synapse_selector/assets/keep.svg" width="20">     | E        | Accept trace and keep for analysis                    |
-| Modify Responses | <img src="synapse_selector/assets/peak.svg" width="20">     | W        | Add or remove responses                               |
+| Open File        | <img src="trace_selector/assets/open.svg" width="20">     | Ctrl + O | Open a file                                           |
+| Save File        | <img src="trace_selector/assets/save.svg"  width="20">     | Ctrl + S | Save all traces up to this point and discard the rest |
+| Settings         | <img src="trace_selector/assets/settings.svg"  width="20"> | S        | Open the settings                                     |
+| Back             | <img src="trace_selector/assets/back.svg" width="20">     | B        | Go one trace back                                     |
+| Discard          | <img src="trace_selector/assets/trash.svg" width="20">    | Q        | Discard trace from analysis                           |
+| Accept           | <img src="trace_selector/assets/keep.svg" width="20">     | E        | Accept trace and keep for analysis                    |
+| Modify Responses | <img src="trace_selector/assets/peak.svg" width="20">     | W        | Add or remove responses                               |
 
 ### Detailed explanation
 
-1. **Open a File** pressing the open button <img src="synapse_selector/assets/open.svg" width="20"> in the top bar.
-   - Synapse Selector will visualize the first column of the file that is not a meta column.
+1. **Open a File** pressing the open button <img src="trace_selector/assets/open.svg" width="20"> in the top bar.
+   - Trace Selector will visualize the first column of the file that is not a meta column.
    - All detected responses will be annotated.
    - If specified in the settings, a horizontal, red dashed line will be shown
 
-2. **Modify responses** pressing the modify response button <img src="synapse_selector/assets/peak.svg" width="20"> in the top bar
+2. **Modify responses** pressing the modify response button <img src="trace_selector/assets/peak.svg" width="20"> in the top bar
    - A window with all detected responses will be opened
    - Deselect false-positive responses
    - Add false-negative responses
 
 3. **Accept or Discard a trace**
-   - To **accept** a trace and subsequently include it in the analysis: <img src="synapse_selector/assets/keep.svg" width="20">
-   - To **discard** a trace from analysis: <img src="synapse_selector/assets/trash.svg" width="20">
+   - To **accept** a trace and subsequently include it in the analysis: <img src="trace_selector/assets/keep.svg" width="20">
+   - To **discard** a trace from analysis: <img src="trace_selector/assets/trash.svg" width="20">
 
 4. **Change certantiy threshold** (only when using ML-based detection):
    - Use the slider at the bottom to adjust the certantiy threshold used in the model. A lower threshold will lead to more detections, possibly, to more false-positives.
 
-5. **Save and skip rest**: press the save button  <img src="synapse_selector/assets/save.svg" width="20"> in the top bar. All remaining traces of the file will be discarded.
+5. **Save and skip rest**: press the save button  <img src="trace_selector/assets/save.svg" width="20"> in the top bar. All remaining traces of the file will be discarded.
 
 ## Train a custom Model
-See the[ Synapse Selector Detect](https://github.com/s-weissbach/synapse_selector_detect/tree/main) for detailed tutorial on how to train a custom model.
+See the[ Synapse Selector Detect](https://github.com/s-weissbach/trace_selector/tree/main) for detailed tutorial on how to train a custom model.
 > [!Tip]
-> You can share your model with the community - submit it to [Synapse Selector Modelzoo](https://github.com/s-weissbach/synapse_selector_modelzoo/tree/main).[GitHub - s-weissbach/synapse_selector_modelzoo](https://github.com/s-weissbach/synapse_selector_modelzoo/tree/main).
+> You can share your model with the community - submit it to [Trace Selector Modelzoo](https://github.com/s-weissbach/synapse_selector_modelzoo/tree/main).[GitHub - s-weissbach/synapse_selector_modelzoo](https://github.com/s-weissbach/synapse_selector_modelzoo/tree/main).

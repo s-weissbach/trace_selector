@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "synapse-selector"
+name = "trace-selector"
 version = "0.2.11"
 description = "Small internal package for post-selection of Glutmate/Calcium signal responses."
 authors = ["Stephan Weissbach <s.weissbach@uni-mainz.de>"]
 readme = "README.md"
-packages = [{include = "synapse_selector"}]
+packages = [{include = "trace_selector"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
@@ -27,4 +27,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-synapse_selector = 'synapse_selector.main:main'
+trace_selector = 'trace_selector.main:main'

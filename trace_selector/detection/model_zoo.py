@@ -1,6 +1,6 @@
 import os
 import requests
-from synapse_selector.utils.hash import sha256_hash
+from trace_selector.utils.hash import sha256_hash
 
 
 class ModelZoo:

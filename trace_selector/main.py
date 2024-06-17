@@ -1,6 +1,6 @@
-from synapse_selector.gui.gui import MainWindow
-from synapse_selector.utils.configuration import gui_settings
-from synapse_selector.detection.model_zoo import ModelZoo
+from trace_selector.gui.gui import MainWindow
+from trace_selector.utils.configuration import gui_settings
+from trace_selector.detection.model_zoo import ModelZoo
 
 from PyQt6.QtWidgets import QApplication
 import sys
