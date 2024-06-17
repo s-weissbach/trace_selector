@@ -163,6 +163,6 @@ See the[ Synapse Selector Detect](https://github.com/s-weissbach/trace_selector/
 # How to Cite
 If you use this software, please cite it as below:
 
-Weißbach, S. (2024). trace_selector (Version 0.2.13) [Software]. Zenodo. https://doi.org/10.5281/zenodo.1234
+Weißbach, S. and Milkovits, J. (2024) „s-weissbach/trace_selector: Trace Selector 0.2.13“. Zenodo. doi: 10.5281/zenodo.11949063.
 
 
