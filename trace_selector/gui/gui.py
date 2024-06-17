@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
     # --- gui ---
 
     def setup_gui(self):
-        self.setWindowTitle("Synapse Selector")
+        self.setWindowTitle("Trace Selector")
 
         # toolbar
         toolbar = QToolBar("Toolbar")

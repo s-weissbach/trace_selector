@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "trace-selector"
-version = "0.2.12"
+version = "0.2.13"
 description = "Small internal package for post-selection of Glutmate/Calcium signal responses."
 authors = ["Stephan Weissbach <s.weissbach@uni-mainz.de>"]
 readme = "README.md"
 packages = [{include = "trace_selector"}]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.13"
+python = ">=3.9,<3.12"
 numpy = "^1.26.1"
 pandas = "^2.1.1"
 scipy = "^1.11.3"
