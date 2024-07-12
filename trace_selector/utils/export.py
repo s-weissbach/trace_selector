@@ -129,7 +129,8 @@ def create_ppr_df(
     for roi in peaks["ROI#"].unique():
         roi_response = []
         response_for_each_pulse = True
-        first_pulse_response = np.nan
+        first_pulse_response_abs = np.nan
+        first_pulse_response_rel = np.nan
         for i, stimulation in enumerate(stimulation_timepoints):
             if (
                 peaks[
@@ -140,7 +141,9 @@ def create_ppr_df(
                 == 0
             ):
                 response_for_each_pulse = False
-                roi_response.append([f"Pulse {i+1}", roi, np.nan, np.nan, np.nan])
+                roi_response.append(
+                    [f"Pulse {i+1}", roi, np.nan, np.nan, np.nan, np.nan]
+                )
                 continue
             max_response_rel = peaks[
                 (peaks["Frame"] >= stimulation)
@@ -152,11 +155,20 @@ def create_ppr_df(
                 & (peaks["Frame"] <= stimulation + patience)
                 & (peaks["ROI#"] == roi)
             ]["abs. Amplitude"].max()
-            if np.isnan(first_pulse_response):
-                first_pulse_response = max_response_abs
-            ppr_tmp = max_response_abs / first_pulse_response
+            if np.isnan(first_pulse_response_abs):
+                first_pulse_response_abs = max_response_abs
+                first_pulse_response_rel = max_response_rel
+            ppr_tmp_abs = max_response_abs / first_pulse_response_abs
+            ppr_tmp_rel = max_response_rel / first_pulse_response_rel
             roi_response.append(
-                [f"Pulse {i+1}", roi, max_response_rel, max_response_abs, ppr_tmp]
+                [
+                    f"Pulse {i+1}",
+                    roi,
+                    max_response_rel,
+                    max_response_abs,
+                    ppr_tmp_abs,
+                    ppr_tmp_rel,
+                ]
             )
         for i in range(len(roi_response)):
             roi_response[i].append(response_for_each_pulse)
@@ -168,7 +180,8 @@ def create_ppr_df(
             "ROI",
             "rel. Amplitute",
             "max. Amplitute",
-            "PPR",
+            "PPR_abs",
+            "PPR_rel",
             "responded to all pulses",
         ],
     )

@@ -62,7 +62,9 @@ class SettingsWindow(QWidget):
         self.add_line_to_layout(general_layout)
 
         self.export_normalized_traces = QCheckBox("Export normalized traces")
-        self.export_normalized_traces.setToolTip("Absolute traces will be exported as well.")
+        self.export_normalized_traces.setToolTip(
+            "Absolute traces will be exported as well."
+        )
         self.export_normalized_traces.clicked.connect(self.handle_settings_toggle)
         general_layout.addWidget(self.export_normalized_traces)
 
@@ -205,7 +207,9 @@ class SettingsWindow(QWidget):
         self.normalization_sliding_window_size = QSpinBox()
         self.normalization_sliding_window_size.setMinimum(2)
         self.normalization_sliding_window_size.setMaximum(200)
-        self.normalization_sliding_window_size.valueChanged.connect(self.handle_settings_toggle)
+        self.normalization_sliding_window_size.valueChanged.connect(
+            self.handle_settings_toggle
+        )
         response_layout.addWidget(self.normalization_sliding_window_size)
 
         self.normalized_trace_toggle = QCheckBox("Show normalized trace")
@@ -328,9 +332,7 @@ class SettingsWindow(QWidget):
         self.manual_stim_frames.stateChanged.connect(self.handle_settings_toggle)
         stimulation_layout.addWidget(self.manual_stim_frames)
 
-        self.stimframes_label = QLabel(
-            "Manual Input of Stimulation Frames (Work in Progress)"
-        )
+        self.stimframes_label = QLabel("Manual Input of Stimulation Frames")
         stimulation_layout.addWidget(self.stimframes_label)
 
         stimframes_input_layout = QHBoxLayout()
@@ -391,9 +393,15 @@ class SettingsWindow(QWidget):
         self.stim_used_box.setChecked(self.settings.config["stim_used"])
         self.threshold_input.setValue(self.settings.config["threshold_mult"])
         self.xlsx_export_box.setChecked(self.settings.config["export_xlsx"])
-        self.export_normalized_traces.setChecked(self.settings.config["export_normalized_traces"])
-        self.normalization_sliding_window_size.setValue(self.settings.config["normalization_sliding_window_size"])
-        self.normalization_use_median.setChecked(self.settings.config["normalization_use_median"])
+        self.export_normalized_traces.setChecked(
+            self.settings.config["export_normalized_traces"]
+        )
+        self.normalization_sliding_window_size.setValue(
+            self.settings.config["normalization_sliding_window_size"]
+        )
+        self.normalization_use_median.setChecked(
+            self.settings.config["normalization_use_median"]
+        )
         # if self.settings.config["peak_detection_type"] == "Thresholding":
         #     idx = 0
         # else:
@@ -485,10 +493,16 @@ class SettingsWindow(QWidget):
             "select_responses"
         ] = self.activate_response_selection.isChecked()
         self.settings.config["compute_ppr"] = self.compute_ppr.isChecked()
-        self.settings.config["export_normalized_traces"] = self.export_normalized_traces.isChecked()
+        self.settings.config[
+            "export_normalized_traces"
+        ] = self.export_normalized_traces.isChecked()
         self.settings.config["export_xlsx"] = self.xlsx_export_box.isChecked()
-        self.settings.config["normalization_use_median"] = self.normalization_use_median.isChecked()
-        self.settings.config["normalization_sliding_window_size"] = self.normalization_sliding_window_size.value()
+        self.settings.config[
+            "normalization_use_median"
+        ] = self.normalization_use_median.isChecked()
+        self.settings.config[
+            "normalization_sliding_window_size"
+        ] = self.normalization_sliding_window_size.value()
         self.settings.config[
             "normalized_trace"
         ] = self.normalized_trace_toggle.isChecked()

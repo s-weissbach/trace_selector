@@ -2,12 +2,14 @@ import pandas as pd
 
 
 def failure_rate(
-    peaks: pd.DataFrame, stimulation_timepoints: list[int], patience: int, columns: list[str]
+    peaks: pd.DataFrame,
+    stimulation_timepoints: list[int],
+    patience: int,
+    columns: list[str],
 ) -> pd.DataFrame:
     result = []
     for roi in columns:
         if roi not in peaks["ROI#"].tolist():
-            print(roi)
             result.append([roi, 0, True])
             continue
         responses = 0
