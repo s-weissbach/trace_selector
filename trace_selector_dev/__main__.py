@@ -4,20 +4,12 @@ from .detection.model_zoo import ModelZoo
 
 from PyQt6.QtWidgets import QApplication
 import sys
-import os
-import platform
+from platformdirs import user_data_dir
 
 
 def main():
     # get modelzoo directory
-    if platform.system() == "Windows":
-        modelzoo_folder = os.path.join(
-            str(os.environ.get("USERPROFILE")), ".synapse_selector_modelzoo"
-        )
-    else:
-        modelzoo_folder = os.path.join(
-            str(os.environ.get("HOME")), ".synapse_selector_modelzoo"
-        )
+    modelzoo_folder = user_data_dir("trace_selector")
     # check for available ML models
     modelzoo = ModelZoo(modelzoo_folder)
     modelzoo.check_for_updates()
