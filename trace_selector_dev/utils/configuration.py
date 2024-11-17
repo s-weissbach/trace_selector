@@ -1,5 +1,6 @@
 import os
 import json
+from platformdirs import user_data_dir
 from PyQt6.QtWidgets import QFileDialog
 from ..detection.model_zoo import ModelZoo
 
@@ -13,7 +14,8 @@ class gui_settings:
         parent_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
         settings_path = os.path.join(parent_directory, "settings")
         self.default_config_path = os.path.join(settings_path, "default_settings.json")
-        self.user_config_path = os.path.join(settings_path, "settings.json")
+        self.user_config_path = os.path.join(user_data_dir("trace_selector"), "settings.json")
+        
 
         self.parse_settings()
 

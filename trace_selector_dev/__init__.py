@@ -4,9 +4,7 @@ from .detection.model_zoo import ModelZoo
 
 from PyQt6.QtWidgets import QApplication
 import sys
-import os
 from platformdirs import user_data_dir
-import pathlib
 
 
 def main():
