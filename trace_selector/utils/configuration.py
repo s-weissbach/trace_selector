@@ -1,7 +1,7 @@
 import os
 import json
 from PyQt6.QtWidgets import QFileDialog
-from trace_selector.detection.model_zoo import ModelZoo
+from ..detection.model_zoo import ModelZoo
 
 
 class gui_settings:

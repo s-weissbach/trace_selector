@@ -15,13 +15,13 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QFont
 from PyQt6 import QtWebEngineWidgets
 
-from trace_selector.gui.settingswindow import SettingsWindow
-from trace_selector.utils.trace_data import SynapseResponseData
-from trace_selector.utils.threshold import compute_threshold
-from trace_selector.utils.plot import trace_plot
-from trace_selector.detection.model_wraper import torch_model
-from trace_selector.detection.peak_detection import peak_detection_scipy
-from trace_selector.gui.add_window import AddWindow
+from .settingswindow import SettingsWindow
+from .add_window import AddWindow
+from ..utils.trace_data import SynapseResponseData
+from ..utils.threshold import compute_threshold
+from ..utils.plot import trace_plot
+from ..detection.model_wraper import torch_model
+from ..detection.peak_detection import peak_detection_scipy
 
 import os
 from typing import Union

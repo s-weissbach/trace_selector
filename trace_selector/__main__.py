@@ -1,6 +1,6 @@
-from trace_selector.gui.gui import MainWindow
-from trace_selector.utils.configuration import gui_settings
-from trace_selector.detection.model_zoo import ModelZoo
+from .gui.gui import MainWindow
+from .utils.configuration import gui_settings
+from .detection.model_zoo import ModelZoo
 
 from PyQt6.QtWidgets import QApplication
 import sys

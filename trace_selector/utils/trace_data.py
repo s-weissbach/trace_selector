@@ -4,10 +4,10 @@ import numpy as np
 import os
 from PyQt6.QtWidgets import QMessageBox
 
-from trace_selector.utils.post_selection.decay_compute import compute_tau
-from trace_selector.utils.post_selection.failure_rate import failure_rate
-from trace_selector.utils.normalization import sliding_window_normalization
-from trace_selector.utils.export import (
+from .post_selection.decay_compute import compute_tau
+from .post_selection.failure_rate import failure_rate
+from .normalization import sliding_window_normalization
+from .export import (
     create_stimulation_df,
     create_peak_df,
     create_ppr_df,
