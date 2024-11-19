@@ -384,7 +384,7 @@ class MainWindow(QMainWindow):
         self.filepath = ""
         self.update_file_path_label("")
 
-    def open_file(self) -> None:
+    def open_file(self, path: str|None = None) -> None:
         """
         Opens a new file holding the synaptic responses.
         This file should have meta columns (that will be ignored) and appended to the
@@ -392,25 +392,28 @@ class MainWindow(QMainWindow):
         All responses columns will be plotted.
         """
         # no directory has been saved
-        if not hasattr(self, "filepath") or self.filepath == "":
-            if self.directory is not None:
-                self.filepath = QFileDialog.getOpenFileName(
-                    caption="Select Input File",
-                    directory=self.directory,
-                    filter="Table(*.txt *.csv *.xlsx *.xls)",
-                )[0]
-            else:
-                self.filepath = QFileDialog.getOpenFileName(
-                    caption="Select Input File",
-                    filter="Table(*.txt *.csv *.xlsx *.xls)",
-                )[0]
+        if path is None:
+            if not hasattr(self, "filepath") or self.filepath == "":
+                if self.directory is not None:
+                    self.filepath = QFileDialog.getOpenFileName(
+                        caption="Select Input File",
+                        directory=self.directory,
+                        filter="Table(*.txt *.csv *.xlsx *.xls)",
+                    )[0]
+                else:
+                    self.filepath = QFileDialog.getOpenFileName(
+                        caption="Select Input File",
+                        filter="Table(*.txt *.csv *.xlsx *.xls)",
+                    )[0]
 
-        if self.filepath == "":
-            warning = QMessageBox(self)
-            warning.setWindowTitle("Warning")
-            warning.setText("No file has been selected")
-            warning.exec()
-            return
+            if self.filepath == "":
+                warning = QMessageBox(self)
+                warning.setWindowTitle("Warning")
+                warning.setText("No file has been selected")
+                warning.exec()
+                return
+        else:
+            self.filepath = path
 
         self.filename = os.path.basename(self.filepath)
         self.directory = os.path.dirname(self.filepath)

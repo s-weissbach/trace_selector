@@ -47,7 +47,7 @@ class SynapseResponseData:
         normalization_sliding_window: int,
     ):
         self.filename = filename
-        if filepath.endswith(".virtual"):
+        if filename.endswith(".virtual"):
             self.df = pd.read_csv(StringIO(filepath), sep=",")
         elif filepath.endswith(".txt") or filepath.endswith(".csv"):
             self.df = pd.read_csv(filepath, sep=",")
