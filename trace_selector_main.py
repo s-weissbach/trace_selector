@@ -1,2 +1,2 @@
 import trace_selector_dev
-trace_selector_dev.main()
+trace_selector_dev.App.start()
