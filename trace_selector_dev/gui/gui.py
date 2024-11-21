@@ -111,7 +111,7 @@ class MainWindow(QMainWindow):
         button_open.setStatusTip(
             "Open a file containing traces using your file system (CTRL + O)"
         )
-        button_open.triggered.connect(self.open_file)
+        button_open.triggered.connect(self.open_file_qt)
         button_open.setShortcut(QKeySequence("Ctrl+o"))
         toolbar.addAction(button_open)
 
@@ -393,6 +393,9 @@ class MainWindow(QMainWindow):
         self.close_add_window()
         self.filepath = ""
         self.update_file_path_label("")
+
+    def open_file_qt(self):
+        self.open_file()
 
     def open_file(self, path: str|None = None) -> None:
         """
