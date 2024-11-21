@@ -1,2 +1,2 @@
-import trace_selector
-trace_selector.App.start()
+import trace_selector_dev
+trace_selector_dev.App.start()
