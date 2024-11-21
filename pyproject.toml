@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "trace-selector"
-version = "0.2.14"
+version = "0.3.1"
 description = "Small internal package for post-selection of Glutmate/Calcium signal responses."
 authors = ["Stephan Weissbach <s.weissbach@uni-mainz.de>"]
 readme = "README.md"
