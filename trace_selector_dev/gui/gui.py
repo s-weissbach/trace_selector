@@ -17,6 +17,7 @@ from PyQt6 import QtWebEngineWidgets
 
 from .settingswindow import SettingsWindow
 from .add_window import AddWindow
+from .api import API
 from ..utils.trace_data import SynapseResponseData
 from ..utils.threshold import compute_threshold
 from ..utils.plot import trace_plot
@@ -59,6 +60,8 @@ class MainWindow(QMainWindow):
         # --- function calls ---
         self.setup_gui()
         self.showMaximized()
+
+        self.api = API(self)
 
     # --- gui ---
 
