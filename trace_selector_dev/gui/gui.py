@@ -21,7 +21,6 @@ from .api import API
 from ..utils.trace_data import SynapseResponseData
 from ..utils.threshold import compute_threshold
 from ..utils.plot import trace_plot
-from ..detection.model_wraper import torch_model
 from ..detection.peak_detection import peak_detection_scipy
 
 import os
@@ -43,7 +42,6 @@ class MainWindow(QMainWindow):
         self.directory = None
         self.synapse_response = SynapseResponseData()
 
-        self.model = torch_model()
         # load weights for CNN
         if self.is_ml_detection_activated():
             success = self.model.load_weights(str(self.get_setting("model_path")))
@@ -62,6 +60,15 @@ class MainWindow(QMainWindow):
         self.showMaximized()
 
         self.api = API(self)
+
+    # --- lazy loading
+
+    @property
+    def model(self):
+        # Introduced by Andreas to lazy load torch, as it contributes around 50 % to loading time
+        if self._model is None:
+            from ..detection.model_wraper import torch_model
+            self._model = torch_model()
 
     # --- gui ---
 
