@@ -358,7 +358,7 @@ class MainWindow(QMainWindow):
         self.add_window.show()
 
     def initialize_add_window(self, peaks, new_sample) -> None:
-        self.add_window.update_length(len(self.synapse_response.intensity))
+        self.add_window.update_length(len(self.synapse_response.intensity)-1)
         if new_sample:
             self.add_window.reset()
         self.add_window.load_peaks(peaks)

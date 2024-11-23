@@ -72,7 +72,7 @@ class SettingsWindow(QWidget):
         self.xlsx_export_box.clicked.connect(self.handle_settings_toggle)
         general_layout.addWidget(self.xlsx_export_box)
 
-        column_list_layout = QVBoxLayout(self)
+        column_list_layout = QVBoxLayout()
         column_label = QLabel("Add or remove meta columns for your data:")
         column_list_layout.addWidget(column_label)
         self.column_list = QListWidget(self)

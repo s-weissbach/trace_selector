@@ -3,6 +3,12 @@ import sys
 import pathlib
 
 class API():
+    """
+        Created by Andreas
+        The API allows to communicate with Trace Selector via stdin. Currently, there is only one command build in
+        - open\t[path]
+        Please note: Seperate the arguments via tabular space, not a regular space!
+    """
     def __init__(self, guiObj):
         self.gui = guiObj
         self.worker = WorkerStdin()
@@ -23,7 +29,6 @@ class WorkerStdin(QObject):
         super().__init__()
 
     def stdin(self):
-        print("[TRACE SELECTOR]", flush=True)
         while (line := sys.stdin.readline().strip("\n")) != "":
             args = line.split("\t")
             match args[0].lower():
@@ -39,4 +44,3 @@ class WorkerStdin(QObject):
                     self.signal.emit(path)
                 case _:
                     print(f"[TRACESELECTOR] [UNKOWN_CMD_ERROR] Unknown command '{args[0]}'", flush=True)
-        print("[TRACESELECTOR] [STOPED_API]", flush=True)
