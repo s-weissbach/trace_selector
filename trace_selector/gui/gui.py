@@ -15,13 +15,13 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QFont
 from PyQt6 import QtWebEngineWidgets
 
-from trace_selector.gui.settingswindow import SettingsWindow
-from trace_selector.utils.trace_data import SynapseResponseData
-from trace_selector.utils.threshold import compute_threshold
-from trace_selector.utils.plot import trace_plot
-from trace_selector.detection.model_wraper import torch_model
-from trace_selector.detection.peak_detection import peak_detection_scipy
-from trace_selector.gui.add_window import AddWindow
+from .settingswindow import SettingsWindow
+from .add_window import AddWindow
+from .api import API
+from ..utils.trace_data import SynapseResponseData
+from ..utils.threshold import compute_threshold
+from ..utils.plot import trace_plot
+from ..detection.peak_detection import peak_detection_scipy
 
 import os
 from typing import Union
@@ -42,7 +42,6 @@ class MainWindow(QMainWindow):
         self.directory = None
         self.synapse_response = SynapseResponseData()
 
-        self.model = torch_model()
         # load weights for CNN
         if self.is_ml_detection_activated():
             success = self.model.load_weights(str(self.get_setting("model_path")))
@@ -59,6 +58,17 @@ class MainWindow(QMainWindow):
         # --- function calls ---
         self.setup_gui()
         self.showMaximized()
+
+        self.api = API(self)
+
+    # --- lazy loading
+
+    @property
+    def model(self):
+        # Introduced by Andreas to lazy load torch, as it contributes around 50 % to loading time
+        if self._model is None:
+            from ..detection.model_wraper import torch_model
+            self._model = torch_model()
 
     # --- gui ---
 
@@ -101,7 +111,7 @@ class MainWindow(QMainWindow):
         button_open.setStatusTip(
             "Open a file containing traces using your file system (CTRL + O)"
         )
-        button_open.triggered.connect(self.open_file)
+        button_open.triggered.connect(self.open_file_qt)
         button_open.setShortcut(QKeySequence("Ctrl+o"))
         toolbar.addAction(button_open)
 
@@ -348,7 +358,7 @@ class MainWindow(QMainWindow):
         self.add_window.show()
 
     def initialize_add_window(self, peaks, new_sample) -> None:
-        self.add_window.update_length(len(self.synapse_response.intensity))
+        self.add_window.update_length(len(self.synapse_response.intensity)-1)
         if new_sample:
             self.add_window.reset()
         self.add_window.load_peaks(peaks)
@@ -384,7 +394,10 @@ class MainWindow(QMainWindow):
         self.filepath = ""
         self.update_file_path_label("")
 
-    def open_file(self) -> None:
+    def open_file_qt(self):
+        self.open_file()
+
+    def open_file(self, path: str|None = None) -> None:
         """
         Opens a new file holding the synaptic responses.
         This file should have meta columns (that will be ignored) and appended to the
@@ -392,25 +405,28 @@ class MainWindow(QMainWindow):
         All responses columns will be plotted.
         """
         # no directory has been saved
-        if not hasattr(self, "filepath") or self.filepath == "":
-            if self.directory is not None:
-                self.filepath = QFileDialog.getOpenFileName(
-                    caption="Select Input File",
-                    directory=self.directory,
-                    filter="Table(*.txt *.csv *.xlsx *.xls)",
-                )[0]
-            else:
-                self.filepath = QFileDialog.getOpenFileName(
-                    caption="Select Input File",
-                    filter="Table(*.txt *.csv *.xlsx *.xls)",
-                )[0]
+        if path is None:
+            if not hasattr(self, "filepath") or self.filepath == "":
+                if self.directory is not None:
+                    self.filepath = QFileDialog.getOpenFileName(
+                        caption="Select Input File",
+                        directory=self.directory,
+                        filter="Table(*.txt *.csv *.xlsx *.xls)",
+                    )[0]
+                else:
+                    self.filepath = QFileDialog.getOpenFileName(
+                        caption="Select Input File",
+                        filter="Table(*.txt *.csv *.xlsx *.xls)",
+                    )[0]
 
-        if self.filepath == "":
-            warning = QMessageBox(self)
-            warning.setWindowTitle("Warning")
-            warning.setText("No file has been selected")
-            warning.exec()
-            return
+            if self.filepath == "":
+                warning = QMessageBox(self)
+                warning.setWindowTitle("Warning")
+                warning.setText("No file has been selected")
+                warning.exec()
+                return
+        else:
+            self.filepath = path
 
         self.filename = os.path.basename(self.filepath)
         self.directory = os.path.dirname(self.filepath)

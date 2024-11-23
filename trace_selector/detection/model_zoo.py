@@ -1,6 +1,6 @@
 import os
 import requests
-from trace_selector.utils.hash import sha256_hash
+from ..utils.hash import sha256_hash
 
 
 class ModelZoo:

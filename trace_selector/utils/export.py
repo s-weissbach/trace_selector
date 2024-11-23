@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from trace_selector.utils.normalization import sliding_window_normalization
+from ..utils.normalization import sliding_window_normalization
 
 
 def normalized_trace_df(
