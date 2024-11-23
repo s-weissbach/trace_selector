@@ -1,4 +1,4 @@
-[project]
+[tool.poetry]
 name = "trace-selector"
 version = "0.3.1"
 description = "Small internal package for post-selection of Glutmate/Calcium signal responses."
