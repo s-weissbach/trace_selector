@@ -2,25 +2,26 @@
 name = "trace-selector"
 version = "0.3.1"
 description = "Small internal package for post-selection of Glutmate/Calcium signal responses."
-authors = [
-    {name="Stephan Weissbach", email="s.weissbach@uni-mainz.de"}
-]
+authors = ["Stephan Weissbach <s.weissbach@uni-mainz.de>"]
 readme = "README.md"
-requires-python = ">=3.9"
-
-dependencies = [
-    "numpy >=1.26.1",
-    "pandas >=2.1.1",
-    "scipy >=1.11.3",
-    "plotly >=5.17.0",
-    "openpyxl >=3.1.2",
-    "torch >=2.1.1",
-    "pyqt6-webengine >=6.6.0",
-    "requests >=2.31.0",
-    "platformdirs >=4"
-]
+packages = [{include = "trace_selector"}]
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+numpy = "^1.26.1"
+pandas = "^2.1.1"
+scipy = "^1.11.3"
+plotly = "^5.17.0"
+openpyxl = "^3.1.2"
+torch = "^2.1.1"
+pyqt6-webengine = "^6.6.0"
+requests = "^2.31.0"
 
 
+[tool.poetry.group.dev.dependencies]
+black = "^23.12.1"
+pre-commit = "^3.6.0"
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+[tool.poetry.scripts]
+trace_selector = 'trace_selector.main:main'
