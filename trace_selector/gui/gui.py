@@ -504,11 +504,8 @@ class MainWindow(QMainWindow):
         )
 
         self.threshold = compute_threshold(
-            self.get_setting("stim_used"),
             trace,
             self.get_setting("threshold_mult"),
-            self.get_setting("threshold_start"),
-            self.get_setting("threshold_stop"),
         )
 
         self.peak_detection()
@@ -636,11 +633,13 @@ class MainWindow(QMainWindow):
         peaks = []
         if self.is_th_detection_activated():
             peaks += peak_detection_scipy(
-                self.synapse_response.norm_intensity,
-                self.threshold,
-                self.settings.config["stim_used"],
-                self.stim_frames,
-                self.settings.config["stim_frames_patience"],
+                intensity=self.synapse_response.norm_intensity,
+                threshold=self.threshold,
+                prominence=self.settings.config["threshold_prominence"],
+                minDistance=self.settings.config["threshold_mindistance"],
+                stim_used=self.settings.config["stim_used"],
+                stim_frames=self.stim_frames,
+                patience=self.settings.config["stim_frames_patience"],
             )
 
         if self.is_ml_detection_activated():

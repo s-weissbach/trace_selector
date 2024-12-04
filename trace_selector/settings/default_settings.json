@@ -1,8 +1,7 @@
 {
-    "threshold_start": 0,
-    "threshold_stop": 50,
-    "threshold_step": 0.1,
-    "threshold_mult": 4.0,
+    "threshold_prominence": 0.1,
+    "threshold_mult": 1.5,
+    "threshold_mindistance": 0,
     "select_responses": false,
     "stim_frames": "",
     "use_manual_stim_frames": false,

@@ -116,7 +116,8 @@ class SettingsWindow(QWidget):
         # peak_detection_type_label = QLabel("Select Detection Method:")
         # response_layout.addWidget(peak_detection_type_label)
 
-        self.th_detection_toggle = QCheckBox("Activate Thresholding Detection")
+        # Renamed to local max detection as it is now not only thresholding. But keep the name thresholding in the code
+        self.th_detection_toggle = QCheckBox("Activate Local Maximum Detection")
         self.th_detection_toggle.clicked.connect(self.handle_settings_toggle)
         response_layout.addWidget(self.th_detection_toggle)
 
@@ -235,45 +236,35 @@ class SettingsWindow(QWidget):
 
         threshold_layout = QVBoxLayout()
 
-        self.show_threshold = QCheckBox("Always show Threshold")
+        threshold_layout.addWidget(QLabel("Prominence (A peak is defined as maximum between two valleys of at least prominence)"))
+        self.th_prominence_input = QDoubleSpinBox()
+        self.th_prominence_input.setMinimumWidth(100)
+        self.th_prominence_input.setMinimum(0)
+        self.th_prominence_input.setMaximum(1000)
+        self.th_prominence_input.setSingleStep(0.01)
+        self.th_prominence_input.valueChanged.connect(self.handle_settings_toggle)
+        threshold_layout.addWidget(self.th_prominence_input)
+
+        threshold_layout.addWidget(QLabel("Noise multiplier (Noise is estimated to be mean + std*noise_multiplier)"))
+        self.threshold_input = QDoubleSpinBox()
+        self.threshold_input.setMinimumWidth(100)
+        self.threshold_input.setMinimum(0)
+        self.threshold_input.setMaximum(100)
+        self.threshold_input.setSingleStep(0.05)
+        self.threshold_input.valueChanged.connect(self.handle_settings_toggle)
+        threshold_layout.addWidget(self.threshold_input)
+
+        self.show_threshold = QCheckBox("Display estimated noise")
         self.show_threshold.stateChanged.connect(self.handle_settings_toggle)
         threshold_layout.addWidget(self.show_threshold)
 
-        threshold_start_desc = QLabel("Baseline start:")
-        # threshold_start_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        threshold_layout.addWidget(threshold_start_desc)
-
-        self.threshold_start_input = QSpinBox()
-        self.threshold_start_input.setMinimumWidth(100)
-        self.threshold_start_input.setToolTip(
-            "Baseline calculation for threshold starts from this frame."
-        )
-        self.threshold_start_input.valueChanged.connect(self.handle_settings_toggle)
-        threshold_layout.addWidget(self.threshold_start_input)
-
-        threshold_stop_desc = QLabel("Baseline stop:")
-        # threshold_stop_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
-        threshold_layout.addWidget(threshold_stop_desc)
-
-        self.threshold_stop_input = QSpinBox()
-        self.threshold_stop_input.setMinimumWidth(100)
-        self.threshold_stop_input.setMaximum(100_000)
-        self.threshold_stop_input.setToolTip(
-            "Baseline calculation for threshold ends at this frame."
-        )
-        self.threshold_stop_input.valueChanged.connect(self.handle_settings_toggle)
-        threshold_layout.addWidget(self.threshold_stop_input)
-
-        threshold_desc = QLabel("Threshold multiplier:")
-        # threshold_desc.setAlignment(Qt.AlignmentFlag.AlignRight)
-        threshold_layout.addWidget(threshold_desc)
-
-        self.threshold_input = QDoubleSpinBox()
-        self.threshold_input.setToolTip(
-            "Threshold is calculated based on this multiplier."
-        )
-        self.threshold_input.valueChanged.connect(self.handle_settings_toggle)
-        threshold_layout.addWidget(self.threshold_input)
+        threshold_layout.addWidget(QLabel("Minimum peak distance"))
+        self.th_mindistance_input = QSpinBox()
+        self.th_mindistance_input.setMinimumWidth(100)
+        self.th_mindistance_input.setMinimum(0)
+        self.th_mindistance_input.setMaximum(1000)
+        self.th_mindistance_input.valueChanged.connect(self.handle_settings_toggle)
+        threshold_layout.addWidget(self.th_mindistance_input)
 
         self.threshold_wrapper_widget = QWidget()
         self.threshold_wrapper_widget.setLayout(threshold_layout)
@@ -367,7 +358,7 @@ class SettingsWindow(QWidget):
 
         self.tab_widget.addTab(general_wrapper_widget, "General")
         self.tab_widget.addTab(response_wrapper_widget, "Detection")
-        self.tab_widget.addTab(self.threshold_wrapper_widget, "Threshold Settings")
+        self.tab_widget.addTab(self.threshold_wrapper_widget, "Local Maximum Detection Settings")
         self.tab_widget.addTab(stimulation_wrapper_widget, "Stimulation")
 
         self.initialize_widget_values()
@@ -391,7 +382,10 @@ class SettingsWindow(QWidget):
         self.patience_input.setValue(self.settings.config["stim_frames_patience"])
         self.stimframes_input.setText(self.settings.config["stim_frames"])
         self.stim_used_box.setChecked(self.settings.config["stim_used"])
+        self.th_prominence_input.setValue(self.settings.config["threshold_prominence"])
         self.threshold_input.setValue(self.settings.config["threshold_mult"])
+        self.th_mindistance_input.setValue(self.settings.config["threshold_mindistance"])
+        self.show_threshold.setChecked(self.settings.config["always_show_threshold"])
         self.xlsx_export_box.setChecked(self.settings.config["export_xlsx"])
         self.export_normalized_traces.setChecked(
             self.settings.config["export_normalized_traces"]
@@ -422,10 +416,6 @@ class SettingsWindow(QWidget):
         self.nms_window.setValue(self.settings.config["nms_window"])
         self.use_nms = self.settings.config["nms"]
         self.compute_ppr.setChecked(self.settings.config["compute_ppr"])
-        self.threshold_start_input.setValue(self.settings.config["threshold_start"])
-        self.threshold_stop_input.setValue(self.settings.config["threshold_stop"])
-        self.threshold_input.setSingleStep(self.settings.config["threshold_step"])
-        self.show_threshold.setChecked(self.settings.config["always_show_threshold"])
         self.start_stimulation_input.setValue(self.settings.config["stim_frames_start"])
         self.step_stimulation_input.setValue(self.settings.config["stim_frames_step"])
         self.manual_stim_frames.setChecked(
@@ -474,9 +464,10 @@ class SettingsWindow(QWidget):
         provide the user set configurations.
         """
         # update all values that might have been changed
+        self.settings.config["threshold_prominence"] = self.th_prominence_input.value()
         self.settings.config["threshold_mult"] = self.threshold_input.value()
-        self.settings.config["threshold_start"] = self.threshold_start_input.value()
-        self.settings.config["threshold_stop"] = self.threshold_stop_input.value()
+        self.settings.config["threshold_mindistance"] = self.th_mindistance_input.value()
+        self.settings.config["always_show_threshold"] = self.show_threshold.isChecked()
         self.settings.config["stim_frames_patience"] = self.patience_input.value()
         self.settings.config["frames_for_decay"] = self.frames_for_decay.value()
         self.settings.config["stim_frames"] = self.stimframes_input.text()
@@ -507,7 +498,6 @@ class SettingsWindow(QWidget):
             "normalized_trace"
         ] = self.normalized_trace_toggle.isChecked()
         self.settings.config["threshold_slider_ml"] = self.threshold_slider.value()
-        self.settings.config["always_show_threshold"] = self.show_threshold.isChecked()
         self.settings.config["stim_frames_start"] = self.start_stimulation_input.value()
         self.settings.config["stim_frames_step"] = self.step_stimulation_input.value()
         self.settings.config[

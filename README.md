@@ -70,7 +70,7 @@ To run Trace Selector, follow these steps:
    ```
 
 ### Adapt the Settings
-To access the settings, press the settings symbol <img src="./trace_selector/assets/settings.svg" width="20"> in the top icon bar. The settings are organized in the Tabs `General`, `Detection`, `Threshold Settings`, and `Stimulation`.
+To access the settings, press the settings symbol <img src="./trace_selector/assets/settings.svg" width="20"> in the top icon bar. The settings are organized in the Tabs `General`, `Detection`, `Local Maximum Detection Settings`, and `Stimulation`.
 
 #### General
 In the general settings section, you can configure the following options:
@@ -87,7 +87,7 @@ In the general settings section, you can configure the following options:
 
 Configure the detection settings according to your analysis preferences:
 - **Selection Methods:**
-  Choose between ML-based and Thresholding.
+  Choose between ML-based and Local maxima detection.
 - **Deep Learning Model:**
   If ML-based selection is chosen, specify the deep learning model specific for the sensor you used.
 - **Time Window for Tau Computation:**
@@ -98,9 +98,9 @@ Configure the detection settings according to your analysis preferences:
   If stimulation was used, enable this option to compute the paired pulse ratio (PPR).
 
 #### Threshold Settings
-- **Baseline Start:** Specify the start point of the baseline for threshold calculation.
-- **Baseline Stop:** Define the stop point of the baseline for threshold calculation.
-- **Threshold Multiplier:** Set the multiplier used in the
+- **Prominence:** Simply speeking, the prominence is the difference between a summit and a valley. In case of detection it allows to find peaks based on their neighbourhood and acts as a kind of local threshold.
+- **Noise multiplier:** Each peak must exceed the treshold defined as mean+std*noise_multiplier
+- **Minimum peak distance:** The minimum distance between peaks (in general not needed with a proper prominence value)
 
 > [!NOTE]
 > Threshold is calculated witht the formula:

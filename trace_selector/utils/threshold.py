@@ -2,20 +2,14 @@ import numpy as np
 
 
 def compute_threshold(
-    stim_used: bool,
     vals: np.ndarray,
     threshold_mult: float,
-    threshold_start: int = 0,
-    threshold_stop: int = 50,
 ) -> float:
     """
-    Function that computes the threshold above which a peak is considered spike
-    based on the formular threshold = mean + std * mult
+    Function that computes the threshold below which signal is considered to be noise.
+    Formula: threshold = mean + std * mult
     """
-    if stim_used > 0:
-        std_ = np.std(vals[threshold_start:threshold_stop])
-        mean_ = np.mean(vals[threshold_start:threshold_stop])
-        return mean_ + threshold_mult * std_
-    std_ = np.std(vals)
-    median_ = np.median(vals)
-    return median_ + threshold_mult * std_
+    # Simplified threshold detection. I don't know whether there was a reason to restrict the calculations in case of stimulation to only by default 0:50 frames,
+    # but at least with the new algorithm there should be no reason to use a seperate definition
+
+    return np.mean(vals) + np.std(vals)*threshold_mult
