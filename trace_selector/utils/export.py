@@ -39,7 +39,7 @@ def create_peak_df(selected_peaks: list) -> pd.DataFrame:
 
 
 def create_fraction_first_pulse_df(
-    peaks: pd.DataFrame, stimulation_timepoints: list[int], patience: int
+    peaks: pd.DataFrame, stimulation_timepoints: list[int], patience_l: int, patience_r: int
 ) -> pd.DataFrame:
     responses = 0
     total_synapses = 0

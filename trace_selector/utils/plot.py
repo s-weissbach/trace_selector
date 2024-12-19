@@ -48,7 +48,7 @@ class trace_plot:
             self.fig.add_hline(y=self.threshold, line_color="red", line_dash="dash")
 
     def add_stimulation_window(
-        self, frames: list[int], patience: int, start: int = 0, step: int = 30
+        self, frames: list[int], patience_l: int, patience_r: int, start: int = 0, step: int = 30
     ) -> None:
         """
         Adds the stimulation window in yellow after each stimulation for the time
@@ -58,8 +58,8 @@ class trace_plot:
         if frames:
             for frame in frames:
                 self.fig.add_vrect(
-                    x0=frame,
-                    x1=frame + patience,
+                    x0=frame - patience_l,
+                    x1=frame + patience_r,
                     fillcolor="yellow",
                     opacity=0.25,
                     line_width=0,
@@ -71,8 +71,8 @@ class trace_plot:
         steps = [i * step + start for i in range(num_steps)]
         for step in steps:
             self.fig.add_vrect(
-                x0=step,
-                x1=step + patience if step + patience < length else length - 1,
+                x0=step - patience_l if step - patience_r >= 0 else 0,
+                x1=step + patience_r if step + patience_r < length else length - 1,
                 fillcolor="yellow",
                 opacity=0.25,
                 line_width=0,

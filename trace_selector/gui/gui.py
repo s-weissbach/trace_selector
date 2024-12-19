@@ -535,12 +535,13 @@ class MainWindow(QMainWindow):
                     and self.get_setting("stim_frames") != ""
                 ):
                     self.tr_plot.add_stimulation_window(
-                        self.stim_frames, self.settings.config["stim_frames_patience"]
+                        self.stim_frames, self.settings.config["stim_frames_patience_l"], self.settings.config["stim_frames_patience_r"]
                     )
                 else:
                     self.tr_plot.add_stimulation_window(
                         [],
-                        self.settings.config["stim_frames_patience"],
+                        self.settings.config["stim_frames_patience_l"],
+                        self.settings.config["stim_frames_patience_r"],
                         self.get_setting("stim_frames_start"),
                         self.get_setting("stim_frames_step"),
                     )

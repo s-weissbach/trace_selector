@@ -103,7 +103,8 @@ class SynapseResponseData:
         discard_path = os.path.join(settings["output_filepath"], "discard_folder")
         export_xlsx = settings["export_xlsx"]
         ppr = settings["compute_ppr"]
-        patience = settings["stim_frames_patience"]
+        patience_l = settings["stim_frames_patience_l"]
+        patience_r = settings["stim_frames_patience_r"]
         os.makedirs(keep_path, exist_ok=True)
         os.makedirs(discard_path, exist_ok=True)
         keep_df = self.df[self.meta_columns + self.keep_data]
