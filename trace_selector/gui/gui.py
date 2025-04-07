@@ -495,13 +495,6 @@ class MainWindow(QMainWindow):
             self.get_setting("threshold_mult"),
         )
 
-        self.peak_detection()
-        self.add_window.update_information(
-            self.model.preds if self.is_ml_detection_activated() else [],
-            trace,
-        )
-        self.initialize_add_window(self.synapse_response.peaks, new_sample=new_sample)
-
         # create plot depending on mode
         self.tr_plot = trace_plot(
             time=self.synapse_response.time,
@@ -512,8 +505,9 @@ class MainWindow(QMainWindow):
             always_show_threshold=self.get_setting("always_show_threshold"),
         )
         self.tr_plot.create_plot()
-
+        
         # add responses
+        # Andreas: Moved up to run before peak detection, as the peak detection relies on the stimulation data
         if self.settings.config["select_responses"]:
             self.stim_frames = self.settings_window.stimframes
             if self.settings.config["stim_used"]:
@@ -543,6 +537,13 @@ class MainWindow(QMainWindow):
                         for step in range(num_steps)
                         if step * step_size + 2 * stimulation_start <= length
                     ]
+
+        self.peak_detection()
+        self.add_window.update_information(
+            self.model.preds if self.is_ml_detection_activated() else [],
+            trace,
+        )
+        self.initialize_add_window(self.synapse_response.peaks, new_sample=new_sample)
 
         self.labels = self.tr_plot.add_peaks(
             self.add_window.get_peak_dict(), self.settings.config["nms"]

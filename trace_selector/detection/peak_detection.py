@@ -20,7 +20,7 @@ def peak_detection_scipy(
         peaks = []
         for frame in stim_frames:
             tmp_peaks, _ = find_peaks(intensity[frame - 1 - patience_l: frame + 1 + patience_r], height=threshold, distance=minDistance, prominence=prominence)
-            peaks += [peak + frame - 1 for peak in tmp_peaks]
+            peaks += [peak + frame - 1 - patience_l for peak in tmp_peaks]
         # specifically for stimulation used it might happen that peaks are detected
         # twice, when the patience window is higher than the time between two
         # consecutive pulses     

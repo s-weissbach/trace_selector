@@ -130,12 +130,12 @@ class SynapseResponseData:
         
         fname = self.path.stem
         suffix = ".csv"
-        if (export_xlsx or self.suffix in [".xlsx", "xls"]):
+        if (export_xlsx or suffix in [".xlsx", "xls"]):
             suffix = "xlsx"
             
         if (keep_path / (fname+ suffix)).exists():
             for i in range(1, 10):
-                if not (keep_path / (new_fname := f"{fname} ({i})") + suffix).exists():
+                if not (keep_path / ((new_fname := f"{fname} ({i})") + suffix)).exists():
                     fname = new_fname
                     break
             else:
@@ -157,7 +157,7 @@ class SynapseResponseData:
             if settings["export_normalized_traces"]:
                 normalized_keep_df.to_csv(keep_path / (fname + "_normalized" + suffix), index=False)
             discard_df.to_csv(discard_path / (fname + suffix), index=False)
-            
+
         analysis_dfs = []
         analysis_names = []
         settings_df = create_settings_df(settings)
@@ -188,7 +188,7 @@ class SynapseResponseData:
                 analysis_dfs.append(responses_first_pulse_df)
                 analysis_names.append("responses_first_pulse")
         if len(analysis_dfs) > 0:
-            write_excel_output(analysis_dfs, analysis_names, keep_path / (fname + "_analysis.xlsy"))
+            write_excel_output(analysis_dfs, analysis_names, keep_path / (fname + "_analysis.xlsx"))
 
     def next(
         self, normalization_use_median: bool, normalization_sliding_window: int
@@ -264,7 +264,7 @@ class SynapseResponseData:
             evoked = np.any(responded_to_stim)
             self.selected_peaks.append(
                 [
-                    self.filename,
+                    self.path.stem,
                     self.columns[self.idx],
                     peak_tp,
                     amplitude,
