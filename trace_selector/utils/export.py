@@ -46,8 +46,8 @@ def create_fraction_first_pulse_df(
     for roi in peaks["ROI#"].unique():
         if (
             peaks[
-                (peaks["Frame"] >= stimulation_timepoints[0])
-                & (peaks["Frame"] <= stimulation_timepoints[0] + patience)
+                (peaks["Frame"] >= stimulation_timepoints[0] - patience_l)
+                & (peaks["Frame"] <= stimulation_timepoints[0] + patience_r)
                 & (peaks["ROI#"] == roi)
             ].shape[0]
             > 0
@@ -60,13 +60,14 @@ def create_fraction_first_pulse_df(
             "total detected synapses": [total_synapses],
             "fraction responding": [responses / total_synapses],
             "stimulation frame": [stimulation_timepoints[0]],
-            "patience for response": [patience],
+            "left patience for response": [patience_l],
+            "right patience for response": [patience_r],
         }
     )
 
 
 def create_stimulation_df(
-    stimulations: list[int], patience: int, responses: pd.DataFrame
+    stimulations: list[int], patience_l: int, patience_r: int, responses: pd.DataFrame
 ) -> pd.DataFrame:
     stimulation_list = []
     filename = responses.loc[0, "Filename"]
@@ -74,8 +75,8 @@ def create_stimulation_df(
         responses_roi = responses[responses["ROI#"] == roi]
         for stimulation in stimulations:
             responses_stim = responses_roi[
-                (responses_roi["Frame"] >= stimulation)
-                & (responses_roi["Frame"] <= stimulation + patience)
+                (responses_roi["Frame"] >= stimulation - patience_l)
+                & (responses_roi["Frame"] <= stimulation + patience_r)
             ]
             if responses_stim.shape[0] == 0:
                 stimulation_list.append([filename, roi, stimulation, np.nan, 0, 0])
@@ -123,7 +124,7 @@ def create_stimulation_df(
 
 
 def create_ppr_df(
-    peaks: pd.DataFrame, stimulation_timepoints: list[int], patience: int
+    peaks: pd.DataFrame, stimulation_timepoints: list[int], patience_l: int, patience_r: int
 ) -> pd.DataFrame:
     result = []
     for roi in peaks["ROI#"].unique():
@@ -134,8 +135,8 @@ def create_ppr_df(
         for i, stimulation in enumerate(stimulation_timepoints):
             if (
                 peaks[
-                    (peaks["Frame"] >= stimulation)
-                    & (peaks["Frame"] <= stimulation + patience)
+                    (peaks["Frame"] >= stimulation - patience_l)
+                    & (peaks["Frame"] <= stimulation + patience_r)
                     & (peaks["ROI#"] == roi)
                 ].shape[0]
                 == 0
@@ -146,13 +147,13 @@ def create_ppr_df(
                 )
                 continue
             max_response_rel = peaks[
-                (peaks["Frame"] >= stimulation)
-                & (peaks["Frame"] <= stimulation + patience)
+                (peaks["Frame"] >= stimulation - patience_l)
+                & (peaks["Frame"] <= stimulation + patience_r)
                 & (peaks["ROI#"] == roi)
             ]["rel. Amplitude"].max()
             max_response_abs = peaks[
-                (peaks["Frame"] >= stimulation)
-                & (peaks["Frame"] <= stimulation + patience)
+                (peaks["Frame"] >= stimulation - patience_l)
+                & (peaks["Frame"] <= stimulation + patience_r)
                 & (peaks["ROI#"] == roi)
             ]["abs. Amplitude"].max()
             if np.isnan(first_pulse_response_abs):

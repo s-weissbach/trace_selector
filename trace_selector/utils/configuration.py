@@ -55,7 +55,7 @@ class gui_settings:
 
     def write_settings(self) -> None:
         with open(self.user_config_path, "w") as out_json:
-            json.dump(self.config, out_json)
+            json.dump(self.config, out_json, indent=4)
 
     def get_output_folder(self, parent) -> None:
         self.config["output_filepath"] = str(

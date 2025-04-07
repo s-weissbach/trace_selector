@@ -310,10 +310,18 @@ class SettingsWindow(QWidget):
         stimulation_layout.addWidget(self.patience_label)
 
         patience_input_layout = QHBoxLayout()
-        self.patience_input = QSpinBox()
-        self.patience_input.setMaximum(100_000)
-        self.patience_input.editingFinished.connect(self.handle_settings_toggle)
-        patience_input_layout.addWidget(self.patience_input)
+        self.patience_input_l = QSpinBox()
+        self.patience_input_l.setMinimum(0)
+        self.patience_input_l.setMaximum(100)
+        self.patience_input_l.editingFinished.connect(self.handle_settings_toggle)
+        self.patience_input_r = QSpinBox()
+        self.patience_input_r.setMinimum(0)
+        self.patience_input_r.setMaximum(100)
+        self.patience_input_r.editingFinished.connect(self.handle_settings_toggle)
+        patience_input_layout.addWidget(QLabel("Left"))
+        patience_input_layout.addWidget(self.patience_input_l)
+        patience_input_layout.addWidget(QLabel("Right"))
+        patience_input_layout.addWidget(self.patience_input_r)
         patience_input_layout.addStretch()
         stimulation_layout.addLayout(patience_input_layout)
 
@@ -379,7 +387,8 @@ class SettingsWindow(QWidget):
             self.column_list.takeItem(current_row)
 
     def initialize_widget_values(self):
-        self.patience_input.setValue(self.settings.config["stim_frames_patience"])
+        self.patience_input_l.setValue(self.settings.config["stim_frames_patience_l"])
+        self.patience_input_r.setValue(self.settings.config["stim_frames_patience_r"])
         self.stimframes_input.setText(self.settings.config["stim_frames"])
         self.stim_used_box.setChecked(self.settings.config["stim_used"])
         self.th_prominence_input.setValue(self.settings.config["threshold_prominence"])
@@ -396,11 +405,7 @@ class SettingsWindow(QWidget):
         self.normalization_use_median.setChecked(
             self.settings.config["normalization_use_median"]
         )
-        # if self.settings.config["peak_detection_type"] == "Thresholding":
-        #     idx = 0
-        # else:
-        #     idx = 1
-        # self.peak_detection_type.setCurrentIndex(idx)
+
         self.ml_detection_toggle.setChecked(self.settings.config["ml_detection"])
         self.th_detection_toggle.setChecked(self.settings.config["th_detection"])
         self.ml_model.setCurrentIndex(0)
@@ -468,7 +473,8 @@ class SettingsWindow(QWidget):
         self.settings.config["threshold_mult"] = self.threshold_input.value()
         self.settings.config["threshold_mindistance"] = self.th_mindistance_input.value()
         self.settings.config["always_show_threshold"] = self.show_threshold.isChecked()
-        self.settings.config["stim_frames_patience"] = self.patience_input.value()
+        self.settings.config["stim_frames_patience_l"] = self.patience_input_l.value()
+        self.settings.config["stim_frames_patience_r"] = self.patience_input_r.value()
         self.settings.config["frames_for_decay"] = self.frames_for_decay.value()
         self.settings.config["stim_frames"] = self.stimframes_input.text()
         self.settings.config["th_detection"] = self.th_detection_toggle.isChecked()
@@ -546,15 +552,19 @@ class SettingsWindow(QWidget):
             self.stimframes = []
 
     def check_patience(self) -> None:
-        self.patience_input.setStyleSheet("")
+        self.patience_input_l.setStyleSheet("")
+        self.patience_input_r.setStyleSheet("")
         if not self.compute_ppr.isChecked() or len(self.stimframes) <= 1:
             return
         min_distance = self.stimframes[1] - self.stimframes[0]
         for i in range(len(self.stimframes) - 1):
             if self.stimframes[i + 1] - self.stimframes[i] < min_distance:
                 min_distance = self.stimframes[i + 1] - self.stimframes[i]
-        if min_distance < self.settings.config["stim_frames_patience"]:
-            self.patience_input.setStyleSheet(
+        if min_distance < (self.settings.config["stim_frames_patience_l"] + self.settings.config["stim_frames_patience_r"]):
+            self.patience_input_l.setStyleSheet(
+                "QSpinBox" "{" "background : #ff5959;" "}"
+            )
+            self.patience_input_r.setStyleSheet(
                 "QSpinBox" "{" "background : #ff5959;" "}"
             )
 
@@ -579,12 +589,14 @@ class SettingsWindow(QWidget):
             self.stimframes_label.setEnabled(True)
             self.compute_ppr.setEnabled(True)
             self.patience_label.setEnabled(True)
-            self.patience_input.setEnabled(True)
+            self.patience_input_l.setEnabled(True)
+            self.patience_input_r.setEnabled(True)
         else:
             self.stimframes_input.setEnabled(False)
             self.stimframes_label.setEnabled(False)
             self.patience_label.setEnabled(False)
-            self.patience_input.setEnabled(False)
+            self.patience_input_l.setEnabled(False)
+            self.patience_input_r.setEnabled(False)
             self.compute_ppr.setEnabled(False)
 
         if self.non_max_supression_button.isChecked():

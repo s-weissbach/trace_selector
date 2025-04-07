@@ -4,7 +4,8 @@ import pandas as pd
 def failure_rate(
     peaks: pd.DataFrame,
     stimulation_timepoints: list[int],
-    patience: int,
+    patience_l: int,
+    patience_r: int,
     columns: list[str],
 ) -> pd.DataFrame:
     result = []
@@ -16,8 +17,8 @@ def failure_rate(
         for stimulation in stimulation_timepoints:
             if (
                 peaks[
-                    (peaks["Frame"] >= stimulation)
-                    & (peaks["Frame"] <= stimulation + patience)
+                    (peaks["Frame"] >= stimulation - patience_l)
+                    & (peaks["Frame"] <= stimulation + patience_r)
                     & (peaks["ROI#"] == roi)
                 ].shape[0]
                 > 0

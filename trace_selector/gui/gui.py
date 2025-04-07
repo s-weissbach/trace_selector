@@ -25,7 +25,8 @@ from ..detection.peak_detection import peak_detection_scipy
 
 import os
 from typing import Union
-import numpy as np
+import platformdirs
+from pathlib import Path
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 parent_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
@@ -39,8 +40,8 @@ class MainWindow(QMainWindow):
         self.settings = settings
 
         # --- variables ---
-        self.directory = None
-        self.synapse_response = SynapseResponseData()
+        self.file_path: Path|None = None # The current path to the file
+        self.synapse_response = SynapseResponseData(self)
 
         # load weights for CNN
         if self.is_ml_detection_activated():
@@ -318,7 +319,8 @@ class MainWindow(QMainWindow):
             self.settings.config["frames_for_decay"],
             self.add_window.get_peak_dict(),
             self.stim_frames,
-            self.settings.config["stim_frames_patience"],
+            self.settings.config["stim_frames_patience_l"],
+            self.settings.config["stim_frames_patience_r"],
         )
         self.next()
 
@@ -371,8 +373,8 @@ class MainWindow(QMainWindow):
             and self.synapse_response.file_opened
         )
 
-    def update_file_path_label(self, filepath: str) -> None:
-        self.file_path_label.setText("Current open file: " + filepath.split("/")[-1])
+    def update_file_path_label(self) -> None:
+        self.file_path_label.setText("Current open file: " + self.file_path.name if self.file_path is not None else '')
 
     def apply_main_stretch(self) -> None:
         self.main_layout.setStretch(0, 1)
@@ -391,8 +393,8 @@ class MainWindow(QMainWindow):
     def reset(self) -> None:
         self.switch_to_start_layout()
         self.close_add_window()
-        self.filepath = ""
-        self.update_file_path_label("")
+        self.file_path = None
+        self.update_file_path_label()
 
     def open_file_qt(self):
         self.open_file()
@@ -404,37 +406,22 @@ class MainWindow(QMainWindow):
         resulting output dataframes and response columns.
         All responses columns will be plotted.
         """
-        # no directory has been saved
         if path is None:
-            if not hasattr(self, "filepath") or self.filepath == "":
-                if self.directory is not None:
-                    self.filepath = QFileDialog.getOpenFileName(
-                        caption="Select Input File",
-                        directory=self.directory,
-                        filter="Table(*.txt *.csv *.xlsx *.xls)",
-                    )[0]
-                else:
-                    self.filepath = QFileDialog.getOpenFileName(
-                        caption="Select Input File",
-                        filter="Table(*.txt *.csv *.xlsx *.xls)",
-                    )[0]
-
-            if self.filepath == "":
+            if (path := QFileDialog.getOpenFileName(
+                    caption="Select Input File",
+                    directory=str(self.file_path.parent) if self.file_path is not None else None,
+                    filter="Table(*.txt *.csv *.xlsx *.xls)",
+                )[0]) == "":
                 warning = QMessageBox(self)
                 warning.setWindowTitle("Warning")
                 warning.setText("No file has been selected")
                 warning.exec()
                 return
-        else:
-            self.filepath = path
-
-        self.filename = os.path.basename(self.filepath)
-        self.directory = os.path.dirname(self.filepath)
-        self.update_file_path_label(self.filepath)
+        self.file_path = Path(path)
+        self.update_file_path_label()
 
         self.synapse_response.open_file(
-            self.filepath,
-            self.filename,
+            self.file_path,
             self.get_setting("meta_columns"),
             self.get_setting("normalization_use_median"),
             self.get_setting("normalization_sliding_window_size"),
@@ -609,7 +596,7 @@ class MainWindow(QMainWindow):
                 "You reached the end of the file. Your data will be saved at the set output path"
             )
             msg.exec()
-            self.synapse_response.save(self.stim_frames, self.settings.config, self)
+            self.synapse_response.save(self.stim_frames, self.settings.config)
             # self.clear_selection_buttons()
             self.reset()
             self.open_file()
@@ -640,7 +627,8 @@ class MainWindow(QMainWindow):
                 minDistance=self.settings.config["threshold_mindistance"],
                 stim_used=self.settings.config["stim_used"],
                 stim_frames=self.stim_frames,
-                patience=self.settings.config["stim_frames_patience"],
+                patience_l=self.settings.config["stim_frames_patience_l"],
+                patience_r=self.settings.config["stim_frames_patience_r"],
             )
 
         if self.is_ml_detection_activated():

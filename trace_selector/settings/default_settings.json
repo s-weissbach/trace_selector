@@ -7,7 +7,6 @@
     "use_manual_stim_frames": false,
     "stim_frames_start": 0,
     "stim_frames_step": 30,
-    "stim_frames_patience": 10,
     "stim_frames_patience_l": 5,
     "stim_frames_patience_r": 10,
     "stim_used": false,
