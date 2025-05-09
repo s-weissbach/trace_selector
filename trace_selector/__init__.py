@@ -1,4 +1,4 @@
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 from .gui.gui import MainWindow
 from .utils.configuration import gui_settings
@@ -12,7 +12,7 @@ class App:
     main: MainWindow = None
     def start(): 
         # get modelzoo directory
-        modelzoo_folder = user_data_dir(appname="trace_selector", appauthor=None, roaming=False)
+        modelzoo_folder = user_data_dir(appname="trace_selector", appauthor=False, roaming=False)
 
         # check for available ML models
         modelzoo = ModelZoo(modelzoo_folder)

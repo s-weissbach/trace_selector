@@ -14,7 +14,7 @@ class gui_settings:
         parent_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
         settings_path = os.path.join(parent_directory, "settings")
         self.default_config_path = os.path.join(settings_path, "default_settings.json")
-        self.user_config_path = os.path.join(user_data_dir("trace_selector"), "settings.json")
+        self.user_config_path = os.path.join(user_data_dir(appname="trace_selector", appauthor=False, roaming=False), "settings.json")
         
 
         self.parse_settings()

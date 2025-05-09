@@ -67,9 +67,10 @@ class MainWindow(QMainWindow):
     @property
     def model(self):
         # Introduced by Andreas to lazy load torch, as it contributes around 50 % to loading time
-        if self._model is None:
+        if not hasattr(self, "_model"):
             from ..detection.model_wraper import torch_model
             self._model = torch_model()
+        return self._model
 
     # --- gui ---
 
