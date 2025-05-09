@@ -1,4 +1,4 @@
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 from .gui.gui import MainWindow
 from .utils.configuration import gui_settings

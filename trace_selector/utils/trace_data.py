@@ -131,7 +131,7 @@ class SynapseResponseData:
         fname = self.path.stem
         suffix = ".csv"
         if (export_xlsx or suffix in [".xlsx", "xls"]):
-            suffix = "xlsx"
+            suffix = ".xlsx"
             
         if (keep_path / (fname+ suffix)).exists():
             for i in range(1, 10):
@@ -147,7 +147,7 @@ class SynapseResponseData:
                 )
                 msg.exec()
 
-        if suffix == "xlsx":
+        if suffix == ".xlsx":
             keep_df.to_excel(keep_path / (fname + suffix), index=False)
             if settings["export_normalized_traces"]:
                 normalized_keep_df.to_excel(keep_path / (fname + "_normalized" + suffix), index=False)
