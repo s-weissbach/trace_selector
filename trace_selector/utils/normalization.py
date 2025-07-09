@@ -3,18 +3,17 @@ import numpy.typing as npt
 
 
 def sliding_window_normalization(
-    trace: np.ndarray, use_median: bool = True, window_size: int = 50
+        trace: np.ndarray, 
+        use_median: bool = True, 
+        window_size: int = 50,
 ) -> npt.NDArray[np.float64]:
     """
     Normalize a 1D numpy array using a sliding window.
 
-    Parameters:
-    - trace (np.ndarray): Input 1D array to be normalized.
-    - use_median (bool): If True, use median for normalization; else, use mean.
-    - window_size (int): Size of the sliding window.
-
-    Returns:
-    - np.ndarray: Normalized array.
+    :param (np.ndarray) trace: Input 1D array to be normalized.
+    :param (bool) use_median: If True, use median for normalization; else, use mean.
+    :param (int) window_size: Size of the sliding window.
+    :return (np.ndarray): Normalized array.
     """
     if not isinstance(trace, np.ndarray) or trace.ndim != 1:
         raise ValueError("Input 'trace' must be a 1D numpy array.")
@@ -46,3 +45,23 @@ def sliding_window_normalization(
         norm_trace[pos] = dp / norm_factor
 
     return norm_trace
+
+
+def baseline_normalization(
+        trace: np.ndarray, 
+        frame_subset: tuple[int,int]
+        ) -> npt.NDArray[np.float64]:
+    """
+    Normalize the trace using a subset of it
+
+    :param (np.ndarray) trace: Input 1D array to be normalized.
+    :param (tuple[int,int]) frame_subset: The interval for the baseline normalization
+    :return (np.ndarray): Normalized array.
+    """
+    t = trace[frame_subset[0]:frame_subset[1]]
+    if len(t) == 0: # TODO: Maybe implement here a error handling
+        median = 1
+    else:
+        median = np.median(t) 
+
+    return t / median
