@@ -210,20 +210,28 @@ class SettingsWindow(QWidget):
         response_layout.addLayout(self.normalization_grid)
 
         self.normalization_grid.addWidget(QLabel("Select a mode for normalization"))
+        self.normalization_off = QRadioButton("Do not normalize")
+        self.normalization_off.clicked.connect(self.handle_settings_toggle)
+        self.normalization_grid.addWidget(self.normalization_off, 1, 0)
         self.normalization_use_median = QRadioButton("Use median for normalization")
         self.normalization_use_median.clicked.connect(self.handle_settings_toggle)
-        self.normalization_grid.addWidget(self.normalization_use_median, 1, 0)
+        self.normalization_grid.addWidget(self.normalization_use_median, 1, 1)
         self.normalization_use_baseline = QRadioButton("Use baseline normalization")
         self.normalization_use_baseline.clicked.connect(self.handle_settings_toggle)
-        self.normalization_grid.addWidget(self.normalization_use_baseline, 1, 1)
+        self.normalization_grid.addWidget(self.normalization_use_baseline, 1, 2)
         self.normalization_group = QButtonGroup(self)
-        self.normalization_group.addButton(self.normalization_use_median)
-        self.normalization_group.addButton(self.normalization_use_baseline)
+        self.normalization_group.addButton(self.normalization_off, 10)
+        self.normalization_group.addButton(self.normalization_use_median, 11)
+        self.normalization_group.addButton(self.normalization_use_baseline, 12)
 
+        normalization_off_layout = QHBoxLayout()
         normalization_median_layout = QHBoxLayout()
         normalization_mean_layout = QHBoxLayout()
-        self.normalization_grid.addLayout(normalization_median_layout, 2, 0)
-        self.normalization_grid.addLayout(normalization_mean_layout, 2, 1)
+        self.normalization_grid.addLayout(normalization_off_layout, 2, 0)
+        self.normalization_grid.addLayout(normalization_median_layout, 2, 1)
+        self.normalization_grid.addLayout(normalization_mean_layout, 2, 2)
+
+        normalization_off_layout.addStretch()
 
         normalization_median_layout.addWidget(QLabel("Size of the sliding window:"))
         self.normalization_sliding_window_size = QSpinBox()
@@ -438,15 +446,24 @@ class SettingsWindow(QWidget):
         self.export_normalized_traces.setChecked(
             self.settings.config["export_normalized_traces"]
         )
-        self.normalization_sliding_window_size.setValue(
-            self.settings.config["normalization_sliding_window_size"]
-        )
-        self.normalization_use_median.setChecked(
-            self.settings.config["normalization_use_median"]
-        )
-        self.normalization_use_baseline.setChecked(
-            self.settings.config["normalization_use_baseline"]
-        )
+        
+
+        # Normalization settings
+        _selected_button = self.normalization_group.button(int(self.settings.config["normalization_mode"]))
+        if _selected_button is None:
+            _selected_button = self.normalization_use_median
+        _selected_button.setChecked(True)
+
+        self.normalization_sliding_window_size.setValue(self.settings.config["normalization_sliding_window_size"])
+
+        baseline_norm_window = self.settings.config["normalization_baseline_window"].split(":")
+        if len(baseline_norm_window) != 2: baseline_norm_window = ["-1", "-1"]
+        baseline_norm_start = int(baseline_norm_window[0])
+        baseline_norm_length = int(baseline_norm_window[1]) - baseline_norm_start
+        self.normalization_baseline_start.setValue(baseline_norm_start)
+        self.normalization_baseline_length.setValue(baseline_norm_length)
+
+        # Detection settings
 
         self.ml_detection_toggle.setChecked(self.settings.config["ml_detection"])
         self.th_detection_toggle.setChecked(self.settings.config["th_detection"])
@@ -536,12 +553,15 @@ class SettingsWindow(QWidget):
             "export_normalized_traces"
         ] = self.export_normalized_traces.isChecked()
         self.settings.config["export_xlsx"] = self.xlsx_export_box.isChecked()
+
+        # Normalization settings
+        self.settings.config["normalization_mode"] = self.normalization_group.checkedId()
+        self.settings.config["normalization_sliding_window_size"] = self.normalization_sliding_window_size.value()
         self.settings.config[
-            "normalization_use_median"
-        ] = self.normalization_use_median.isChecked()
-        self.settings.config[
-            "normalization_sliding_window_size"
-        ] = self.normalization_sliding_window_size.value()
+            "normalization_baseline_window"
+        ] = "%i:%i" % (self.normalization_baseline_start.value(), self.normalization_baseline_start.value()+self.normalization_baseline_length.value())
+
+
         self.settings.config[
             "normalized_trace"
         ] = self.normalized_trace_toggle.isChecked()
