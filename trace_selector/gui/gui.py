@@ -424,8 +424,9 @@ class MainWindow(QMainWindow):
         self.synapse_response.open_file(
             self.file_path,
             self.get_setting("meta_columns"),
-            self.get_setting("normalization_use_median"),
+            self.get_setting("normalization_mode"),
             self.get_setting("normalization_sliding_window_size"),
+            [int(x) for x in self.get_setting("normalization_baseline_window").split(":")],
         )
         self.labels = []
 
@@ -606,8 +607,9 @@ class MainWindow(QMainWindow):
 
         # advance to next trace if file isn't at eof
         self.synapse_response.next(
-            self.get_setting("normalization_use_median"),
+            self.get_setting("normalization_mode"),
             self.get_setting("normalization_sliding_window_size"),
+            [int(x) for x in self.get_setting("normalization_baseline_window").split(":")],
         )
         self.plot()
         self.current_roi_label.setText(

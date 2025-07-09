@@ -64,4 +64,4 @@ def baseline_normalization(
     else:
         median = np.median(t) 
 
-    return t / median
+    return trace / median

@@ -1,20 +1,30 @@
+from typing import Literal
 import pandas as pd
 import numpy as np
-from ..utils.normalization import sliding_window_normalization
+from ..utils.normalization import sliding_window_normalization, baseline_normalization
 
 
 def normalized_trace_df(
     trace_df: pd.DataFrame,
-    normalization_use_median: bool,
-    normalization_sliding_window_size: int,
+    normalization_mode: Literal[10,11,12,13], 
+    normalization_sliding_window: int,
+    normalization_baseline_window: tuple[int,int]
 ) -> pd.DataFrame:
     norm_trace_df = pd.DataFrame()
     for col in trace_df.columns:
-        norm_trace_df[col] = sliding_window_normalization(
-            trace_df[col].to_numpy(),
-            normalization_use_median,
-            normalization_sliding_window_size,
-        )
+        if normalization_mode == 11 or normalization_mode == 12:
+            norm_trace_df[col] = sliding_window_normalization(
+                trace_df[col].to_numpy(),
+                True if (normalization_mode == 12) else False,
+                normalization_sliding_window,
+            )
+        elif normalization_mode == 13:
+            norm_trace_df[col] = baseline_normalization(
+                trace_df[col].to_numpy(),
+                normalization_baseline_window
+            )
+        else:
+            norm_trace_df[col] = trace_df[col].to_numpy(),
     return norm_trace_df
 
 

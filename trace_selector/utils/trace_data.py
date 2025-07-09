@@ -1,3 +1,4 @@
+from typing import Literal
 import pandas as pd
 from pandas.api.types import is_string_dtype
 import numpy as np
@@ -8,7 +9,7 @@ from pathlib import Path
 
 from .post_selection.decay_compute import compute_tau
 from .post_selection.failure_rate import failure_rate
-from .normalization import sliding_window_normalization
+from .normalization import sliding_window_normalization, baseline_normalization
 from .export import (
     create_stimulation_df,
     create_peak_df,
@@ -44,8 +45,9 @@ class SynapseResponseData:
         self,
         path: Path,
         meta_columns: list[str],
-        normalization_use_median: bool,
+        normalization_mode: Literal[10,11,12,13],
         normalization_sliding_window: int,
+        normalization_baseline_window: tuple[int, int],
     ):
         self.path = path
         if path.suffix == ".virtual":
@@ -80,11 +82,20 @@ class SynapseResponseData:
         self.manual_peaks = []
         self.selected_peaks = []
         self.intensity = self.df[self.columns[self.idx]].to_numpy(dtype=np.float64)
-        self.norm_intensity = sliding_window_normalization(
-            self.df[self.columns[self.idx]].to_numpy(),
-            normalization_use_median,
-            normalization_sliding_window,
-        )
+
+        if normalization_mode == 11 or normalization_mode == 12:
+            self.norm_intensity = sliding_window_normalization(
+                self.df[self.columns[self.idx]].to_numpy(),
+                True if (normalization_mode == 12) else False,
+                normalization_sliding_window,
+            )
+        elif normalization_mode == 13:
+            self.norm_intensity = baseline_normalization(
+                self.df[self.columns[self.idx]].to_numpy(),
+                normalization_baseline_window
+            )
+        else:
+            self.norm_intensity = self.df[self.columns[self.idx]].to_numpy()
         self.time = np.arange(len(self.intensity))
         self.automatic_peaks = []
         self.file_opened = True
@@ -121,8 +132,9 @@ class SynapseResponseData:
         if settings["export_normalized_traces"]:
             normalized_keep_df = normalized_trace_df(
                 keep_df[self.keep_data],
-                settings["normalization_use_median"],
-                settings["normalization_sliding_window_size"],
+                settings("normalization_mode"),
+                settings("normalization_sliding_window_size"),
+                [int(x) for x in settings("normalization_baseline_window").split(":")],
             )
             # instert meta_columns
             for i, col in enumerate(self.meta_columns):
@@ -191,7 +203,10 @@ class SynapseResponseData:
             write_excel_output(analysis_dfs, analysis_names, keep_path / (fname + "_analysis.xlsx"))
 
     def next(
-        self, normalization_use_median: bool, normalization_sliding_window: int
+        self, 
+        normalization_mode: Literal[10,11,12,13], 
+        normalization_sliding_window: int,
+        normalization_baseline_window: tuple[int,int]
     ) -> None:
         """
         Go to next trace and load the data
@@ -200,11 +215,20 @@ class SynapseResponseData:
         self.peaks = []
         self.manual_peaks = []
         self.intensity = self.df[self.columns[self.idx]].to_numpy()
-        self.norm_intensity = sliding_window_normalization(
-            self.df[self.columns[self.idx]].to_numpy(),
-            normalization_use_median,
-            normalization_sliding_window,
-        )
+
+        if normalization_mode == 11 or normalization_mode == 12:
+            self.norm_intensity = sliding_window_normalization(
+                self.df[self.columns[self.idx]].to_numpy(),
+                True if (normalization_mode == 12) else False,
+                normalization_sliding_window,
+            )
+        elif normalization_mode == 13:
+            self.norm_intensity = baseline_normalization(
+                self.df[self.columns[self.idx]].to_numpy(),
+                normalization_baseline_window
+            )
+        else:
+            self.norm_intensity = self.df[self.columns[self.idx]].to_numpy()
         self.time = np.arange(len(self.intensity))
 
     def back(self) -> bool:
