@@ -14,6 +14,9 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QTabWidget,
     QListWidget,
+    QButtonGroup,
+    QRadioButton,
+    QGridLayout,
 )
 from PyQt6.QtCore import Qt
 import warnings
@@ -201,17 +204,53 @@ class SettingsWindow(QWidget):
 
         self.add_line_to_layout(response_layout)
 
-        self.normalization_use_median = QCheckBox("Use median for normalization")
-        self.normalization_use_median.clicked.connect(self.handle_settings_toggle)
-        response_layout.addWidget(self.normalization_use_median)
+        # Normalization settings
 
+        self.normalization_grid = QGridLayout()
+        response_layout.addLayout(self.normalization_grid)
+
+        self.normalization_grid.addWidget(QLabel("Select a mode for normalization"))
+        self.normalization_use_median = QRadioButton("Use median for normalization")
+        self.normalization_use_median.clicked.connect(self.handle_settings_toggle)
+        self.normalization_grid.addWidget(self.normalization_use_median, 1, 0)
+        self.normalization_use_baseline = QRadioButton("Use baseline normalization")
+        self.normalization_use_baseline.clicked.connect(self.handle_settings_toggle)
+        self.normalization_grid.addWidget(self.normalization_use_baseline, 1, 1)
+        self.normalization_group = QButtonGroup(self)
+        self.normalization_group.addButton(self.normalization_use_median)
+        self.normalization_group.addButton(self.normalization_use_baseline)
+
+        normalization_median_layout = QHBoxLayout()
+        normalization_mean_layout = QHBoxLayout()
+        self.normalization_grid.addLayout(normalization_median_layout, 2, 0)
+        self.normalization_grid.addLayout(normalization_mean_layout, 2, 1)
+
+        normalization_median_layout.addWidget(QLabel("Size of the sliding window:"))
         self.normalization_sliding_window_size = QSpinBox()
         self.normalization_sliding_window_size.setMinimum(2)
         self.normalization_sliding_window_size.setMaximum(200)
-        self.normalization_sliding_window_size.valueChanged.connect(
-            self.handle_settings_toggle
-        )
-        response_layout.addWidget(self.normalization_sliding_window_size)
+        self.normalization_sliding_window_size.valueChanged.connect(self.handle_settings_toggle)
+        normalization_median_layout.addWidget(self.normalization_sliding_window_size)
+        normalization_median_layout.addStretch()
+
+        normalization_mean_layout.addWidget(QLabel("Start frame:"))
+        self.normalization_baseline_start = QSpinBox()
+        self.normalization_baseline_start.setMinimum(0)
+        self.normalization_baseline_start.setMaximum(10000)
+        self.normalization_baseline_start.valueChanged.connect(self.handle_settings_toggle)
+        normalization_mean_layout.addWidget(self.normalization_baseline_start)
+        normalization_mean_layout.addWidget(QLabel("Length:"))
+        self.normalization_baseline_length = QSpinBox()
+        self.normalization_baseline_length.setMinimum(1)
+        self.normalization_baseline_length.setMaximum(500)
+        self.normalization_baseline_length.valueChanged.connect(self.handle_settings_toggle)
+        normalization_mean_layout.addWidget(self.normalization_baseline_length)
+        normalization_mean_layout.addStretch()
+
+        self.add_line_to_layout(response_layout)
+
+        # Other normalization settings
+        
 
         self.normalized_trace_toggle = QCheckBox("Show normalized trace")
         self.normalized_trace_toggle.clicked.connect(self.handle_settings_toggle)
@@ -404,6 +443,9 @@ class SettingsWindow(QWidget):
         )
         self.normalization_use_median.setChecked(
             self.settings.config["normalization_use_median"]
+        )
+        self.normalization_use_baseline.setChecked(
+            self.settings.config["normalization_use_baseline"]
         )
 
         self.ml_detection_toggle.setChecked(self.settings.config["ml_detection"])
