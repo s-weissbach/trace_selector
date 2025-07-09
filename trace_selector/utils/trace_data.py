@@ -132,9 +132,9 @@ class SynapseResponseData:
         if settings["export_normalized_traces"]:
             normalized_keep_df = normalized_trace_df(
                 keep_df[self.keep_data],
-                settings("normalization_mode"),
-                settings("normalization_sliding_window_size"),
-                [int(x) for x in settings("normalization_baseline_window").split(":")],
+                settings["normalization_mode"],
+                settings["normalization_sliding_window_size"],
+                [int(x) for x in settings["normalization_baseline_window"].split(":")],
             )
             # instert meta_columns
             for i, col in enumerate(self.meta_columns):
