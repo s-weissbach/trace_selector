@@ -19,4 +19,10 @@ def compute_threshold(
     if frame_subset is not None:
         vals = vals[frame_subset[0]:frame_subset[1]]
 
+    if len(vals) == 0:
+        raise ThresholdError("The frame subset is invalid")
+
     return float(np.mean(vals) + np.std(vals)*threshold_mult)
+
+class ThresholdError(Exception):
+    pass

@@ -320,7 +320,30 @@ class SettingsWindow(QWidget):
         self.threshold_wrapper_widget = QWidget()
         self.threshold_wrapper_widget.setLayout(threshold_layout)
 
+        th_frame_subset_layout = QHBoxLayout()
+        threshold_layout.addLayout(th_frame_subset_layout)
+
+        self.th_use_frame_subset = QCheckBox("Use a subset to calculate the baseline")
+        self.th_use_frame_subset.stateChanged.connect(self.handle_settings_toggle)
+        th_frame_subset_layout.addWidget(self.th_use_frame_subset)
+
+        th_frame_subset_layout.addWidget(QLabel("Start frame:"))
+        self.th_subset_start = QSpinBox()
+        self.th_subset_start.setMinimum(0)
+        self.th_subset_start.setMaximum(10000)
+        self.th_subset_start.valueChanged.connect(self.handle_settings_toggle)
+        th_frame_subset_layout.addWidget(self.th_subset_start)
+        th_frame_subset_layout.addWidget(QLabel("Length:"))
+        self.th_subset_length = QSpinBox()
+        self.th_subset_length.setMinimum(1)
+        self.th_subset_length.setMaximum(500)
+        self.th_subset_length.valueChanged.connect(self.handle_settings_toggle)
+        th_frame_subset_layout.addWidget(self.th_subset_length)
+        th_frame_subset_layout.addStretch()
+
         threshold_layout.addStretch()
+
+
 
         # --- stimulation settings ---
 
@@ -442,15 +465,10 @@ class SettingsWindow(QWidget):
         self.patience_input_r.setValue(self.settings.config["stim_frames_patience_r"])
         self.stimframes_input.setText(self.settings.config["stim_frames"])
         self.stim_used_box.setChecked(self.settings.config["stim_used"])
-        self.th_prominence_input.setValue(self.settings.config["threshold_prominence"])
-        self.threshold_input.setValue(self.settings.config["threshold_mult"])
-        self.th_mindistance_input.setValue(self.settings.config["threshold_mindistance"])
-        self.show_threshold.setChecked(self.settings.config["always_show_threshold"])
         self.xlsx_export_box.setChecked(self.settings.config["export_xlsx"])
         self.export_normalized_traces.setChecked(
             self.settings.config["export_normalized_traces"]
         )
-        
 
         # Normalization settings
         _selected_button = self.normalization_group.button(int(self.settings.config["normalization_mode"]))
@@ -468,6 +486,15 @@ class SettingsWindow(QWidget):
         self.normalization_baseline_length.setValue(baseline_norm_length)
 
         # Detection settings
+
+        #  Local maximum settings
+        self.th_prominence_input.setValue(self.settings.config["threshold_prominence"])
+        self.threshold_input.setValue(self.settings.config["threshold_mult"])
+        self.th_mindistance_input.setValue(self.settings.config["threshold_mindistance"])
+        self.show_threshold.setChecked(self.settings.config["always_show_threshold"])
+        self.th_use_frame_subset.setChecked(self.settings.config["th_use_frame_subset"])
+        self.th_subset_start.setValue(self.settings.config["th_subset_start"])
+        self.th_subset_length.setValue(self.settings.config["th_subset_length"])
 
         self.ml_detection_toggle.setChecked(self.settings.config["ml_detection"])
         self.th_detection_toggle.setChecked(self.settings.config["th_detection"])
@@ -532,10 +559,21 @@ class SettingsWindow(QWidget):
         provide the user set configurations.
         """
         # update all values that might have been changed
+
+        # Local maximum settings
         self.settings.config["threshold_prominence"] = self.th_prominence_input.value()
         self.settings.config["threshold_mult"] = self.threshold_input.value()
         self.settings.config["threshold_mindistance"] = self.th_mindistance_input.value()
         self.settings.config["always_show_threshold"] = self.show_threshold.isChecked()
+        self.settings.config["th_use_frame_subset"] = self.th_use_frame_subset.isChecked()
+        self.settings.config["th_subset_start"] = self.th_subset_start.value()
+        self.settings.config["th_subset_length"] = self.th_subset_length.value()
+
+        self.th_use_frame_subset.setChecked(self.settings.config["th_use_frame_subset"])
+        self.th_subset_start.setValue(self.settings.config["th_subset_start"])
+        self.th_subset_length.setValue(self.settings.config["th_subset_length"])
+
+
         self.settings.config["stim_frames_patience_l"] = self.patience_input_l.value()
         self.settings.config["stim_frames_patience_r"] = self.patience_input_r.value()
         self.settings.config["frames_for_decay"] = self.frames_for_decay.value()

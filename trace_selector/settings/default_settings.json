@@ -39,5 +39,8 @@
     "threshold_slider_ml": 50,
     "always_show_threshold": false,
     "th_detection": true,
-    "ml_detection": false
+    "ml_detection": false,
+    "th_use_frame_subset": false,
+    "th_subset_start": 0,
+    "th_subset_length": 50
 }

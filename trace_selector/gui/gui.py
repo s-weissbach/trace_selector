@@ -19,7 +19,7 @@ from .settingswindow import SettingsWindow
 from .add_window import AddWindow
 from .api import API
 from ..utils.trace_data import SynapseResponseData
-from ..utils.threshold import compute_threshold
+from ..utils.threshold import compute_threshold, ThresholdError
 from ..utils.plot import trace_plot
 from ..detection.peak_detection import peak_detection_scipy
 
@@ -492,10 +492,21 @@ class MainWindow(QMainWindow):
             else self.synapse_response.intensity
         )
 
-        self.threshold = compute_threshold(
-            trace,
-            self.get_setting("threshold_mult"),
-        )
+
+        try:
+            self.threshold = compute_threshold(
+                trace,
+                self.get_setting("threshold_mult"),
+                frame_subset= ((self.get_setting("th_subset_start"), self.get_setting("th_subset_start") + self.get_setting("th_subset_length")) if self.get_setting("th_use_frame_subset") else None)
+            )
+        except ThresholdError as ex:
+            self.threshold = 1
+            warning = QMessageBox(self)
+            warning.setWindowTitle("Warning")
+            warning.setText(
+                "Your selection for the threshold subset is invalid. This defaults the threshold to 1. Try to adjust the 'Use a subset to calculate the baseline' in the Local Maximum settings page"
+            )
+            warning.exec()
 
         # create plot depending on mode
         self.tr_plot = trace_plot(
