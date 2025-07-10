@@ -1,6 +1,6 @@
 [project]
 name = "trace-selector"
-version = "1.0.2"
+version = "1.0.3_Beta"
 description = "Small internal package for post-selection of Glutmate/Calcium signal responses."
 authors = [
     {name="Stephan Weissbach", email="s.weissbach@uni-mainz.de"}
