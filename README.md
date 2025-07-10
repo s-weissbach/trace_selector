@@ -1,5 +1,5 @@
 > [!Caution]
-> This repository is not remained anymore. Please see [Trace Selector](https://github.com/andreasmz/trace_selector) for the maintained version.
+> This repository is not maintained anymore. Please see [Trace Selector](https://github.com/andreasmz/trace_selector) for the maintained version.
 
 # Trace Selector
 [![DOI](https://zenodo.org/badge/638173235.svg)](https://zenodo.org/doi/10.5281/zenodo.11949062) 
