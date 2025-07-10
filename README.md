@@ -1,3 +1,6 @@
+> [!Caution]
+> This repository is not remained anymore. Please see [Trace Selector](https://github.com/andreasmz/trace_selector) for the maintained version.
+
 # Trace Selector
 [![DOI](https://zenodo.org/badge/638173235.svg)](https://zenodo.org/doi/10.5281/zenodo.11949062) 
 [![PyPI version](https://badge.fury.io/py/trace_selector.svg)](https://badge.fury.io/py/trace_selector)
