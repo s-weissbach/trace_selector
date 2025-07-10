@@ -15,9 +15,6 @@ def compute_threshold(
     :param (ruple[int,int]|None, optional) frame_subset: If not None, only the slice given by this array is used for threshold detection.
     :return (float): The calculated threshold
     """
-    # 2025-07-09 Added back a modern version of the threshold subset code. But it will not be used (yet) as I still do not see the point of this setting.
-    # 2024-?: Simplified threshold detection. I don't know whether there was a reason to restrict the calculations in case of stimulation to only by default 0:50 frames,
-    # but at least with the new algorithm there should be no reason to use a seperate definition
 
     if frame_subset is not None:
         vals = vals[frame_subset[0]:frame_subset[1]]
