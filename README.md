@@ -1,6 +1,7 @@
 > [!Caution]
 > This repository is not maintained anymore. Please see [Trace Selector](https://github.com/andreasmz/trace_selector) for the maintained version.
 
+
 # Trace Selector
 [![DOI](https://zenodo.org/badge/638173235.svg)](https://zenodo.org/doi/10.5281/zenodo.11949062) 
 [![PyPI version](https://badge.fury.io/py/trace_selector.svg)](https://badge.fury.io/py/trace_selector)
@@ -37,6 +38,10 @@ You will need [Anaconda](https://www.anaconda.com/download) to be installed. If 
 
    ```bash
       pip install trace_selector
+   ```
+The last maintained version from me can be installed by
+```bash
+      pip install trace_selector==0.2.14
    ```
 
 ### Build from source
